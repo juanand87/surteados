@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sorteos — Surteados</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+
+<nav class="navbar" id="navbar">
+  <div class="navbar-inner">
+    <a href="index.html" class="navbar-logo">
+      <div class="logo-icon">🎟️</div>
+      <span class="brand">Sur<em>tea</em>dos</span>
+    </a>
+    <nav class="navbar-nav">
+      <a href="index.html">Inicio</a>
+      <a href="sorteos.html" class="active">Sorteos</a>
+      <a href="ganadores.html">Ganadores</a>
+      <a href="mis-tickets.html">Mis Tickets</a>
+    </nav>
+    <div class="navbar-actions">
+      <a href="mis-tickets.html" class="btn btn-outline btn-sm">Mis Tickets</a>
+      <a href="sorteos.html" class="btn btn-primary btn-sm">Participar 🎟️</a>
+    </div>
+    <button class="navbar-mobile-toggle" id="mobileToggle">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="mobile-nav" id="mobileNav">
+    <a href="index.html">🏠 Inicio</a>
+    <a href="sorteos.html">🎟️ Sorteos</a>
+    <a href="ganadores.html">🏆 Ganadores</a>
+    <a href="mis-tickets.html">🎫 Mis Tickets</a>
+  </div>
+</nav>
+
+<div style="padding-top:68px;">
+  <div class="page-header">
+    <div class="container text-center">
+      <div class="badge" style="margin: 0 auto 1rem; display:inline-flex;">🎟️ Sorteos</div>
+      <h1>Todos los <span class="text-gradient">Sorteos</span></h1>
+      <p style="max-width:520px; margin: .75rem auto 0;">Explora todos nuestros sorteos activos, próximos y finalizados.</p>
+    </div>
+  </div>
+
+  <section class="section container">
+    <!-- Search & filters -->
+    <div style="display:flex; gap:1rem; align-items:center; flex-wrap:wrap; margin-bottom:2rem;">
+      <div style="flex:1; min-width:200px; position:relative;">
+        <span style="position:absolute; left:.875rem; top:50%; transform:translateY(-50%); font-size:1rem;">🔍</span>
+        <input type="text" id="searchInput" class="form-control" placeholder="Buscar sorteo..." style="padding-left:2.5rem;">
+      </div>
+      <div class="tab-filters" style="margin:0;">
+        <button class="tab-filter active" data-filter="all">Todos</button>
+        <button class="tab-filter" data-filter="active">Activos</button>
+        <button class="tab-filter" data-filter="soon">Próximos</button>
+        <button class="tab-filter" data-filter="ended">Finalizados</button>
+      </div>
+    </div>
+
+    <!-- Raffles grid -->
+    <div class="grid-3" id="sorteosList"></div>
+  </section>
+</div>
+
+<!-- PURCHASE MODAL (reused from index) -->
+<div class="modal-backdrop" id="purchaseModal">
+  <div class="modal">
+    <div class="modal-top-bar"></div>
+    <div class="modal-header">
+      <span class="modal-title" id="modalTitle">Comprar Tickets</span>
+      <button class="modal-close" id="modalClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="purchase-steps mb-3">
+        <div class="purchase-step active" data-step="1"><div class="ps-num">1</div><div class="ps-label">Pack</div></div>
+        <div class="purchase-step" data-step="2"><div class="ps-num">2</div><div class="ps-label">Datos</div></div>
+        <div class="purchase-step" data-step="3"><div class="ps-num">3</div><div class="ps-label">Pago</div></div>
+        <div class="purchase-step" data-step="4"><div class="ps-num">4</div><div class="ps-label">¡Listo!</div></div>
+      </div>
+      <div class="step-panel active" id="step1">
+        <h4 class="text-white mb-2">Elige tu pack</h4>
+        <div id="modalPacksGrid" class="packs-grid mb-3"></div>
+        <div class="separator"></div>
+        <div class="flex-between mb-3">
+          <span class="text-sm text-muted">Pack seleccionado:</span>
+          <span class="text-sm font-bold text-white" id="selectedPackLabel">Ninguno</span>
+        </div>
+        <button class="btn btn-primary btn-block" id="step1Next" disabled>Continuar →</button>
+      </div>
+      <div class="step-panel" id="step2">
+        <h4 class="text-white mb-2">Tus datos</h4>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Nombre completo *</label><input type="text" class="form-control" id="buyerName" placeholder="Juan Pérez"></div>
+          <div class="form-group"><label class="form-label">Teléfono</label><input type="tel" class="form-control" id="buyerPhone" placeholder="+56 9 1234 5678"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Correo electrónico *</label><input type="email" class="form-control" id="buyerEmail" placeholder="tu@correo.com"><p class="form-hint">📧 Aquí recibirás tus tickets digitales</p></div>
+        <div class="form-group"><label class="form-label">Confirmar correo *</label><input type="email" class="form-control" id="buyerEmailConfirm" placeholder="tu@correo.com"></div>
+        <div class="separator"></div>
+        <div class="flex gap-2">
+          <button class="btn btn-ghost" id="step2Back">← Volver</button>
+          <button class="btn btn-primary" style="flex:1" id="step2Next">Continuar →</button>
+        </div>
+      </div>
+      <div class="step-panel" id="step3">
+        <h4 class="text-white mb-2">Resumen de compra</h4>
+        <div class="card mb-3" style="padding:1rem;">
+          <div class="flex-between mb-1"><span class="text-sm text-muted">Sorteo:</span><span class="text-sm text-white font-bold" id="summaryTitle">—</span></div>
+          <div class="flex-between mb-1"><span class="text-sm text-muted">Pack:</span><span class="text-sm text-primary-color" id="summaryPack">—</span></div>
+          <div class="flex-between mb-1"><span class="text-sm text-muted">Correo:</span><span class="text-sm" id="summaryEmail">—</span></div>
+          <div class="separator"></div>
+          <div class="flex-between"><span class="font-bold text-white">Total a pagar:</span><span class="font-bold text-accent" id="summaryTotal" style="font-size:1.2rem;">—</span></div>
+        </div>
+        <h4 class="text-white mb-2">Método de pago</h4>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:.75rem; margin-bottom:1.25rem;">
+          <label class="card" style="cursor:pointer; padding:.875rem; display:flex; align-items:center; gap:.75rem;"><input type="radio" name="payMethod" value="webpay" style="accent-color:var(--color-primary);"><div><div style="font-weight:700; color:var(--text-inv); font-size:.875rem;">Webpay</div><div style="font-size:.75rem; color:var(--text-muted);">Tarjeta débito/crédito</div></div></label>
+          <label class="card" style="cursor:pointer; padding:.875rem; display:flex; align-items:center; gap:.75rem;"><input type="radio" name="payMethod" value="khipu" style="accent-color:var(--color-primary);"><div><div style="font-weight:700; color:var(--text-inv); font-size:.875rem;">Khipu</div><div style="font-size:.75rem; color:var(--text-muted);">Transferencia bancaria</div></div></label>
+          <label class="card" style="cursor:pointer; padding:.875rem; display:flex; align-items:center; gap:.75rem;"><input type="radio" name="payMethod" value="flow" style="accent-color:var(--color-primary);"><div><div style="font-weight:700; color:var(--text-inv); font-size:.875rem;">Flow</div><div style="font-size:.75rem; color:var(--text-muted);">Múltiples medios</div></div></label>
+          <label class="card" style="cursor:pointer; padding:.875rem; display:flex; align-items:center; gap:.75rem;"><input type="radio" name="payMethod" value="transfer" style="accent-color:var(--color-primary);"><div><div style="font-weight:700; color:var(--text-inv); font-size:.875rem;">Transferencia</div><div style="font-size:.75rem; color:var(--text-muted);">Banco directo</div></div></label>
+        </div>
+        <div class="separator"></div>
+        <div class="flex gap-2">
+          <button class="btn btn-ghost" id="step3Back">← Volver</button>
+          <button class="btn btn-accent" style="flex:1; font-weight:800; font-size:1rem;" id="step3Pay">🔒 Pagar Ahora</button>
+        </div>
+        <p class="text-xs text-muted text-center mt-1">Transacción segura y encriptada</p>
+      </div>
+      <div class="step-panel" id="step4">
+        <div class="text-center" style="padding:1rem 0;">
+          <div style="font-size:4rem; margin-bottom:1rem;">🎉</div>
+          <h3 class="text-white mb-2">¡Compra exitosa!</h3>
+          <p class="mb-3">Tus tickets han sido asignados. Revisa tu correo, los recibirás en los próximos minutos.</p>
+          <div id="purchasedTickets" style="margin-bottom:1.5rem;"></div>
+          <div class="card" style="padding:1rem; text-align:left; margin-bottom:1.5rem;">
+            <div class="flex-between mb-1"><span class="text-sm text-muted">📧 Enviado a:</span><span class="text-sm text-white font-bold" id="confirmEmail">—</span></div>
+            <div class="flex-between"><span class="text-sm text-muted">💰 Pagado:</span><span class="text-sm text-accent font-bold" id="confirmAmount">—</span></div>
+          </div>
+          <a href="mis-tickets.html" class="btn btn-primary btn-block mb-2">Ver mis tickets</a>
+          <button class="btn btn-ghost btn-block" id="closeAfterPurchase">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="theme-picker" id="themePicker">
+  <div class="theme-toggle" id="themeToggle" title="Personalizar colores">🎨</div>
+  <div class="theme-panel" id="themePanel">
+    <h4>🎨 Personalizar Tema</h4>
+    <p class="text-xs text-muted mb-2">Presets:</p>
+    <div class="theme-presets" id="themePresets">
+      <button class="preset-btn active" data-preset="purple" style="background:linear-gradient(135deg,#7c3aed,#f59e0b);"></button>
+      <button class="preset-btn" data-preset="blue" style="background:linear-gradient(135deg,#2563eb,#06b6d4);"></button>
+      <button class="preset-btn" data-preset="emerald" style="background:linear-gradient(135deg,#059669,#fbbf24);"></button>
+      <button class="preset-btn" data-preset="rose" style="background:linear-gradient(135deg,#e11d48,#f59e0b);"></button>
+      <button class="preset-btn" data-preset="indigo" style="background:linear-gradient(135deg,#4338ca,#c026d3);"></button>
+      <button class="preset-btn" data-preset="teal" style="background:linear-gradient(135deg,#0d9488,#f97316);"></button>
+    </div>
+    <div class="color-input-group"><label>Color primario</label><div class="color-input-row"><input type="color" id="colorPrimary" value="#7c3aed"><input type="text" class="form-control" id="colorPrimaryHex" value="#7c3aed"></div></div>
+    <div class="color-input-group"><label>Color acento</label><div class="color-input-row"><input type="color" id="colorAccent" value="#f59e0b"><input type="text" class="form-control" id="colorAccentHex" value="#f59e0b"></div></div>
+    <button class="btn btn-primary btn-sm btn-block mt-2" id="applyThemeBtn">Aplicar Tema</button>
+    <button class="btn btn-ghost btn-sm btn-block mt-1" id="resetThemeBtn">Restaurar</button>
+  </div>
+</div>
+
+<div id="toast-container" class="toast-container"></div>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+  // Render sorteos
+  (function() {
+    const list = document.getElementById('sorteosList');
+    const searchInput = document.getElementById('searchInput');
+    const filterBtns = document.querySelectorAll('.tab-filter');
+    let filterStatus = 'all';
+    let searchQuery = '';
+
+    function render() {
+      let raffles = db.getRaffles();
+      if (filterStatus !== 'all') raffles = raffles.filter(r => r.status === filterStatus);
+      if (searchQuery) raffles = raffles.filter(r => r.title.toLowerCase().includes(searchQuery) || r.category.toLowerCase().includes(searchQuery));
+      if (raffles.length === 0) {
+        list.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="empty-icon">🎟️</div><p>No se encontraron sorteos.</p></div>`;
+        return;
+      }
+      list.innerHTML = raffles.map(r => buildRaffleCard(r)).join('');
+      setTimeout(() => {
+        list.querySelectorAll('.progress-fill[data-pct]').forEach(el => el.style.width = el.dataset.pct + '%');
+      }, 100);
+    }
+
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        filterBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        filterStatus = btn.dataset.filter;
+        render();
+      });
+    });
+
+    searchInput?.addEventListener('input', () => {
+      searchQuery = searchInput.value.toLowerCase().trim();
+      render();
+    });
+
+    render();
+  })();
+</script>
+</body>
+</html>

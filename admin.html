@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — Surteados</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+
+<!-- ADMIN NAVBAR -->
+<nav class="navbar" id="navbar" style="background:rgba(10,10,15,0.98);">
+  <div class="navbar-inner">
+    <a href="index.html" class="navbar-logo"><div class="logo-icon">🎟️</div><span class="brand">Sur<em>tea</em>dos</span></a>
+    <div style="display:flex; align-items:center; gap:.5rem;">
+      <span class="pill pill-purple" style="font-size:.7rem;">Panel Admin</span>
+    </div>
+    <div class="navbar-actions">
+      <a href="index.html" class="btn btn-outline btn-sm">← Ver sitio</a>
+    </div>
+    <button class="navbar-mobile-toggle" id="mobileToggle"><span></span><span></span><span></span></button>
+  </div>
+  <div class="mobile-nav" id="mobileNav">
+    <a href="index.html">← Ver sitio</a>
+  </div>
+</nav>
+
+<div class="admin-layout">
+  <!-- SIDEBAR -->
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar-section">
+      <p>Principal</p>
+      <div class="admin-nav-item active" data-section="dashboard"><span class="icon">📊</span> Dashboard</div>
+      <div class="admin-nav-item" data-section="sorteos"><span class="icon">🎟️</span> Sorteos</div>
+      <div class="admin-nav-item" data-section="tickets"><span class="icon">🎫</span> Tickets vendidos</div>
+      <div class="admin-nav-item" data-section="ganadores"><span class="icon">🏆</span> Ganadores</div>
+    </div>
+    <div class="admin-sidebar-section">
+      <p>Configuración</p>
+      <div class="admin-nav-item" data-section="settings"><span class="icon">⚙️</span> Ajustes</div>
+      <div class="admin-nav-item" data-section="theme"><span class="icon">🎨</span> Tema y colores</div>
+    </div>
+    <div class="admin-sidebar-section" style="margin-top:auto; padding-top:2rem;">
+      <div class="admin-nav-item" style="color:var(--color-error);" onclick="if(confirm('¿Restablecer datos de ejemplo?')) { db.reset(); location.reload(); }">
+        <span class="icon">🔄</span> Restablecer datos
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="admin-main">
+
+    <!-- ═══ DASHBOARD ═══ -->
+    <div class="admin-section active" id="sec-dashboard">
+      <div class="admin-header">
+        <h2>📊 Dashboard</h2>
+        <span class="text-sm text-muted">Bienvenido al panel de control</span>
+      </div>
+
+      <div class="admin-stat-cards" id="dashStats"></div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem;">
+        <!-- Recent tickets -->
+        <div class="table-container">
+          <div class="table-header"><h3>🎫 Últimas compras</h3></div>
+          <table class="admin-table">
+            <thead><tr><th>Comprador</th><th>Sorteo</th><th>Monto</th><th>Fecha</th></tr></thead>
+            <tbody id="dashRecentTickets"></tbody>
+          </table>
+        </div>
+        <!-- Raffle progress -->
+        <div class="table-container">
+          <div class="table-header"><h3>🎟️ Estado sorteos</h3></div>
+          <div style="padding:1rem;" id="dashRaffleProgress"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SORTEOS ═══ -->
+    <div class="admin-section" id="sec-sorteos">
+      <div class="admin-header">
+        <h2>🎟️ Gestión de Sorteos</h2>
+        <button class="btn btn-primary btn-sm" onclick="openRaffleModal()">+ Nuevo Sorteo</button>
+      </div>
+
+      <div class="table-container">
+        <table class="admin-table">
+          <thead><tr><th>Sorteo</th><th>Categoría</th><th>Estado</th><th>Tickets</th><th>Premios</th><th>Fecha sorteo</th><th>Acciones</th></tr></thead>
+          <tbody id="sorteosTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ TICKETS ═══ -->
+    <div class="admin-section" id="sec-tickets">
+      <div class="admin-header">
+        <h2>🎫 Tickets Vendidos</h2>
+        <div style="display:flex; gap:.5rem; align-items:center;">
+          <select class="form-control" id="ticketsFilter" style="width:200px; padding:.45rem .75rem;">
+            <option value="all">Todos los sorteos</option>
+          </select>
+          <input type="text" class="form-control" id="ticketsSearch" placeholder="Buscar..." style="width:180px; padding:.45rem .75rem;">
+        </div>
+      </div>
+
+      <div class="table-container">
+        <div class="table-header flex-between">
+          <h3>Listado de tickets</h3>
+          <span class="pill pill-purple" id="ticketsCount">0 registros</span>
+        </div>
+        <table class="admin-table">
+          <thead><tr><th>Ticket(s)</th><th>Comprador</th><th>Sorteo</th><th>Pack</th><th>Monto</th><th>Fecha</th><th>Pago</th></tr></thead>
+          <tbody id="ticketsTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ GANADORES ═══ -->
+    <div class="admin-section" id="sec-ganadores">
+      <div class="admin-header">
+        <h2>🏆 Gestión de Ganadores</h2>
+        <button class="btn btn-primary btn-sm" onclick="openWinnerModal()">+ Agregar Ganador</button>
+      </div>
+
+      <div class="table-container">
+        <table class="admin-table">
+          <thead><tr><th>Ganador</th><th>Sorteo</th><th>Premio</th><th>Valor</th><th>Fecha</th><th>Acciones</th></tr></thead>
+          <tbody id="ganadoresTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ SETTINGS ═══ -->
+    <div class="admin-section" id="sec-settings">
+      <div class="admin-header"><h2>⚙️ Ajustes del Sitio</h2></div>
+      <div class="card" style="padding:2rem; max-width:600px;">
+        <form id="settingsForm">
+          <div class="form-group">
+            <label class="form-label">Nombre del sitio</label>
+            <input type="text" class="form-control" id="s_siteName">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tagline</label>
+            <input type="text" class="form-control" id="s_tagline">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email de contacto</label>
+            <input type="email" class="form-control" id="s_email">
+          </div>
+          <div class="form-group">
+            <label class="form-label">WhatsApp</label>
+            <input type="text" class="form-control" id="s_whatsapp">
+          </div>
+          <h4 class="text-white mt-3 mb-2">Redes Sociales</h4>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Instagram</label><input type="text" class="form-control" id="s_instagram" placeholder="URL"></div>
+            <div class="form-group"><label class="form-label">TikTok</label><input type="text" class="form-control" id="s_tiktok" placeholder="URL"></div>
+            <div class="form-group"><label class="form-label">YouTube</label><input type="text" class="form-control" id="s_youtube" placeholder="URL"></div>
+            <div class="form-group"><label class="form-label">Facebook</label><input type="text" class="form-control" id="s_facebook" placeholder="URL"></div>
+          </div>
+          <button type="submit" class="btn btn-primary">Guardar cambios</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ═══ THEME ═══ -->
+    <div class="admin-section" id="sec-theme">
+      <div class="admin-header"><h2>🎨 Tema y Colores</h2></div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; max-width:900px;">
+        <div class="card" style="padding:1.5rem;">
+          <h4 class="text-white mb-3">Presets de color</h4>
+          <div style="display:flex; flex-direction:column; gap:.75rem;" id="adminPresets"></div>
+        </div>
+        <div class="card" style="padding:1.5rem;">
+          <h4 class="text-white mb-3">Personalizar colores</h4>
+          <div class="color-input-group">
+            <label>Color primario</label>
+            <div class="color-input-row"><input type="color" id="adminColorPrimary" value="#7c3aed"><input type="text" class="form-control" id="adminColorPrimaryHex" value="#7c3aed"></div>
+          </div>
+          <div class="color-input-group">
+            <label>Color acento</label>
+            <div class="color-input-row"><input type="color" id="adminColorAccent" value="#f59e0b"><input type="text" class="form-control" id="adminColorAccentHex" value="#f59e0b"></div>
+          </div>
+          <div style="margin-top:1rem; padding:1rem; background:var(--bg-base); border-radius:var(--radius-md); text-align:center;" id="themePreview">
+            <div style="display:flex; gap:.5rem; justify-content:center; flex-wrap:wrap;">
+              <button class="btn btn-primary btn-sm">Botón primario</button>
+              <button class="btn btn-accent btn-sm">Botón acento</button>
+              <span class="pill pill-purple">Badge</span>
+            </div>
+          </div>
+          <div style="display:flex; gap:.5rem; margin-top:1rem;">
+            <button class="btn btn-primary" style="flex:1" id="adminApplyTheme">✅ Aplicar</button>
+            <button class="btn btn-ghost" id="adminResetTheme">Restaurar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ═══ RAFFLE MODAL ═══ -->
+<div class="modal-backdrop" id="raffleModal">
+  <div class="modal" style="max-width:700px;">
+    <div class="modal-top-bar"></div>
+    <div class="modal-header">
+      <span class="modal-title" id="raffleModalTitle">Nuevo Sorteo</span>
+      <button class="modal-close" onclick="closeRaffleModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- Tabs -->
+      <div style="display:flex; gap:.5rem; margin-bottom:1.5rem; background:var(--bg-base); border-radius:var(--radius-md); padding:.25rem;">
+        <button class="btn btn-primary btn-sm" style="flex:1;" id="rtab-info" onclick="switchRaffleTab('info')">📋 Info</button>
+        <button class="btn btn-ghost btn-sm" style="flex:1;" id="rtab-prizes" onclick="switchRaffleTab('prizes')">🏆 Premios</button>
+        <button class="btn btn-ghost btn-sm" style="flex:1;" id="rtab-packs" onclick="switchRaffleTab('packs')">🎟️ Packs</button>
+        <button class="btn btn-ghost btn-sm" style="flex:1;" id="rtab-legal" onclick="switchRaffleTab('legal')">📜 Legal</button>
+      </div>
+
+      <!-- Info tab -->
+      <div id="rtab-info-panel">
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Título del sorteo *</label><input type="text" class="form-control" id="rf_title" placeholder="iPhone 16 Pro Max..."></div>
+          <div class="form-group"><label class="form-label">Categoría</label>
+            <select class="form-control" id="rf_category">
+              <option>Tecnología</option><option>Gaming</option><option>Viajes</option><option>Vehículos</option><option>Efectivo</option><option>Hogar</option><option>Otros</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group"><label class="form-label">Descripción</label><textarea class="form-control" id="rf_description" placeholder="Describe el sorteo..."></textarea></div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Estado</label>
+            <select class="form-control" id="rf_status">
+              <option value="active">🟢 Activo</option>
+              <option value="soon">🟡 Próximamente</option>
+              <option value="ended">⚫ Finalizado</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">Fecha del sorteo</label><input type="datetime-local" class="form-control" id="rf_drawDate"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Total de tickets</label><input type="number" class="form-control" id="rf_totalTickets" placeholder="5000" min="1"></div>
+          <div class="form-group"><label class="form-label">Emoji del sorteo</label><input type="text" class="form-control" id="rf_emoji" placeholder="🎁" maxlength="2"></div>
+        </div>
+        <div class="form-group"><label class="form-label">¿Sorteo destacado en hero?</label>
+          <label style="display:flex; align-items:center; gap:.5rem; cursor:pointer; margin-top:.25rem;">
+            <input type="checkbox" id="rf_featured" style="accent-color:var(--color-primary); width:16px; height:16px;">
+            <span class="text-sm">Mostrar como sorteo principal en la portada</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Prizes tab -->
+      <div id="rtab-prizes-panel" class="hidden">
+        <div id="prizesContainer"></div>
+        <button class="btn btn-ghost btn-sm mt-2" onclick="addPrizeRow()">+ Agregar premio</button>
+      </div>
+
+      <!-- Packs tab -->
+      <div id="rtab-packs-panel" class="hidden">
+        <div id="packsContainer"></div>
+        <button class="btn btn-ghost btn-sm mt-2" onclick="addPackRow()">+ Agregar pack</button>
+      </div>
+
+      <!-- Legal tab -->
+      <div id="rtab-legal-panel" class="hidden">
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Organizador</label><input type="text" class="form-control" id="rf_organizer" placeholder="Surteados Chile SpA"></div>
+          <div class="form-group"><label class="form-label">RUT</label><input type="text" class="form-control" id="rf_rut" placeholder="77.999.888-1"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Notaría</label><input type="text" class="form-control" id="rf_notary" placeholder="Nombre del notario"></div>
+          <div class="form-group"><label class="form-label">N° Certificado</label><input type="text" class="form-control" id="rf_certificate" placeholder="N° 123-2026"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Período de venta</label><input type="text" class="form-control" id="rf_salesPeriod" placeholder="01 de abril al 14 de mayo de 2026"></div>
+      </div>
+
+      <div class="separator"></div>
+      <div class="flex gap-2 justify-flex-end">
+        <button class="btn btn-ghost" onclick="closeRaffleModal()">Cancelar</button>
+        <button class="btn btn-primary" id="saveRaffleBtn" onclick="saveRaffle()">💾 Guardar Sorteo</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ WINNER MODAL ═══ -->
+<div class="modal-backdrop" id="winnerModal">
+  <div class="modal">
+    <div class="modal-top-bar"></div>
+    <div class="modal-header">
+      <span class="modal-title" id="winnerModalTitle">Agregar Ganador</span>
+      <button class="modal-close" onclick="closeWinnerModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Nombre del ganador *</label><input type="text" class="form-control" id="wn_name" placeholder="Juan Pérez"></div>
+        <div class="form-group"><label class="form-label">Ciudad</label><input type="text" class="form-control" id="wn_location" placeholder="Santiago, Chile"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Premio</label><input type="text" class="form-control" id="wn_prize" placeholder="iPhone 16 Pro Max"></div>
+        <div class="form-group"><label class="form-label">Valor del premio</label><input type="number" class="form-control" id="wn_prizeValue" placeholder="1299000"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Nombre del sorteo</label><input type="text" class="form-control" id="wn_raffleTitle" placeholder="Sorteo iPhone 16"></div>
+        <div class="form-group"><label class="form-label">Fecha del sorteo</label><input type="date" class="form-control" id="wn_drawDate"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Ticket ganador</label><input type="text" class="form-control" id="wn_ticketNumber" placeholder="003421"></div>
+        <div class="form-group"><label class="form-label">Emoji</label><input type="text" class="form-control" id="wn_emoji" placeholder="🏆" maxlength="2"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Edición</label><input type="text" class="form-control" id="wn_edition" placeholder="1ª Edición"></div>
+        <div class="form-group"><label class="form-label">URL Video YouTube</label><input type="url" class="form-control" id="wn_videoUrl" placeholder="https://youtube.com/..."></div>
+      </div>
+      <div class="form-group">
+        <label style="display:flex; align-items:center; gap:.5rem; cursor:pointer;">
+          <input type="checkbox" id="wn_verified" checked style="accent-color:var(--color-primary); width:16px; height:16px;">
+          <span class="text-sm">Marcar como verificado</span>
+        </label>
+      </div>
+      <div class="separator"></div>
+      <div class="flex gap-2">
+        <button class="btn btn-ghost" onclick="closeWinnerModal()">Cancelar</button>
+        <button class="btn btn-primary" style="flex:1" onclick="saveWinner()">💾 Guardar Ganador</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container" class="toast-container"></div>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/admin.js"></script>
+</body>
+</html>

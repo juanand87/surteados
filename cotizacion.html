@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cotización — Surteados</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #f0edff; color: #1e1b4b; line-height: 1.6; }
+
+    /* NAV */
+    .topbar { background:#fff; border-bottom:1px solid #e8e4ff; padding:.875rem 2rem; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:10; }
+    .topbar-brand { display:flex; align-items:center; gap:.6rem; font-weight:800; font-size:1.1rem; color:#1e1b4b; text-decoration:none; }
+    .topbar-brand .ico { width:30px; height:30px; background:linear-gradient(135deg,#7c3aed,#f59e0b); border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:.9rem; }
+    .topbar-brand em { font-style:normal; color:#f59e0b; }
+    .btn-sm { padding:.4rem .9rem; border-radius:9999px; font-size:.8rem; font-weight:600; cursor:pointer; border:none; text-decoration:none; display:inline-flex; align-items:center; gap:.3rem; transition:.2s; }
+    .btn-out { background:transparent; border:1.5px solid #d4c9ff; color:#7c3aed; }
+    .btn-out:hover { background:#f0edff; }
+    .btn-pri { background:#7c3aed; color:#fff; }
+    .btn-pri:hover { background:#6d28d9; }
+    @media print { .topbar { display:none; } }
+
+    /* PAGE */
+    .page { max-width: 780px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+
+    /* DOCUMENT */
+    .doc { background:#fff; border:1px solid #e8e4ff; border-radius:16px; overflow:hidden; }
+    .doc-bar { height:4px; background:linear-gradient(90deg,#7c3aed,#f59e0b); }
+
+    /* HEADER */
+    .doc-head { padding:2rem 2.25rem; display:flex; align-items:flex-start; justify-content:space-between; gap:1.5rem; border-bottom:1px solid #f0edff; flex-wrap:wrap; }
+    .brand-row { display:flex; align-items:center; gap:.75rem; }
+    .brand-ico { width:44px; height:44px; background:linear-gradient(135deg,#7c3aed,#f59e0b); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.3rem; }
+    .brand-name { font-size:1.3rem; font-weight:900; color:#1e1b4b; letter-spacing:-.03em; }
+    .brand-name em { font-style:normal; color:#f59e0b; }
+    .brand-sub { font-size:.72rem; color:#9ca3af; }
+    .brand-contact { margin-top:.9rem; font-size:.78rem; color:#6b7280; line-height:1.7; }
+    .brand-contact strong { color:#374151; }
+    .doc-info { text-align:right; }
+    .doc-badge { display:inline-block; background:rgba(124,58,237,.1); border:1px solid rgba(124,58,237,.2); color:#7c3aed; font-size:.68rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; padding:.28rem .8rem; border-radius:9999px; margin-bottom:.5rem; }
+    .meta-list { list-style:none; font-size:.78rem; }
+    .meta-list li { color:#6b7280; margin-top:.12rem; }
+    .meta-list li strong { color:#374151; }
+
+    /* SECTION */
+    .doc-sec { padding:1.6rem 2.25rem; border-bottom:1px solid #f0edff; }
+    .doc-sec:last-child { border-bottom:none; }
+    .sec-lbl { font-size:.65rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:#9ca3af; margin-bottom:.65rem; }
+    .intro { font-size:.88rem; color:#4b5563; line-height:1.75; }
+
+    /* PLANS */
+    .plans { display:grid; grid-template-columns:1fr 1fr; gap:1.1rem; }
+    @media(max-width:600px){ .plans{grid-template-columns:1fr;} }
+    .plan { border:1.5px solid #e8e4ff; border-radius:12px; overflow:hidden; }
+    .plan.pro { border-color:#7c3aed; box-shadow:0 0 0 3px rgba(124,58,237,.07); }
+
+    .p-head { padding:1.15rem 1.4rem; border-bottom:1px solid #f0edff; }
+    .plan.pro .p-head { background:#faf7ff; }
+    .p-tag { font-size:.65rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:#7c3aed; margin-bottom:.35rem; }
+    .p-name { font-size:1rem; font-weight:800; color:#1e1b4b; margin-bottom:.15rem; }
+    .p-sub { font-size:.77rem; color:#6b7280; margin-bottom:.8rem; }
+    .p-price { font-size:1.85rem; font-weight:900; color:#1e1b4b; line-height:1; }
+    .p-price sup { font-size:.95rem; font-weight:700; color:#7c3aed; vertical-align:super; }
+    .p-note { font-size:.7rem; color:#9ca3af; margin-top:.2rem; }
+
+    .p-body { padding:1.15rem 1.4rem; }
+    .feats { display:flex; flex-direction:column; gap:.35rem; }
+    .f { display:flex; align-items:flex-start; gap:.45rem; font-size:.82rem; color:#4b5563; }
+    .f .b { width:16px; height:16px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:.58rem; margin-top:.15rem; }
+    .b-y { background:rgba(5,150,105,.12); color:#047857; }
+    .b-p { background:rgba(124,58,237,.12); color:#7c3aed; }
+    .f-sep { font-size:.62rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#d1d5db; margin:.55rem 0 .1rem; }
+
+    .p-foot { padding:.85rem 1.4rem; background:#faf9ff; border-top:1px solid #f0edff; font-size:.76rem; color:#6b7280; display:flex; flex-direction:column; gap:.2rem; }
+    .p-foot strong { color:#374151; }
+    .plan.pro .p-foot { background:#faf7ff; }
+
+    /* TERMS */
+    .terms { display:grid; grid-template-columns:1fr 1fr; gap:.9rem; }
+    @media(max-width:520px){ .terms{grid-template-columns:1fr;} }
+    .t { display:flex; gap:.55rem; align-items:flex-start; }
+    .t-ic { font-size:1rem; flex-shrink:0; line-height:1.5; }
+    .t h4 { font-size:.8rem; font-weight:700; color:#1e1b4b; margin-bottom:.1rem; }
+    .t p { font-size:.76rem; color:#6b7280; line-height:1.55; }
+
+    /* SIGNATURE */
+    .accept-row { display:flex; flex-wrap:wrap; gap:1.5rem; margin-bottom:1.4rem; }
+    .accept-row label { display:flex; align-items:center; gap:.45rem; font-size:.86rem; font-weight:600; color:#1e1b4b; cursor:pointer; }
+    .accept-row input[type=checkbox] { width:16px; height:16px; accent-color:#7c3aed; cursor:pointer; }
+    .sig-row { display:grid; grid-template-columns:1fr 1fr; gap:2rem; }
+    @media(max-width:520px){ .sig-row{grid-template-columns:1fr;} }
+    .s h5 { font-size:.65rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#9ca3af; margin-bottom:.8rem; }
+    .s-line { border-bottom:1.5px solid #d1d5db; height:36px; margin-bottom:.3rem; }
+    .s-hint { font-size:.7rem; color:#9ca3af; }
+
+    /* FOOTER */
+    .doc-foot { padding:1.1rem 2.25rem; background:#faf9ff; text-align:center; }
+    .doc-foot p { font-size:.71rem; color:#9ca3af; line-height:1.7; }
+    .doc-foot strong { color:#6b7280; }
+
+    @media print {
+      body { background:#fff; }
+      .page { padding:0; }
+      .doc { border:none; border-radius:0; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="index.html" class="topbar-brand">
+    <div class="ico">🎟️</div>
+    Sur<em>teados</em>
+  </a>
+  <div style="display:flex;gap:.5rem;">
+    <a href="index.html" class="btn-sm btn-out">← Volver</a>
+    <button class="btn-sm btn-pri" onclick="window.print()">🖨️ Guardar PDF</button>
+  </div>
+</div>
+
+<div class="page">
+<div class="doc">
+  <div class="doc-bar"></div>
+
+  <!-- ENCABEZADO -->
+  <div class="doc-head">
+    <div>
+      <div class="brand-row">
+        <div class="brand-ico">🎟️</div>
+        <div>
+          <div class="brand-name">Sur<em>teados</em></div>
+          <div class="brand-sub">Sistema de Rifas &amp; Sorteos Online</div>
+        </div>
+      </div>
+      <div class="brand-contact">
+        <strong>Surteados SpA</strong><br>
+        contacto@surteados.cl · +56 9 XXXX XXXX · Santiago, Chile
+      </div>
+    </div>
+    <div class="doc-info">
+      <div class="doc-badge">📄 Cotización</div>
+      <ul class="meta-list">
+        <li>N° <strong>COT-2026-001</strong></li>
+        <li>Fecha: <strong id="metaDate">—</strong></li>
+        <li>Válida hasta: <strong id="metaExpiry">—</strong></li>
+        <li>Moneda: <strong>CLP neto, sin IVA</strong></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- INTRO -->
+  <div class="doc-sec">
+    <div class="sec-lbl">Presentación</div>
+    <p class="intro">
+      Estimado/a cliente, a continuación presentamos nuestra propuesta para el desarrollo de su plataforma
+      de venta de tickets y gestión de sorteos online. Se ofrecen dos planes según el alcance requerido.
+    </p>
+  </div>
+
+  <!-- PLANES -->
+  <div class="doc-sec">
+    <div class="sec-lbl">Planes disponibles</div>
+    <div class="plans">
+
+      <div class="plan">
+        <div class="p-head">
+          <div class="p-tag">Plan Básico</div>
+          <div class="p-name">Starter Rifas</div>
+          <div class="p-sub">Venta de tickets con cobro en línea y administración.</div>
+          <div class="p-price"><sup>$</sup>300.000</div>
+          <div class="p-note">CLP neto · con IVA: $357.000</div>
+        </div>
+        <div class="p-body">
+          <div class="feats">
+            <div class="f-sep">Sitio &amp; Sorteos</div>
+            <div class="f"><span class="b b-y">✓</span>Landing page + galería + ganadores</div>
+            <div class="f"><span class="b b-y">✓</span>Creación de sorteos con premios y fechas</div>
+            <div class="f"><span class="b b-y">✓</span>Packs de tickets y control de stock</div>
+            <div class="f-sep">Pagos &amp; Notificaciones</div>
+            <div class="f"><span class="b b-y">✓</span>Integración pasarela de pagos (Flow.cl)</div>
+            <div class="f"><span class="b b-y">✓</span>Ticket digital enviado por correo</div>
+            <div class="f"><span class="b b-y">✓</span>Panel de administración básico</div>
+          </div>
+        </div>
+        <div class="p-foot">
+          <span>⏱️ Entrega: <strong>15 días hábiles</strong></span>
+          <span>🔧 Soporte: <strong>1 mes post-lanzamiento</strong></span>
+          <span>💰 Pago: <strong>50% anticipo · 50% entrega</strong></span>
+        </div>
+      </div>
+
+      <div class="plan pro">
+        <div class="p-head">
+          <div class="p-tag">Plan Avanzado</div>
+          <div class="p-name">Pro Rifas</div>
+          <div class="p-sub">Plataforma completa con automatizaciones y analytics.</div>
+          <div class="p-price"><sup>$</sup>600.000</div>
+          <div class="p-note">CLP neto · con IVA: $714.000</div>
+        </div>
+        <div class="p-body">
+          <div class="feats">
+            <div class="f-sep">Todo lo Básico, más:</div>
+            <div class="f"><span class="b b-p">★</span>Sorteos ilimitados · múltiples premios</div>
+            <div class="f"><span class="b b-p">★</span>Contador en vivo + módulo sorteo aleatorio</div>
+            <div class="f"><span class="b b-p">★</span>Flow.cl + Webpay Plus + transferencia</div>
+            <div class="f"><span class="b b-p">★</span>Notificaciones WhatsApp y recordatorios</div>
+            <div class="f-sep">Analytics &amp; Seguridad</div>
+            <div class="f"><span class="b b-p">★</span>Dashboard KPIs · exportación Excel/CSV</div>
+            <div class="f"><span class="b b-p">★</span>Google Analytics 4 · editor de colores</div>
+            <div class="f"><span class="b b-p">★</span>SSL · respaldos automáticos · bases legales PDF</div>
+          </div>
+        </div>
+        <div class="p-foot">
+          <span>⏱️ Entrega: <strong>25 días hábiles</strong></span>
+          <span>🔧 Soporte: <strong>3 meses · SLA 24 h hábiles</strong></span>
+          <span>💰 Pago: <strong>40% anticipo · 30% avance · 30% entrega</strong></span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- CONDICIONES -->
+  <div class="doc-sec">
+    <div class="sec-lbl">Condiciones generales</div>
+    <div class="terms">
+      <div class="t"><div class="t-ic">📅</div><div><h4>Vigencia</h4><p>Cotización válida <strong>30 días</strong> desde la emisión.</p></div></div>
+      <div class="t"><div class="t-ic">🌐</div><div><h4>Hosting y dominio</h4><p>No incluidos. El cliente gestiona su propio servicio.</p></div></div>
+      <div class="t"><div class="t-ic">💳</div><div><h4>Cuenta pasarela</h4><p>El cliente requiere cuenta propia en Flow.cl o Transbank.</p></div></div>
+      <div class="t"><div class="t-ic">🔑</div><div><h4>Propiedad del código</h4><p>Al pagar el 100%, el código fuente pasa al cliente.</p></div></div>
+      <div class="t"><div class="t-ic">✏️</div><div><h4>Modificaciones</h4><p>2 rondas de revisión sin costo. Cambios extra se cotizan.</p></div></div>
+      <div class="t"><div class="t-ic">📋</div><div><h4>Impuestos</h4><p>Valores <strong>netos sin IVA</strong>. Se agrega 19% según ley.</p></div></div>
+    </div>
+  </div>
+
+  <!-- ACEPTACIÓN -->
+  <div class="doc-sec">
+    <div class="sec-lbl">Aceptación</div>
+    <div class="accept-row">
+      <label><input type="checkbox"> Plan Básico — <strong>$300.000 neto</strong></label>
+      <label><input type="checkbox"> Plan Avanzado — <strong>$600.000 neto</strong></label>
+    </div>
+    <div class="sig-row">
+      <div class="s">
+        <h5>Proveedor — Surteados SpA</h5>
+        <div class="s-line"></div>
+        <div class="s-hint">Nombre, firma y fecha</div>
+      </div>
+      <div class="s">
+        <h5>Cliente</h5>
+        <div class="s-line"></div>
+        <div class="s-hint">Nombre, RUT, firma y fecha</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PIE -->
+  <div class="doc-foot">
+    <p>
+      <strong>Surteados SpA</strong> · contacto@surteados.cl · Santiago, Chile ·
+      COT-2026-001 · Emitida el <span id="footerDate">—</span> ·
+      Los precios son referenciales y pueden ajustarse según alcance definitivo acordado.
+    </p>
+  </div>
+
+</div>
+</div>
+
+<script>
+  const now = new Date();
+  const opts = { day: '2-digit', month: 'long', year: 'numeric' };
+  const exp = new Date(now); exp.setDate(exp.getDate() + 30);
+  document.getElementById('metaDate').textContent   = now.toLocaleDateString('es-CL', opts);
+  document.getElementById('metaExpiry').textContent = exp.toLocaleDateString('es-CL', opts);
+  document.getElementById('footerDate').textContent = now.toLocaleDateString('es-CL', opts);
+</script>
+</body>
+</html>

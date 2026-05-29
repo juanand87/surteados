@@ -1,0 +1,17 @@
+.DS_Store
+Thumbs.db
+
+.vscode/
+.idea/
+
+node_modules/
+vendor/
+
+.env
+.env.*
+
+_tmp_*.php
+
+assets/uploads/
+
+*.log

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mis Tickets — Surteados</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+
+<nav class="navbar" id="navbar">
+  <div class="navbar-inner">
+    <a href="index.html" class="navbar-logo"><div class="logo-icon">🎟️</div><span class="brand">Sur<em>tea</em>dos</span></a>
+    <nav class="navbar-nav">
+      <a href="index.html">Inicio</a>
+      <a href="sorteos.html">Sorteos</a>
+      <a href="ganadores.html">Ganadores</a>
+      <a href="mis-tickets.html" class="active">Mis Tickets</a>
+    </nav>
+    <div class="navbar-actions">
+      <a href="sorteos.html" class="btn btn-primary btn-sm">Participar 🎟️</a>
+    </div>
+    <button class="navbar-mobile-toggle" id="mobileToggle"><span></span><span></span><span></span></button>
+  </div>
+  <div class="mobile-nav" id="mobileNav">
+    <a href="index.html">🏠 Inicio</a>
+    <a href="sorteos.html">🎟️ Sorteos</a>
+    <a href="ganadores.html">🏆 Ganadores</a>
+    <a href="mis-tickets.html">🎫 Mis Tickets</a>
+  </div>
+</nav>
+
+<div style="padding-top:68px;">
+  <div class="page-header">
+    <div class="container text-center">
+      <div class="badge" style="margin:0 auto 1rem; display:inline-flex;">🎫 Mis Tickets</div>
+      <h1>Consultar <span class="text-gradient">Mis Tickets</span></h1>
+      <p style="max-width:500px; margin:.75rem auto 0;">Ingresa tu correo electrónico para ver todos los tickets que has comprado.</p>
+    </div>
+  </div>
+
+  <section class="section container" style="max-width:800px;">
+    <!-- Search form -->
+    <div class="card mb-4" style="padding:2rem;">
+      <h3 class="text-white mb-2">🔍 Buscar mis tickets</h3>
+      <p class="mb-3">Usa el correo con el que realizaste tu compra.</p>
+      <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+        <input type="email" id="searchEmail" class="form-control" placeholder="tu@correo.com" style="flex:1; min-width:200px;" autocomplete="email">
+        <button class="btn btn-primary" id="searchBtn">🔍 Buscar</button>
+      </div>
+      <p class="form-hint mt-1">⚠️ El correo debe coincidir exactamente con el que usaste al comprar.</p>
+    </div>
+
+    <!-- Results -->
+    <div id="resultsSection" class="hidden">
+      <div class="flex-between mb-3">
+        <h3 class="text-white" id="resultsTitle">Tus tickets</h3>
+        <span class="pill pill-purple" id="resultsCount">0 tickets</span>
+      </div>
+
+      <!-- Grouped by raffle -->
+      <div id="ticketsList"></div>
+    </div>
+
+    <!-- Not found -->
+    <div id="notFoundSection" class="hidden">
+      <div class="empty-state">
+        <div class="empty-icon">😕</div>
+        <h3 class="text-white mb-1">No encontramos tickets</h3>
+        <p>No hay tickets registrados con ese correo. Verifica que sea el mismo que usaste al comprar.</p>
+        <a href="sorteos.html" class="btn btn-primary mt-3">Comprar mi primer ticket 🎟️</a>
+      </div>
+    </div>
+
+    <!-- Tip cards -->
+    <div id="tipsSection" class="mt-4">
+      <div class="grid-3">
+        <div class="card text-center" style="padding:1.5rem;">
+          <div style="font-size:2rem; margin-bottom:.75rem;">📧</div>
+          <h4 class="text-white mb-1">Ticket por correo</h4>
+          <p class="text-sm">Después de tu compra recibes un email con tus tickets digitales.</p>
+        </div>
+        <div class="card text-center" style="padding:1.5rem;">
+          <div style="font-size:2rem; margin-bottom:.75rem;">🔢</div>
+          <h4 class="text-white mb-1">Número único</h4>
+          <p class="text-sm">Cada ticket tiene un número de 6 dígitos asignado al azar.</p>
+        </div>
+        <div class="card text-center" style="padding:1.5rem;">
+          <div style="font-size:2rem; margin-bottom:.75rem;">📺</div>
+          <h4 class="text-white mb-1">Sorteo en vivo</h4>
+          <p class="text-sm">El sorteo se transmite en vivo. Conéctate y descubre si ganaste.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-bottom">
+      <p>© 2026 Surteados. Todos los derechos reservados.</p>
+      <a href="sorteos.html" class="btn btn-primary btn-sm">Ver sorteos 🎟️</a>
+    </div>
+  </div>
+</footer>
+
+<div class="theme-picker" id="themePicker">
+  <div class="theme-toggle" id="themeToggle">🎨</div>
+  <div class="theme-panel" id="themePanel">
+    <h4>🎨 Personalizar Tema</h4>
+    <div class="theme-presets" id="themePresets">
+      <button class="preset-btn active" data-preset="purple" style="background:linear-gradient(135deg,#7c3aed,#f59e0b);"></button>
+      <button class="preset-btn" data-preset="blue" style="background:linear-gradient(135deg,#2563eb,#06b6d4);"></button>
+      <button class="preset-btn" data-preset="emerald" style="background:linear-gradient(135deg,#059669,#fbbf24);"></button>
+      <button class="preset-btn" data-preset="rose" style="background:linear-gradient(135deg,#e11d48,#f59e0b);"></button>
+      <button class="preset-btn" data-preset="indigo" style="background:linear-gradient(135deg,#4338ca,#c026d3);"></button>
+      <button class="preset-btn" data-preset="teal" style="background:linear-gradient(135deg,#0d9488,#f97316);"></button>
+    </div>
+    <div class="color-input-group"><label>Color primario</label><div class="color-input-row"><input type="color" id="colorPrimary" value="#7c3aed"><input type="text" class="form-control" id="colorPrimaryHex" value="#7c3aed"></div></div>
+    <div class="color-input-group"><label>Color acento</label><div class="color-input-row"><input type="color" id="colorAccent" value="#f59e0b"><input type="text" class="form-control" id="colorAccentHex" value="#f59e0b"></div></div>
+    <button class="btn btn-primary btn-sm btn-block mt-2" id="applyThemeBtn">Aplicar</button>
+    <button class="btn btn-ghost btn-sm btn-block mt-1" id="resetThemeBtn">Restaurar</button>
+  </div>
+</div>
+
+<div id="toast-container" class="toast-container"></div>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+(function() {
+  const searchEmail = document.getElementById('searchEmail');
+  const searchBtn = document.getElementById('searchBtn');
+  const resultsSection = document.getElementById('resultsSection');
+  const notFoundSection = document.getElementById('notFoundSection');
+  const ticketsList = document.getElementById('ticketsList');
+  const resultsTitle = document.getElementById('resultsTitle');
+  const resultsCount = document.getElementById('resultsCount');
+  const tipsSection = document.getElementById('tipsSection');
+
+  function search() {
+    const email = searchEmail.value.trim();
+    if (!email || !/^[^@]+@[^@]+\.[^@]+$/.test(email)) {
+      showToast('Ingresa un correo electrónico válido', 'warning');
+      return;
+    }
+
+    const tickets = db.getTicketsByEmail(email);
+    resultsSection.classList.add('hidden');
+    notFoundSection.classList.add('hidden');
+    tipsSection.classList.add('hidden');
+
+    if (tickets.length === 0) {
+      notFoundSection.classList.remove('hidden');
+      return;
+    }
+
+    // Group by raffle
+    const byRaffle = tickets.reduce((acc, t) => {
+      const key = t.raffleId;
+      if (!acc[key]) acc[key] = { raffle: db.getRaffle(t.raffleId), tickets: [] };
+      acc[key].tickets.push(t);
+      return acc;
+    }, {});
+
+    const totalTicketNums = tickets.reduce((a, t) => a + (t.ticketNumbers?.length || 1), 0);
+    resultsTitle.textContent = `Tickets de ${email}`;
+    resultsCount.textContent = `${totalTicketNums} ticket${totalTicketNums !== 1 ? 's' : ''}`;
+
+    ticketsList.innerHTML = Object.values(byRaffle).map(({ raffle, tickets: rTickets }) => {
+      const r = raffle || { title: 'Sorteo desconocido', status: 'ended', imageEmoji: '🎁', drawDate: '' };
+      const statusMap = { active: ['En curso', 'pill-green'], soon: ['Próximamente', 'pill-amber'], ended: ['Finalizado', 'pill-gray'] };
+      const [statusLabel, statusClass] = statusMap[r.status] || statusMap.ended;
+
+      const allNumbers = rTickets.flatMap(t => t.ticketNumbers || [t.number]);
+
+      return `
+        <div class="card mb-3" style="padding:0; overflow:hidden;">
+          <div style="background:linear-gradient(135deg, rgba(124,58,237,0.12), rgba(245,158,11,0.06)); padding:1.25rem; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:1rem;">
+            <div style="font-size:2.5rem;">${r.imageEmoji || '🎁'}</div>
+            <div style="flex:1;">
+              <div style="font-weight:700; color:var(--text-inv); font-size:1rem;">${r.title}</div>
+              ${r.drawDate ? `<div style="font-size:.8rem; color:var(--text-muted);">📅 Sorteo: ${formatDateTime(r.drawDate)}</div>` : ''}
+            </div>
+            <span class="pill ${statusClass}">${statusLabel}</span>
+          </div>
+          <div style="padding:1.25rem;">
+            <p class="text-sm mb-2" style="color:var(--text-muted);">Tus números para este sorteo:</p>
+            <div style="display:flex; flex-wrap:wrap; gap:.5rem; margin-bottom:1rem;">
+              ${allNumbers.map(num => `<span class="ticket-num-badge">${num}</span>`).join('')}
+            </div>
+            <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+              ${rTickets.map(t => `
+                <div style="font-size:.78rem; color:var(--text-muted);">
+                  🛒 ${t.pack} &nbsp;|&nbsp; 💰 ${formatPrice(t.amount)} &nbsp;|&nbsp; 📅 ${formatDate(t.purchaseDate)}
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    resultsSection.classList.remove('hidden');
+  }
+
+  searchBtn.addEventListener('click', search);
+  searchEmail.addEventListener('keydown', e => { if (e.key === 'Enter') search(); });
+})();
+</script>
+</body>
+</html>
