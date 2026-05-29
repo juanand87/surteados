@@ -8,7 +8,10 @@ define('DB_HOST',   'localhost');
 define('DB_USER',   'root');
 define('DB_PASS',   '');
 define('DB_NAME',   'surteados_db');
-define('BASE_URL',  'http://localhost/surteados');
+// Detectar BASE_URL automáticamente (fallback a localhost si está en CLI)
+define('BASE_URL',  (isset($_SERVER['HTTP_HOST']) 
+    ? ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . '/surteados')
+    : 'http://localhost/surteados'));
 define('SESSION_NAME', 'surteados_admin');
 define('CLIENT_SESSION_NAME', 'surteados_client');
 
