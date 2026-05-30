@@ -153,6 +153,18 @@ function raffleClosedMessage(drawDate) {
     toggle.addEventListener('click', () => {
       mobileNav.classList.toggle('open');
     });
+
+    mobileNav.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        mobileNav.classList.remove('open');
+      });
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!mobileNav.classList.contains('open')) return;
+      if (mobileNav.contains(event.target) || toggle.contains(event.target)) return;
+      mobileNav.classList.remove('open');
+    });
   }
 })();
 
@@ -1059,14 +1071,14 @@ function buildRaffleCard(r) {
         <div class="raffle-card-title">${r.title}</div>
         <div class="raffle-card-value">Desde ${formatPrice(minPrice)}</div>
         ${hasLimit ? `<div class="progress-bar" title="${pct}% vendido"><div class="progress-fill" data-pct="${pct}" style="width:0%"></div></div>` : ''}
-        ${closure.salesClosed ? `<div style="margin-top:.45rem;font-size:.72rem;color:#fbbf24;line-height:1.35;">Se ha cerrado la compra de ${tLabelP()}, faltan ${closure.remainingText} para que puedas ganar.</div>` : ''}
-        <div class="raffle-card-footer" style="justify-content:flex-end;">
-          <div style="display:flex;gap:.45rem;align-items:stretch;flex-wrap:wrap;justify-content:flex-end;">
-            <a href="ver-sorteo.php?id=${r.id}" class="btn btn-ghost btn-sm" onclick="event.stopPropagation()" style="display:inline-flex;align-items:center;justify-content:center;gap:.32rem;min-height:36px;white-space:nowrap;font-size:.77rem;padding:.3rem .7rem;line-height:1;">
+        ${closure.salesClosed ? `<div class="raffle-card-closure">Se ha cerrado la compra de ${tLabelP()}, faltan ${closure.remainingText} para que puedas ganar.</div>` : ''}
+        <div class="raffle-card-footer">
+          <div class="raffle-card-actions">
+            <a href="ver-sorteo.php?id=${r.id}" class="btn btn-ghost btn-sm raffle-card-action" onclick="event.stopPropagation()">
               <span>👁 Ver Sorteo</span>
               ${r.drawDate && r.status !== 'ended' ? `<span class="rd-countdown" data-date="${r.drawDate}" style="font-size:.72em;opacity:.8;"></span>` : ''}
             </a>
-            ${canBuy ? `<button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); openPurchaseModal('${r.id}')" style="min-height:36px;padding:.3rem .7rem;">Comprar ${tLabelUp()}</button>` :
+            ${canBuy ? `<button class="btn btn-primary btn-sm raffle-card-action" onclick="event.stopPropagation(); openPurchaseModal('${r.id}')">Comprar ${tLabelUp()}</button>` :
               (r.status === 'active' && closure.salesClosed) ? `<span class="pill pill-amber" style="font-size:.72rem;">Compra cerrada</span>` :
               r.status === 'soon' ? `<span class="pill pill-amber" style="font-size:.72rem;">Próximamente</span>` :
               `<span class="pill pill-gray" style="font-size:.72rem;">Finalizado</span>`}
