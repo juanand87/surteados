@@ -215,9 +215,7 @@ function raffleClosedMessage(drawDate) {
   if (heroCard) {
     const featured = raffles.find(r => r.featured && r.status === 'active') || raffles.find(r => r.status === 'active');
     if (featured) {
-      const pct = percentage(featured.soldTickets, featured.totalTickets);
       const timeLeft = getTimeLeft(featured.drawDate);
-      const hasLimit = Number(featured.totalTickets) > 0;
 
       heroCard.innerHTML = `
         <div class="prize-img-wrap">
@@ -232,19 +230,10 @@ function raffleClosedMessage(drawDate) {
           <div class="countdown-item"><div class="count-num" id="cd-mins">${pad(timeLeft.minutes)}</div><div class="count-label">Min</div></div>
           <div class="countdown-item"><div class="count-num" id="cd-secs">${pad(timeLeft.seconds)}</div><div class="count-label">Seg</div></div>
         </div>
-        ${hasLimit ? `<div class="hero-card-progress"><div class="progress-label"><span>${featured.soldTickets.toLocaleString('es-CL')} ${tLabelP()} vendidos</span><span>${pct}%</span></div><div class="progress-bar"><div class="progress-fill" id="heroPFill" style="width:0%"></div></div></div>` : ''}
           <button class="btn btn-accent btn-block btn-lg" style="font-weight:800;" onclick="openPurchaseModal('${featured.id}')">
             🎟️ Comprar ${tLabelUp()} — Desde ${formatPrice(Math.min(...featured.packs.map(p => p.price)))}
         </button>
       `;
-
-      // Animate progress bar
-      if (hasLimit) {
-        setTimeout(() => {
-          const fill = document.getElementById('heroPFill');
-          if (fill) fill.style.width = pct + '%';
-        }, 400);
-      }
 
       // Countdown
       startCountdown(featured.drawDate, 'cd-days', 'cd-hours', 'cd-mins', 'cd-secs');
