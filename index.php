@@ -238,8 +238,7 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'tickets';
   </div>
 
   <div class="tab-filters">
-    <button class="tab-filter active" data-filter="all">Todos</button>
-    <button class="tab-filter" data-filter="active">En curso</button>
+    <button class="tab-filter active" data-filter="active">En curso</button>
     <button class="tab-filter" data-filter="soon">Próximamente</button>
     <button class="tab-filter" data-filter="ended">Finalizados</button>
   </div>

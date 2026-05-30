@@ -258,7 +258,7 @@ function raffleClosedMessage(drawDate) {
   if (!grid) return;
 
   const raffles = db.getRaffles();
-  let currentFilter = 'all';
+  let currentFilter = 'active';
 
   const filterBtns = document.querySelectorAll('.tab-filter');
   filterBtns.forEach(btn => {
@@ -271,7 +271,7 @@ function raffleClosedMessage(drawDate) {
   });
 
   function renderGrid() {
-    const filtered = currentFilter === 'all' ? raffles : raffles.filter(r => r.status === currentFilter);
+    const filtered = raffles.filter(r => r.status === currentFilter);
     if (filtered.length === 0) {
       grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="empty-icon">🎟️</div><p>No hay sorteos en esta categoría.</p></div>`;
       return;
