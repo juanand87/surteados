@@ -17,7 +17,9 @@ function tLabelUp() { const l = tLabel(); return l.charAt(0).toUpperCase() + l.s
 
 function getRaffleClosureInfo(drawDate) {
   if (!drawDate) return { salesClosed: false, remainingText: '' };
-  const draw = new Date(drawDate);
+  // Normaliza formato MySQL (YYYY-MM-DD HH:mm:ss) para parse confiable en navegadores.
+  const normalized = String(drawDate).trim().replace(' ', 'T');
+  const draw = new Date(normalized);
   if (Number.isNaN(draw.getTime())) return { salesClosed: false, remainingText: '' };
   const closesAt = new Date(draw.getTime() - 24 * 60 * 60 * 1000);
   const now = new Date();
@@ -260,7 +262,12 @@ function raffleClosedMessage(drawDate) {
   });
 
   function renderGrid() {
-    const filtered = raffles.filter(r => r.status === currentFilter);
+    const filtered = raffles.filter(r => {
+      if (currentFilter === 'active') {
+        return r.status === 'active' && !getRaffleClosureInfo(r.drawDate).salesClosed;
+      }
+      return r.status === currentFilter;
+    });
     if (filtered.length === 0) {
       grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="empty-icon">🎟️</div><p>No hay sorteos en esta categoría.</p></div>`;
       return;
