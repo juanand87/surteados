@@ -597,7 +597,7 @@ p  { color: var(--text-secondary); }
 .raffle-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 0.95rem;
+  border-radius: var(--radius-lg);
   overflow: hidden;
   transition: all var(--transition);
   cursor: pointer;
@@ -616,7 +616,7 @@ p  { color: var(--text-secondary); }
   background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
 }
 .raffle-card-img {
-  aspect-ratio: 16/7;
+  aspect-ratio: 16/9;
   background: var(--bg-card2);
   position: relative;
   overflow: hidden;
@@ -629,10 +629,10 @@ p  { color: var(--text-secondary); }
 .raffle-card:hover .raffle-card-img img { transform: scale(1.06); }
 .raffle-card-status {
   position: absolute;
-  top: 0.55rem; left: 0.55rem;
+  top: 0.75rem; left: 0.75rem;
   font-size: 0.5rem;
   font-weight: 700;
-  padding: 0.2rem 0.45rem;
+  padding: 0.22rem 0.5rem;
   border-radius: var(--radius-full);
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -642,18 +642,18 @@ p  { color: var(--text-secondary); }
 .status-soon   { background: rgba(217,119,6,0.12); color: #b45309; border: 1px solid rgba(217,119,6,0.3); }
 .raffle-card-tickets {
   position: absolute;
-  top: 0.55rem; right: 0.55rem;
+  top: 0.75rem; right: 0.75rem;
   font-size: 0.5rem;
   font-weight: 700;
   background: rgba(0,0,0,0.6);
   color: var(--text-primary);
-  padding: 0.2rem 0.45rem;
+  padding: 0.22rem 0.5rem;
   border-radius: var(--radius-full);
   backdrop-filter: blur(8px);
 }
 .raffle-card-body { padding: 0.88rem; }
 .raffle-card-cat {
-  font-size: 0.5rem;
+  font-size: 0.52rem;
   font-weight: 700;
   color: var(--color-primary-light);
   text-transform: uppercase;
@@ -700,10 +700,10 @@ p  { color: var(--text-secondary); }
   align-items: center;
   justify-content: center;
   gap: 0.22rem;
-  min-height: 25px;
+  min-height: 30px;
   white-space: nowrap;
-  font-size: 0.54rem;
-  padding: 0.21rem 0.49rem;
+  font-size: 0.56rem;
+  padding: 0.22rem 0.5rem;
   line-height: 1;
 }
 .raffle-card-price {
@@ -711,7 +711,7 @@ p  { color: var(--text-secondary); }
   color: var(--text-secondary);
 }
 .raffle-card-price strong {
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   color: var(--text-primary);
 }
 
@@ -2337,10 +2337,10 @@ textarea.form-control { resize: vertical; min-height: 80px; }
     padding: 0.7rem;
   }
   .raffle-card {
-    border-radius: 12px;
+    border-radius: 18px;
   }
   .raffle-card-img {
-    aspect-ratio: 16 / 7;
+    aspect-ratio: 16 / 10;
   }
   .raffle-card-tickets,
   .raffle-card-cat,
@@ -2370,7 +2370,7 @@ textarea.form-control { resize: vertical; min-height: 80px; }
   .raffle-card-action {
     width: 100%;
     min-height: 32px;
-    font-size: 0.64rem;
+    font-size: 0.66rem;
     padding: 0.52rem 0.7rem;
     border-radius: 999px;
   }
@@ -2454,12 +2454,12 @@ textarea.form-control { resize: vertical; min-height: 80px; }
   }
 
   .raffle-card-title {
-    font-size: 0.7rem;
+    font-size: 0.72rem;
   }
 
   .raffle-card-action {
-    min-height: 30px;
-    font-size: 0.62rem;
+    min-height: 31px;
+    font-size: 0.63rem;
   }
 
   .benefits-grid { grid-template-columns: 1fr; }
