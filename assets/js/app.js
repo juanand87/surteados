@@ -262,12 +262,7 @@ function raffleClosedMessage(drawDate) {
   });
 
   function renderGrid() {
-    const filtered = raffles.filter(r => {
-      if (currentFilter === 'active') {
-        return r.status === 'active' && !getRaffleClosureInfo(r.drawDate).salesClosed;
-      }
-      return r.status === currentFilter;
-    });
+    const filtered = raffles.filter(r => r.status === currentFilter);
     if (filtered.length === 0) {
       grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="empty-icon">🎟️</div><p>No hay sorteos en esta categoría.</p></div>`;
       return;

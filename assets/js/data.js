@@ -15,7 +15,7 @@ const SEED = {
       category: 'Tecnología',
       description: 'El smartphone más avanzado de Apple. Cámara pro, chip A18 Pro y diseño premium de titanio. Incluye AirPods Pro de regalo.',
       status: 'active',  // active | soon | ended
-      drawDate: '2026-05-15T19:00:00',
+      drawDate: '2026-08-15T19:00:00',
       image: null,
       imageEmoji: '📱',
       totalTickets: 5000,
@@ -46,7 +46,7 @@ const SEED = {
       category: 'Gaming',
       description: 'Consola PlayStation 5 edición Digital + 5 juegos a elección. El regalo gamer definitivo. ¡Participa y gana!',
       status: 'active',
-      drawDate: '2026-04-30T20:00:00',
+      drawDate: '2026-08-30T20:00:00',
       image: null,
       imageEmoji: '🎮',
       totalTickets: 3000,
