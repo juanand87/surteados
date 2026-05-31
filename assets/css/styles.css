@@ -597,7 +597,7 @@ p  { color: var(--text-secondary); }
 .raffle-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  border-radius: 0.95rem;
   overflow: hidden;
   transition: all var(--transition);
   cursor: pointer;
@@ -616,7 +616,7 @@ p  { color: var(--text-secondary); }
   background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
 }
 .raffle-card-img {
-  aspect-ratio: 16/9;
+  aspect-ratio: 16/7;
   background: var(--bg-card2);
   position: relative;
   overflow: hidden;
@@ -629,10 +629,10 @@ p  { color: var(--text-secondary); }
 .raffle-card:hover .raffle-card-img img { transform: scale(1.06); }
 .raffle-card-status {
   position: absolute;
-  top: 0.75rem; left: 0.75rem;
-  font-size: 0.7rem;
+  top: 0.55rem; left: 0.55rem;
+  font-size: 0.5rem;
   font-weight: 700;
-  padding: 0.3rem 0.65rem;
+  padding: 0.2rem 0.45rem;
   border-radius: var(--radius-full);
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -642,54 +642,54 @@ p  { color: var(--text-secondary); }
 .status-soon   { background: rgba(217,119,6,0.12); color: #b45309; border: 1px solid rgba(217,119,6,0.3); }
 .raffle-card-tickets {
   position: absolute;
-  top: 0.75rem; right: 0.75rem;
-  font-size: 0.72rem;
+  top: 0.55rem; right: 0.55rem;
+  font-size: 0.5rem;
   font-weight: 700;
   background: rgba(0,0,0,0.6);
   color: var(--text-primary);
-  padding: 0.3rem 0.65rem;
+  padding: 0.2rem 0.45rem;
   border-radius: var(--radius-full);
   backdrop-filter: blur(8px);
 }
-.raffle-card-body { padding: 1.25rem; }
+.raffle-card-body { padding: 0.88rem; }
 .raffle-card-cat {
-  font-size: 0.72rem;
+  font-size: 0.5rem;
   font-weight: 700;
   color: var(--color-primary-light);
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.28rem;
 }
 .raffle-card-title {
-  font-size: 1.05rem;
+  font-size: 0.74rem;
   font-weight: 700;
   color: var(--text-inv);
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.35rem;
   line-height: 1.3;
 }
 .raffle-card-value {
-  font-size: 0.85rem;
+  font-size: 0.6rem;
   color: var(--color-accent);
   font-weight: 600;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.52rem;
 }
 .raffle-card-closure {
-  margin-top: 0.45rem;
-  font-size: 0.72rem;
+  margin-top: 0.32rem;
+  font-size: 0.5rem;
   color: #fbbf24;
   line-height: 1.35;
 }
-.raffle-card .progress-bar { margin-bottom: 0.75rem; }
+.raffle-card .progress-bar { margin-bottom: 0.52rem; }
 .raffle-card-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-top: 0.75rem;
+  padding-top: 0.52rem;
   border-top: 1px solid var(--border);
 }
 .raffle-card-actions {
   display: flex;
-  gap: 0.45rem;
+  gap: 0.32rem;
   align-items: stretch;
   flex-wrap: wrap;
   justify-content: flex-end;
@@ -699,19 +699,19 @@ p  { color: var(--text-secondary); }
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.32rem;
-  min-height: 36px;
+  gap: 0.22rem;
+  min-height: 25px;
   white-space: nowrap;
-  font-size: 0.77rem;
-  padding: 0.3rem 0.7rem;
+  font-size: 0.54rem;
+  padding: 0.21rem 0.49rem;
   line-height: 1;
 }
 .raffle-card-price {
-  font-size: 0.85rem;
+  font-size: 0.6rem;
   color: var(--text-secondary);
 }
 .raffle-card-price strong {
-  font-size: 1rem;
+  font-size: 0.7rem;
   color: var(--text-primary);
 }
 
@@ -2334,13 +2334,13 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 
   .raffle-card .card-body,
   .raffle-card-body {
-    padding: 1rem;
+    padding: 0.7rem;
   }
   .raffle-card {
-    border-radius: 18px;
+    border-radius: 12px;
   }
   .raffle-card-img {
-    aspect-ratio: 16 / 10;
+    aspect-ratio: 16 / 7;
   }
   .raffle-card-tickets,
   .raffle-card-cat,
@@ -2351,12 +2351,12 @@ textarea.form-control { resize: vertical; min-height: 80px; }
     text-align: center;
   }
   .raffle-card-title {
-    font-size: 1.05rem;
-    margin-bottom: 0.45rem;
+    font-size: 0.74rem;
+    margin-bottom: 0.32rem;
   }
   .raffle-card-value {
-    font-size: 0.95rem;
-    margin-bottom: 0.85rem;
+    font-size: 0.67rem;
+    margin-bottom: 0.6rem;
   }
   .raffle-card-footer {
     padding-top: 0;
@@ -2364,14 +2364,14 @@ textarea.form-control { resize: vertical; min-height: 80px; }
   }
   .raffle-card-actions {
     justify-content: center;
-    gap: 0.65rem;
+    gap: 0.45rem;
     flex-direction: column;
   }
   .raffle-card-action {
     width: 100%;
-    min-height: 46px;
-    font-size: 0.92rem;
-    padding: 0.75rem 1rem;
+    min-height: 32px;
+    font-size: 0.64rem;
+    padding: 0.52rem 0.7rem;
     border-radius: 999px;
   }
 
@@ -2454,12 +2454,12 @@ textarea.form-control { resize: vertical; min-height: 80px; }
   }
 
   .raffle-card-title {
-    font-size: 1rem;
+    font-size: 0.7rem;
   }
 
   .raffle-card-action {
-    min-height: 44px;
-    font-size: 0.88rem;
+    min-height: 30px;
+    font-size: 0.62rem;
   }
 
   .benefits-grid { grid-template-columns: 1fr; }
