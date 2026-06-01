@@ -823,7 +823,7 @@ function updateCartBar() {
     renderCartDrawerPanel();
     showToast('Pack agregado. Te llevamos a ver más sorteos.', 'success', 1800);
     setTimeout(() => {
-      window.location.href = '/surteados/sorteos.php';
+      window.location.href = '/sorteos.php';
     }, 350);
   });
 
