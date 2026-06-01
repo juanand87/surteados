@@ -25,15 +25,29 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 
 $pdo = db();
 
+// Build a date expression compatible with older/newer ticket schemas.
+$colStmt = $pdo->query('SHOW COLUMNS FROM tickets');
+$ticketColumns = [];
+foreach ($colStmt->fetchAll() as $col) {
+  if (!empty($col['Field'])) $ticketColumns[$col['Field']] = true;
+}
+
+$dateParts = [];
+if (isset($ticketColumns['paid_at'])) $dateParts[] = 't.paid_at';
+if (isset($ticketColumns['purchase_date'])) $dateParts[] = 't.purchase_date';
+if (isset($ticketColumns['created_at'])) $dateParts[] = 't.created_at';
+$dateExpr = $dateParts ? ('COALESCE(' . implode(', ', $dateParts) . ')') : 'NULL';
+
 $stmt = $pdo->prepare(
     "SELECT t.id, t.ticket_numbers, t.pack_label, t.amount,
-            t.buyer_name, t.buyer_email, t.paid_at, t.created_at,
+      t.buyer_name, t.buyer_email,
+      {$dateExpr} AS paid_date,
             r.title AS raffle_title, r.image AS raffle_image,
             r.draw_date
        FROM tickets t
        JOIN raffles r ON r.id = t.raffle_id
       WHERE t.flow_order = ? AND t.buyer_email = ? AND t.payment_status = 'paid'
-      ORDER BY t.created_at ASC"
+    ORDER BY paid_date ASC"
 );
 $stmt->execute([$orderId, $email]);
 $tickets = $stmt->fetchAll();
@@ -148,7 +162,7 @@ header('X-Robots-Tag: noindex, nofollow');
       $img   = $t['raffle_image'] ? htmlspecialchars($t['raffle_image']) : null;
       $rawDraw = $t['draw_date'] ?? null;
       $drawFmt = $rawDraw ? date('d/m/Y', strtotime($rawDraw)) : '—';
-      $rawDate = $t['paid_at'] ?? $t['created_at'] ?? null;
+        $rawDate = $t['paid_date'] ?? null;
       $dateFmt = $rawDate ? date('d/m/Y H:i', strtotime($rawDate)) : '—';
   ?>
     <div class="ticket-card">
