@@ -42,7 +42,7 @@ $stmt = $pdo->prepare(
     "SELECT t.id, t.ticket_numbers, t.pack_label, t.amount,
       t.buyer_name, t.buyer_email,
       {$dateExpr} AS paid_date,
-            r.title AS raffle_title, r.image AS raffle_image,
+            r.title AS raffle_title, r.image_url AS raffle_image,
             r.draw_date
        FROM tickets t
        JOIN raffles r ON r.id = t.raffle_id

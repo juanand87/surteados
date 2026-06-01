@@ -107,7 +107,15 @@ $isFailed  = $ticket && in_array($ticket['payment_status'], ['failed', 'refunded
         Guarda este número de orden Flow: <code><?= htmlspecialchars($ticket['flow_order'] ?? '') ?></code>
       </p>
 
-      <a href="sorteos.php" class="btn btn-primary" style="margin-top:1.5rem;">Ver más sorteos</a>
+      <?php
+        $pdfOrderId = htmlspecialchars($ticket['flow_order'] ?? '');
+        $pdfEmail   = urlencode($ticket['buyer_email'] ?? '');
+      ?>
+      <a href="api/ticket_pdf.php?orderId=<?= $pdfOrderId ?>&email=<?= $pdfEmail ?>" target="_blank" rel="noopener"
+         class="btn btn-primary" style="margin-top:1.5rem; display:block; width:100%; text-align:center;">
+        📄 Ver mis imágenes compradas
+      </a>
+      <a href="sorteos.php" class="btn btn-ghost btn-sm" style="margin-top:.75rem;">Ver más sorteos</a>
 
     <?php elseif ($isPending): ?>
       <div class="result-icon"><span class="spin">⏳</span></div>
