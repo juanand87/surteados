@@ -8,10 +8,16 @@ define('DB_HOST',   'localhost');
 define('DB_USER',   'root');
 define('DB_PASS',   '');
 define('DB_NAME',   'surteados_db');
-// Detectar BASE_URL automáticamente (fallback a localhost si está en CLI)
-define('BASE_URL',  (isset($_SERVER['HTTP_HOST']) 
-    ? ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . '/surteados')
-    : 'http://localhost/surteados'));
+// Detectar BASE_URL automáticamente (localhost usa /surteados, producción en raíz)
+if (isset($_SERVER['HTTP_HOST'])) {
+    $scheme = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 'https' : 'http';
+    $host = (string)$_SERVER['HTTP_HOST'];
+    $isLocal = stripos($host, 'localhost') === 0 || stripos($host, '127.0.0.1') === 0;
+    $basePath = $isLocal ? '/surteados' : '';
+    define('BASE_URL', $scheme . '://' . $host . $basePath);
+} else {
+    define('BASE_URL', 'http://localhost/surteados');
+}
 define('SESSION_NAME', 'surteados_admin');
 define('CLIENT_SESSION_NAME', 'surteados_client');
 

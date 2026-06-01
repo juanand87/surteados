@@ -150,7 +150,8 @@ foreach ($cfgStmt->fetchAll() as $row) {
 $siteName  = $cfg['site_name']       ?? 'Surteados';
 $fromEmail = $cfg['smtp_from_email'] ?: 'noreply@surteados.cl';
 $fromName  = $cfg['smtp_from_name']  ?: $siteName;
-$siteUrl   = rtrim($cfg['site_url']  ?: BASE_URL, '/');
+$siteUrlSetting = trim((string)($cfg['site_url'] ?? ''));
+$siteUrl   = rtrim(($siteUrlSetting !== '' ? $siteUrlSetting : BASE_URL), '/');
 $ticketLabel  = $cfg['ticket_label'] ?? 'imagen';
 $ticketLabelP = $cfg['ticket_label_plural'] ?? 'imagenes';
 
@@ -169,7 +170,7 @@ foreach ($createdTickets as $t) {
 }
 
 $totalFormatted = '$' . number_format($total, 0, ',', '.');
-$ticketsUrl     = $siteUrl . '/mis-tickets.php?email=' . rawurlencode($buyerEmail);
+$ticketsUrl     = $siteUrl . '/api/ticket_pdf.php?orderId=' . rawurlencode($orderId) . '&email=' . rawurlencode($buyerEmail);
 $buyerNameSafe  = htmlspecialchars($buyerName);
 $buyerEmailSafe = htmlspecialchars($buyerEmail);
 $ticketLabelPSafe = htmlspecialchars($ticketLabelP);
@@ -213,7 +214,7 @@ $htmlBody = <<<HTML
       </div>
 
       <div style="text-align:center;margin-bottom:20px;">
-        <a href="{$ticketsUrl}" style="display:inline-block;background:linear-gradient(135deg,#7c3aed,#db2777);color:#fff;text-decoration:none;padding:13px 32px;border-radius:50px;font-weight:700;font-size:15px;letter-spacing:.3px;">🎫 Ver mis {$ticketLabelPSafe}</a>
+        <a href="{$ticketsUrl}" style="display:inline-block;background:linear-gradient(135deg,#7c3aed,#db2777);color:#fff;text-decoration:none;padding:13px 32px;border-radius:50px;font-weight:700;font-size:15px;letter-spacing:.3px;">📄 Ver mis imágenes compradas</a>
       </div>
 
       <p style="font-size:12px;color:#6b7280;text-align:center;margin:0;">¡Buena suerte en el sorteo! 🍀</p>
