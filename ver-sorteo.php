@@ -535,12 +535,12 @@ usort($sortedPacks, fn($a, $b) => $b['price'] - $a['price']);
           <div style="font-size:4rem;margin-bottom:1rem;">🎉</div>
           <h3 class="text-white mb-2">¡Compra exitosa!</h3>
           <p id="step4Subtitle" class="mb-3">Tus <?= htmlspecialchars($ticketLabelP) ?> han sido asignados. Revisa tu correo.</p>
-          <div id="purchasedTickets" style="margin-bottom:1.5rem;text-align:left;"></div>
+          <div id="purchasedTickets" style="display:none;"></div>
           <div class="card" style="padding:1rem;text-align:left;margin-bottom:1.5rem;">
             <div class="flex-between mb-1"><span class="text-sm text-muted">📧 Enviado a:</span><span class="text-sm text-white font-bold" id="confirmEmail">—</span></div>
             <div class="flex-between"><span class="text-sm text-muted">💰 Total pagado:</span><span class="text-sm text-accent font-bold" id="confirmAmount">—</span></div>
           </div>
-          <a href="mis-tickets.php" id="verMisTicketsLink" class="btn btn-primary btn-block mb-2">Ver mis <?= htmlspecialchars($ticketLabelP) ?></a>
+          <a href="#" id="verMisTicketsLink" class="btn btn-primary btn-block mb-2" target="_blank" rel="noopener">📄 Ver mis imágenes compradas</a>
           <button class="btn btn-ghost btn-block" id="closeAfterPurchase">Cerrar</button>
         </div>
       </div>

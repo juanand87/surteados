@@ -564,8 +564,8 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'tickets';
           <h3 class="text-white mb-2">¡Compra exitosa!</h3>
           <p id="step4Subtitle" class="mb-3">Tus <?= htmlspecialchars($ticketLabelP) ?> han sido asignados. Revisa tu correo.</p>
 
-          <!-- Grouped tickets per raffle (filled by JS) -->
-          <div id="purchasedTickets" style="margin-bottom:1.5rem;text-align:left;"></div>
+          <!-- Ticket detail moved to PDF page (filled by JS on link click) -->
+          <div id="purchasedTickets" style="display:none;"></div>
 
           <div class="card" style="padding:1rem; text-align:left; margin-bottom:1.5rem;">
             <div class="flex-between mb-1">
@@ -578,7 +578,7 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'tickets';
             </div>
           </div>
 
-          <a href="mis-tickets.php" id="verMisTicketsLink" class="btn btn-primary btn-block mb-2">Ver mis <?= htmlspecialchars($ticketLabelP) ?></a>
+          <a href="#" id="verMisTicketsLink" class="btn btn-primary btn-block mb-2" target="_blank" rel="noopener">📄 Ver mis imágenes compradas</a>
           <button class="btn btn-ghost btn-block" id="closeAfterPurchase">Cerrar</button>
         </div>
       </div>

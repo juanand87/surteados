@@ -938,25 +938,21 @@ function updateCartBar() {
       const subtitle = document.getElementById('step4Subtitle');
         if (subtitle) subtitle.textContent = `Hola ${name}, tus ${tLabelP()} han sido asignados. Revisa tu correo.`;
 
-      const ticketsEl = document.getElementById('purchasedTickets');
-      if (ticketsEl) {
-        ticketsEl.innerHTML = (json.data.tickets || []).map(t => `
-          <div style="background:rgba(124,58,237,.1);border-radius:.5rem;padding:.6rem .9rem;margin-bottom:.4rem">
-            <div style="font-weight:700;color:var(--text-inv)">${escHtml(t.raffleTitle)}</div>
-            <div style="font-size:.78rem;color:var(--text-muted)">${escHtml(t.packLabel)} &mdash; ${formatPrice(t.amount)}</div>
-            <div style="font-size:.75rem;color:#a78bfa;margin-top:.3rem;letter-spacing:.03rem">🎫 ${t.ticketNumbers.join(' · ')}</div>
-          </div>`).join('');
-      }
-
       // Update confirm summary
       const confirmEmail  = document.getElementById('confirmEmail');
       const confirmAmount = document.getElementById('confirmAmount');
       if (confirmEmail)  confirmEmail.textContent  = email;
       if (confirmAmount) confirmAmount.textContent = formatPrice(json.data.total);
 
-      // Point "Ver mis tickets" link to this email
+      // Point download link to PDF ticket page
       const verLink = document.getElementById('verMisTicketsLink');
-      if (verLink) { const base2 = window.location.pathname.replace(/\/index\.php.*|\/$/, '').replace(/\/[^/]+\.php.*/, ''); verLink.href = base2 + `/mis-tickets.php?email=${encodeURIComponent(email)}`; }
+      if (verLink) {
+        const base2 = window.location.pathname.replace(/\/index\.php.*|\/$/, '').replace(/\/[^/]+\.php.*/, '');
+        verLink.href = base2 + `/api/ticket_pdf.php?orderId=${encodeURIComponent(json.data.orderId)}&email=${encodeURIComponent(email)}`;
+        verLink.textContent = '📄 Ver mis imágenes compradas';
+        verLink.target = '_blank';
+        verLink.rel = 'noopener';
+      }
 
       _cart.clear();
       renderCartDrawerPanel();

@@ -15,3 +15,7 @@ _tmp_*.php
 assets/uploads/
 
 *.log
+
+# Composer local binary/setup (not needed in repo)
+composer
+composer-setup.php

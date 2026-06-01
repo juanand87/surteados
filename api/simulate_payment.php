@@ -139,7 +139,8 @@ if (!$createdTickets) {
 // ── Send confirmation email ────────────────────────────────────────────────
 $cfgStmt = $pdo->query(
     "SELECT `key`, `value` FROM settings
-      WHERE `key` IN ('site_name','smtp_from_email','smtp_from_name','site_url')"
+      WHERE `key` IN ('site_name','smtp_from_email','smtp_from_name','site_url',
+                      'smtp_host','smtp_port','smtp_user','smtp_pass','smtp_encryption')"
 );
 $cfg = [];
 foreach ($cfgStmt->fetchAll() as $row) {
@@ -231,8 +232,10 @@ $headers .= "From: {$fromName} <{$fromEmail}>\r\n";
 $headers .= "Reply-To: {$fromEmail}\r\n";
 $headers .= "X-Mailer: Surteados/1.0\r\n";
 
-$subject  = "=?UTF-8?B?" . base64_encode("🎟️ Tus {$ticketLabelP} de {$siteName} — Compra confirmada") . "?=";
-$mailSent = @mail($buyerEmail, $subject, $htmlBody, $headers);
+$subject  = "🎟️ Tus {$ticketLabelP} de {$siteName} — Compra confirmada";
+
+require_once __DIR__ . '/email_helper.php';
+$mailSent = surteados_send_email($cfg, $buyerEmail, $buyerName, $subject, $htmlBody);
 
 json_ok([
     'orderId'  => $orderId,
