@@ -268,12 +268,6 @@ function raffleClosedMessage(drawDate) {
       return;
     }
     grid.innerHTML = filtered.map(r => buildRaffleCard(r)).join('');
-    // Animate progress bars
-    setTimeout(() => {
-      grid.querySelectorAll('.progress-fill[data-pct]').forEach(el => {
-        el.style.width = el.dataset.pct + '%';
-      });
-    }, 100);
   }
 
   renderGrid();
@@ -1042,7 +1036,6 @@ function updateCartBar() {
 
 function buildRaffleCard(r) {
   const hasLimit = Number(r.totalTickets) > 0;
-  const pct = hasLimit ? percentage(r.soldTickets, r.totalTickets) : 0;
   const closure = getRaffleClosureInfo(r.drawDate);
   const canBuy = r.status === 'active' && !closure.salesClosed;
   const minPrice = r.packs?.length ? Math.min(...r.packs.map(p => p.price)) : 0;
@@ -1061,7 +1054,6 @@ function buildRaffleCard(r) {
         <div class="raffle-card-cat">${r.category}</div>
         <div class="raffle-card-title">${r.title}</div>
         <div class="raffle-card-value">Desde ${formatPrice(minPrice)}</div>
-        ${hasLimit ? `<div class="progress-bar" title="${pct}% vendido"><div class="progress-fill" data-pct="${pct}" style="width:0%"></div></div>` : ''}
         ${closure.salesClosed ? `<div class="raffle-card-closure">Se ha cerrado la compra de ${tLabelP()}, faltan ${closure.remainingText} para que puedas ganar.</div>` : ''}
         <div class="raffle-card-footer">
           <div class="raffle-card-actions">
