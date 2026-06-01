@@ -4,15 +4,28 @@
  * DB connection, helpers, shared constants
  */
 
+// Suppress PHP notices/warnings from polluting JSON API responses.
+// Errors are still logged server-side (log_errors stays on).
+ini_set('display_errors', '0');
+error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED & ~E_STRICT);
+
+// Start output buffering so any stray output can be discarded before JSON.
+ob_start();
+
 define('DB_HOST',   'localhost');
 define('DB_USER',   'root');
 define('DB_PASS',   '');
 define('DB_NAME',   'surteados_db');
 // Detectar BASE_URL automáticamente (localhost usa /surteados, producción en raíz)
 if (isset($_SERVER['HTTP_HOST'])) {
-    $scheme = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 'https' : 'http';
-    $host = (string)$_SERVER['HTTP_HOST'];
-    $isLocal = stripos($host, 'localhost') === 0 || stripos($host, '127.0.0.1') === 0;
+    // Handle reverse-proxy HTTPS (common on cPanel / shared hosting)
+    $isHttps = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on')
+             || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
+             || (isset($_SERVER['HTTP_X_FORWARDED_SSL'])   && $_SERVER['HTTP_X_FORWARDED_SSL']   === 'on')
+             || (isset($_SERVER['SERVER_PORT'])             && (int)$_SERVER['SERVER_PORT'] === 443);
+    $scheme   = $isHttps ? 'https' : 'http';
+    $host     = (string)$_SERVER['HTTP_HOST'];
+    $isLocal  = stripos($host, 'localhost') === 0 || stripos($host, '127.0.0.1') === 0;
     $basePath = $isLocal ? '/surteados' : '';
     define('BASE_URL', $scheme . '://' . $host . $basePath);
 } else {
@@ -44,6 +57,7 @@ function db(): PDO {
 
 // ── Response helpers ──────────────────────────────────────────────────────────
 function json_ok(mixed $data, int $code = 200): never {
+    if (ob_get_level()) ob_end_clean(); // discard any stray output
     http_response_code($code);
     header('Content-Type: application/json; charset=utf-8');
     echo json_encode(['ok' => true, 'data' => $data], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -51,6 +65,7 @@ function json_ok(mixed $data, int $code = 200): never {
 }
 
 function json_error(string $msg, int $code = 400): never {
+    if (ob_get_level()) ob_end_clean(); // discard any stray output
     http_response_code($code);
     header('Content-Type: application/json; charset=utf-8');
     echo json_encode(['ok' => false, 'error' => $msg], JSON_UNESCAPED_UNICODE);
