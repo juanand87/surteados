@@ -917,7 +917,8 @@ function updateCartBar() {
       btn.textContent = `⏳ Generando ${tLabelP()}…`;
 
     try {
-      const resp = await fetch('/surteados/api/simulate_payment.php', {
+      const base = window.location.pathname.replace(/\/index\.php.*|\/$/, '').replace(/\/[^/]+\.php.*/, '');
+      const resp = await fetch(base + '/api/simulate_payment.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -955,7 +956,7 @@ function updateCartBar() {
 
       // Point "Ver mis tickets" link to this email
       const verLink = document.getElementById('verMisTicketsLink');
-      if (verLink) verLink.href = `/surteados/mis-tickets.php?email=${encodeURIComponent(email)}`;
+      if (verLink) { const base2 = window.location.pathname.replace(/\/index\.php.*|\/$/, '').replace(/\/[^/]+\.php.*/, ''); verLink.href = base2 + `/mis-tickets.php?email=${encodeURIComponent(email)}`; }
 
       _cart.clear();
       renderCartDrawerPanel();
@@ -1005,7 +1006,8 @@ function updateCartBar() {
 
     payBtn.textContent = '🔄 Conectando con Flow.cl…';
     try {
-      const resp = await fetch('/surteados/api/flow.php', {
+      const base = window.location.pathname.replace(/\/index\.php.*|\/$/, '').replace(/\/[^/]+\.php.*/, '');
+      const resp = await fetch(base + '/api/flow.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
