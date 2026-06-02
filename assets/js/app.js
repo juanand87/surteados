@@ -847,6 +847,29 @@ function updateCartBar() {
     updatePurchaseStep(1);
   });
 
+  // Step 2 policies panel inside the same modal
+  const policiesLink = document.getElementById('buyerViewPoliciesLink');
+  const policiesBackBtn = document.getElementById('buyerPoliciesBackBtn');
+  const policiesPanel = document.getElementById('buyerPoliciesPanel');
+  const termsWrap = document.getElementById('buyerTermsWrap');
+  const step2Actions = document.getElementById('step2')?.querySelector('.flex.gap-2');
+
+  function showPoliciesPanel(show) {
+    if (!policiesPanel || !termsWrap || !step2Actions) return;
+    policiesPanel.style.display = show ? 'block' : 'none';
+    termsWrap.style.display = show ? 'none' : '';
+    step2Actions.style.display = show ? 'none' : '';
+  }
+
+  policiesLink?.addEventListener('click', (e) => {
+    e.preventDefault();
+    showPoliciesPanel(true);
+  });
+
+  policiesBackBtn?.addEventListener('click', () => {
+    showPoliciesPanel(false);
+  });
+
   // RUT formatting helper in form
   const buyerRutEl = document.getElementById('buyerRut');
   buyerRutEl?.addEventListener('blur', () => {
@@ -861,6 +884,7 @@ function updateCartBar() {
     const comuna       = document.getElementById('buyerComuna')?.value?.trim();
     const email        = document.getElementById('buyerEmail')?.value?.trim();
     const emailConfirm = document.getElementById('buyerEmailConfirm')?.value?.trim();
+    const termsAccepted = !!document.getElementById('buyerTermsAccepted')?.checked;
     if (!name)  { showToast('Ingresa tu nombre completo', 'warning'); return; }
     if (!rutInput) { showToast('Ingresa tu RUT', 'warning'); return; }
     if (!address) { showToast('Ingresa tu dirección', 'warning'); return; }
@@ -871,6 +895,7 @@ function updateCartBar() {
     if (rutEl) rutEl.value = rut;
     if (!email || !/^[^@]+@[^@]+\.[^@]+$/.test(email)) { showToast('Ingresa un correo válido', 'warning'); return; }
     if (email !== emailConfirm) { showToast('Los correos no coinciden', 'error'); return; }
+    if (!termsAccepted) { showToast('Debes aceptar las politicas de compra', 'warning'); return; }
 
     // Build cart summary
     const items = _cart.load();

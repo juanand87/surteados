@@ -512,6 +512,22 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'tickets';
           <label class="form-label">Confirmar correo *</label>
           <input type="email" class="form-control" id="buyerEmailConfirm" placeholder="tu@correo.com" required>
         </div>
+        <div class="form-group" id="buyerTermsWrap">
+          <label class="form-label" style="display:flex;gap:.55rem;align-items:flex-start;line-height:1.4;">
+            <input type="checkbox" id="buyerTermsAccepted" style="margin-top:.2rem;accent-color:var(--color-primary);">
+            <span>
+              Estoy de acuerdo con las politicas de compra.
+              <a href="#" id="buyerViewPoliciesLink" style="margin-left:.2rem;">(Ver politicas)</a>
+            </span>
+          </label>
+        </div>
+        <div class="card" id="buyerPoliciesPanel" style="display:none;padding:.85rem 1rem;margin-bottom:.75rem;">
+          <h5 style="margin:0 0 .5rem;color:var(--text-inv);font-size:.92rem;">Politicas de compra (demo)</h5>
+          <p class="text-sm" style="margin:0 0 .45rem;">Las compras son digitales y se confirman por correo. Revisa bien tus datos antes de pagar.</p>
+          <p class="text-sm" style="margin:0 0 .45rem;">Una vez confirmado el pago, la asignacion de numeros es automatica y no editable.</p>
+          <p class="text-sm" style="margin:0 0 .75rem;">Si tienes dudas, puedes contactarnos y te ayudaremos con tu compra.</p>
+          <button type="button" class="btn btn-ghost btn-sm" id="buyerPoliciesBackBtn">← Volver al pago</button>
+        </div>
         <div class="separator"></div>
         <div class="flex gap-2">
           <button class="btn btn-ghost" id="step2Back">← Volver</button>
