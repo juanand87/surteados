@@ -515,8 +515,8 @@ usort($sortedPacks, fn($a, $b) => $b['price'] - $a['price']);
           <p class="text-sm" style="margin:0 0 .55rem;">Si no recibes el correo de confirmacion, revisa spam o correo no deseado y luego contactanos para asistencia.</p>
           <p class="text-sm" style="margin:0 0 .55rem;">El participante acepta que este proceso corresponde a productos digitales y comprende los plazos y condiciones del sorteo publicado.</p>
           <p class="text-sm" style="margin:0 0 .8rem;">Para dudas de soporte, puedes escribir a nuestro canal de contacto y te ayudaremos a validar tu compra.</p>
-          <div style="position:sticky;bottom:0;padding-top:.35rem;background:linear-gradient(to bottom, rgba(17,24,39,0), rgba(17,24,39,.92) 35%);">
-            <button type="button" class="btn btn-ghost btn-sm" id="buyerPoliciesBackBtn">← Volver al pago</button>
+          <div style="position:sticky;bottom:0;padding-top:.5rem;margin-top:.35rem;background:var(--bg-card);border-top:1px solid rgba(255,255,255,.14);">
+            <button type="button" class="btn btn-sm" id="buyerPoliciesBackBtn" style="width:100%;font-weight:800;border:1px solid var(--color-primary);background:rgba(124,58,237,.2);color:var(--text-inv);">← Volver al pago</button>
           </div>
         </div>
         <div class="separator"></div>
