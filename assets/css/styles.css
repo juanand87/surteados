@@ -706,6 +706,24 @@ p  { color: var(--text-secondary); }
   padding: 0.22rem 0.5rem;
   line-height: 1;
 }
+
+@media (min-width: 769px) {
+  .raffle-card-actions {
+    gap: 0.5rem;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+  }
+
+  .raffle-card-action {
+    flex: 1 1 0;
+    width: calc(50% - 0.25rem);
+    min-height: 40px;
+    font-size: 0.72rem;
+    padding: 0.56rem 0.8rem;
+    line-height: 1.1;
+    border-radius: 999px;
+  }
+}
 .raffle-card-price {
   font-size: 0.6rem;
   color: var(--text-secondary);
