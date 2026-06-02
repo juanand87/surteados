@@ -851,14 +851,20 @@ function updateCartBar() {
   const policiesLink = document.getElementById('buyerViewPoliciesLink');
   const policiesBackBtn = document.getElementById('buyerPoliciesBackBtn');
   const policiesPanel = document.getElementById('buyerPoliciesPanel');
-  const termsWrap = document.getElementById('buyerTermsWrap');
-  const step2Actions = document.getElementById('step2')?.querySelector('.flex.gap-2');
+  const step2 = document.getElementById('step2');
+  const step2ReplaceableNodes = step2
+    ? Array.from(step2.children).filter((node) => node.id !== 'buyerPoliciesPanel')
+    : [];
 
   function showPoliciesPanel(show) {
-    if (!policiesPanel || !termsWrap || !step2Actions) return;
+    if (!policiesPanel) return;
     policiesPanel.style.display = show ? 'block' : 'none';
-    termsWrap.style.display = show ? 'none' : '';
-    step2Actions.style.display = show ? 'none' : '';
+    step2ReplaceableNodes.forEach((node) => {
+      node.style.display = show ? 'none' : '';
+    });
+    if (show) {
+      policiesPanel.scrollTop = 0;
+    }
   }
 
   policiesLink?.addEventListener('click', (e) => {
