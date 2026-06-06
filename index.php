@@ -13,6 +13,40 @@ $theme    = $cfg['theme'] ?? [];
 $siteLogo = $cfg['logo'] ?? null;
 $ticketLabel  = $cfg['ticketLabel']       ?? 'ticket';
 $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'tickets';
+$homeSlides = [
+  [
+    'image' => 'assets/uploads/raffle_0001000000000001.jpg',
+    'badge' => 'Destacado',
+    'title' => 'Premios que llaman la atencion desde el primer vistazo',
+    'text' => 'Una portada mas potente para mostrar sorteos, premios y oportunidades reales.',
+    'link' => 'sorteos.php',
+    'cta' => 'Ver sorteos',
+  ],
+  [
+    'image' => 'assets/uploads/raffle_0002000000000002.jpg',
+    'badge' => 'Compra rapida',
+    'title' => 'Elige tus imagenes en segundos y entra al sorteo al instante',
+    'text' => 'Proceso simple, pago claro y confirmacion inmediata para participar sin friccion.',
+    'link' => 'como-participar.php',
+    'cta' => 'Como participar',
+  ],
+  [
+    'image' => 'assets/uploads/raffle_0003000000000003.jpg',
+    'badge' => 'Transparencia',
+    'title' => 'Sorteos digitales con presencia, confianza y mejor exhibicion visual',
+    'text' => 'Usa este slide como vitrina principal para reforzar marca, premios y conversion.',
+    'link' => 'ganadores.php',
+    'cta' => 'Ver ganadores',
+  ],
+  [
+    'image' => 'assets/uploads/raffle_0004000000000004.jpg',
+    'badge' => 'Disponible ahora',
+    'title' => 'Cuatro imagenes de ejemplo listas para destacar tu portada',
+    'text' => 'Luego puedes reemplazarlas por banners finales manteniendo la misma estructura.',
+    'link' => 'mis-tickets.php#register',
+    'cta' => 'Registrarse',
+  ],
+];
 ?><!DOCTYPE html>
 <html lang="es">
 <head>
@@ -154,9 +188,27 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'tickets';
 </nav>
 
 <!-- ═══════════════════════════ HERO SLIDER ═══════════════════════════ -->
-<div class="hero-slider-wrap hidden" id="heroSliderWrap">
-  <div class="hs-track" id="hsTrack"></div>
-  <div class="hs-dots" id="hsDots"></div>
+<div class="hero-slider-wrap" id="heroSliderWrap">
+  <div class="hs-track" id="hsTrack">
+    <?php foreach ($homeSlides as $slide): ?>
+      <article class="hs-slide" style="background-image:url('<?= htmlspecialchars($slide['image']) ?>'); background-size:cover; background-position:center; background-repeat:no-repeat;">
+        <div class="hs-overlay"></div>
+        <div class="hs-slide-inner">
+          <div class="badge"><?= htmlspecialchars($slide['badge']) ?></div>
+          <h1><?= htmlspecialchars($slide['title']) ?></h1>
+          <p><?= htmlspecialchars($slide['text']) ?></p>
+          <div class="mt-3">
+            <a href="<?= htmlspecialchars($slide['link']) ?>" class="btn btn-accent btn-lg"><?= htmlspecialchars($slide['cta']) ?></a>
+          </div>
+        </div>
+      </article>
+    <?php endforeach; ?>
+  </div>
+  <div class="hs-dots" id="hsDots">
+    <?php foreach ($homeSlides as $index => $slide): ?>
+      <button class="hs-dot<?= $index === 0 ? ' active' : '' ?>" data-idx="<?= $index ?>" aria-label="Slide <?= $index + 1 ?>"></button>
+    <?php endforeach; ?>
+  </div>
   <button class="hs-arrow hs-prev" id="hsPrev" aria-label="Anterior">&#10094;</button>
   <button class="hs-arrow hs-next" id="hsNext" aria-label="Siguiente">&#10095;</button>
 </div>

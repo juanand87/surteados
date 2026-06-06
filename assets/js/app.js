@@ -77,18 +77,15 @@ function raffleClosedMessage(drawDate) {
 // ─── Hero Slider ──────────────────────────────────────────────────────────────
 (function() {
   const settings = window.SURTEADOS_DATA?.settings;
-  if (!settings?.heroSliderEnabled) return;
-  const slides = (settings.heroSlides || []).filter(s => s.active !== false);
-  if (!slides.length) return;
-
   const wrap  = document.getElementById('heroSliderWrap');
   const track = document.getElementById('hsTrack');
   const dotsEl= document.getElementById('hsDots');
-  const hero  = document.getElementById('hero');
   if (!wrap || !track) return;
 
-  if (hero) hero.hidden = true;
-  wrap.classList.remove('hidden');
+  const settingsSlides = settings?.heroSliderEnabled
+    ? (settings.heroSlides || []).filter(s => s.active !== false)
+    : [];
+  const hasServerSlides = settingsSlides.length > 0;
 
   function slideStyle(s) {
     if (s.bgType === 'image' && s.bgImage) {
@@ -99,9 +96,10 @@ function raffleClosedMessage(drawDate) {
     return `background:linear-gradient(135deg,${c1},${c2});`;
   }
 
-  track.innerHTML = slides.map((s, i) => `
+  if (hasServerSlides) {
+    track.innerHTML = settingsSlides.map((s) => `
     <div class="hs-slide" style="${slideStyle(s)}">
-      ${s.bgType === 'image' ? '<div class="hs-overlay"></div>' : ''}
+      ${s.bgType === 'image' ? '<div class="hs-overlay"></div>' : '<div class="hs-overlay"></div>'}
       <div class="hs-slide-inner">
         ${s.badge ? `<div class="badge mb-3">${escHtml(s.badge)}</div>` : ''}
         <h1>${escHtml(s.title || '')}</h1>
@@ -110,11 +108,17 @@ function raffleClosedMessage(drawDate) {
       </div>
     </div>`).join('');
 
-  if (dotsEl) {
-    dotsEl.innerHTML = slides.map((_, i) =>
+    if (dotsEl) {
+      dotsEl.innerHTML = settingsSlides.map((_, i) =>
       `<button class="hs-dot${i===0?' active':''}" data-idx="${i}" aria-label="Slide ${i+1}"></button>`
-    ).join('');
+      ).join('');
+    }
   }
+
+  const slides = Array.from(track.querySelectorAll('.hs-slide'));
+  if (!slides.length) return;
+
+  wrap.classList.remove('hidden');
 
   let current = 0, timer;
   function goTo(idx) {
