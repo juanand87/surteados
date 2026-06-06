@@ -1088,7 +1088,6 @@ function buildRaffleCard(r) {
           <div class="raffle-card-actions">
             <a href="ver-sorteo.php?id=${r.id}" class="btn btn-ghost btn-sm raffle-card-action" onclick="event.stopPropagation()">
               <span>👁 Ver Sorteo</span>
-              ${r.drawDate && r.status !== 'ended' ? `<span class="rd-countdown" data-date="${r.drawDate}" style="font-size:.72em;opacity:.8;"></span>` : ''}
             </a>
             ${canBuy ? `<button class="btn btn-primary btn-sm raffle-card-action" onclick="event.stopPropagation(); openPurchaseModal('${r.id}')">Comprar ${tLabelUp()}</button>` :
               (r.status === 'active' && closure.salesClosed) ? `<span class="pill pill-amber" style="font-size:.72rem;">Compra cerrada</span>` :
