@@ -66,21 +66,6 @@ if (!empty($cfg['developmentMode'])):
       margin-bottom: 2rem;
       filter: drop-shadow(0 18px 40px rgba(0,0,0,.42));
     }
-    .soon-kicker {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: .45rem .8rem;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      color: var(--muted);
-      font-size: .78rem;
-      font-weight: 800;
-      letter-spacing: .12em;
-      text-transform: uppercase;
-      margin-bottom: 1rem;
-      background: rgba(255,255,255,.05);
-    }
     h1 {
       margin: 0;
       font-size: clamp(2.4rem, 8vw, 5.4rem);
@@ -108,7 +93,6 @@ if (!empty($cfg['developmentMode'])):
 <body>
   <main class="soon" aria-label="Sitio en desarrollo">
     <img class="soon-logo" src="<?= htmlspecialchars($comingSoonLogo) ?>" alt="Surteados">
-    <div class="soon-kicker">Sitio web en desarrollo</div>
     <h1>Próximamente</h1>
     <p>Estamos preparando una nueva experiencia de sorteos digitales. Muy pronto podrás participar, elegir tus imágenes y quizás ser el próximo ganador.</p>
     <div class="soon-line" aria-hidden="true"></div>

@@ -72,9 +72,13 @@ $apiBase   = BASE_URL . '/api';
       <div class="admin-nav-item" data-section="flow"><span class="icon">💳</span> Flow.cl Pagos</div>
     </div>
     <div class="admin-sidebar-section" style="margin-top:auto; padding-top:2rem;">
-      <label style="display:flex;align-items:center;justify-content:space-between;gap:.75rem;padding:.75rem 1rem;margin-bottom:.75rem;border:1px solid rgba(255,255,255,.08);border-radius:10px;background:rgba(255,255,255,.04);color:rgba(255,255,255,.78);font-size:.78rem;cursor:pointer;">
+      <label class="dev-mode-toggle" style="display:flex;align-items:center;justify-content:space-between;gap:.75rem;padding:.75rem 1rem;margin-bottom:.75rem;border:1px solid rgba(255,255,255,.08);border-radius:10px;background:rgba(255,255,255,.04);color:rgba(255,255,255,.78);font-size:.78rem;cursor:pointer;">
         <span style="line-height:1.25;">Sitio en desarrollo</span>
-        <input type="checkbox" id="developmentModeSwitch" style="width:16px;height:16px;accent-color:var(--color-accent);flex-shrink:0;">
+        <span style="position:relative;display:inline-flex;width:38px;height:22px;flex-shrink:0;">
+          <input type="checkbox" id="developmentModeSwitch" style="position:absolute;inset:0;opacity:0;cursor:pointer;">
+          <span id="developmentModeTrack" style="position:absolute;inset:0;border-radius:999px;background:rgba(255,255,255,.18);transition:background .2s;"></span>
+          <span id="developmentModeKnob" style="position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:999px;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.28);transition:transform .2s;"></span>
+        </span>
       </label>
       <a href="logout.php" class="admin-nav-item" style="color:#f87171; text-decoration:none;">
         <span class="icon">🚪</span> Cerrar sesión

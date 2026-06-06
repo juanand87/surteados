@@ -853,9 +853,17 @@ function clearSlideImage() {
 function setupDevelopmentModeSwitch(settings = {}) {
   const sw = document.getElementById('developmentModeSwitch');
   if (!sw || sw.dataset.ready === '1') return;
+  const syncSwitchUi = () => {
+    const track = document.getElementById('developmentModeTrack');
+    const knob = document.getElementById('developmentModeKnob');
+    if (track) track.style.background = sw.checked ? 'var(--color-accent)' : 'rgba(255,255,255,.18)';
+    if (knob) knob.style.transform = sw.checked ? 'translateX(16px)' : 'translateX(0)';
+  };
   sw.dataset.ready = '1';
   sw.checked = settings.development_mode_enabled === '1' || settings.development_mode_enabled === 1;
+  syncSwitchUi();
   sw.addEventListener('change', async () => {
+    syncSwitchUi();
     sw.disabled = true;
     try {
       await api('/settings.php', {
@@ -865,6 +873,7 @@ function setupDevelopmentModeSwitch(settings = {}) {
       showToast(sw.checked ? 'Modo Próximamente activado' : 'Modo Próximamente desactivado');
     } catch (e) {
       sw.checked = !sw.checked;
+      syncSwitchUi();
       showToast(e.message, 'error');
     } finally {
       sw.disabled = false;
