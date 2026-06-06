@@ -83,13 +83,14 @@ function raffleClosedMessage(drawDate) {
   if (!wrap || !track) return;
 
   const settingsSlides = settings?.heroSliderEnabled
-    ? (settings.heroSlides || []).filter(s => s.active !== false)
+    ? (settings.heroSlides || []).filter(s => s.active !== false && (s.bgImage || s.image))
     : [];
   const hasServerSlides = settingsSlides.length > 0;
 
   function slideStyle(s) {
-    if (s.bgType === 'image' && s.bgImage) {
-      return `background:url('${escHtml(s.bgImage)}') center/cover no-repeat;`;
+    const image = s.bgImage || s.image || '';
+    if (image) {
+      return `background:url('${escHtml(image)}') center/cover no-repeat;`;
     }
     const c1 = s.bgColor1 || 'var(--color-primary-dark)';
     const c2 = s.bgColor2 || '#0d0520';
@@ -102,7 +103,7 @@ function raffleClosedMessage(drawDate) {
       ${s.bgType === 'image' ? '<div class="hs-overlay"></div>' : '<div class="hs-overlay"></div>'}
       <div class="hs-slide-inner">
         ${s.badge ? `<div class="badge mb-3">${escHtml(s.badge)}</div>` : ''}
-        <h1>${escHtml(s.title || '')}</h1>
+        ${s.title ? `<h1>${escHtml(s.title)}</h1>` : ''}
         ${s.subtitle ? `<p>${escHtml(s.subtitle)}</p>` : ''}
         ${s.ctaLink && s.ctaText ? `<div class="mt-3"><a href="${escHtml(s.ctaLink)}" class="btn btn-primary btn-lg">${escHtml(s.ctaText)}</a></div>` : ''}
       </div>

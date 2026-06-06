@@ -13,40 +13,22 @@ $theme    = $cfg['theme'] ?? [];
 $siteLogo = $cfg['logo'] ?? null;
 $ticketLabel  = $cfg['ticketLabel']       ?? 'ticket';
 $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'tickets';
-$homeSlides = [
-  [
-    'image' => 'assets/uploads/raffle_0001000000000001.jpg',
-    'badge' => 'Destacado',
-    'title' => 'Premios que llaman la atencion desde el primer vistazo',
-    'text' => 'Una portada mas potente para mostrar sorteos, premios y oportunidades reales.',
-    'link' => 'sorteos.php',
-    'cta' => 'Ver sorteos',
-  ],
-  [
-    'image' => 'assets/uploads/raffle_0002000000000002.jpg',
-    'badge' => 'Compra rapida',
-    'title' => 'Elige tus imagenes en segundos y entra al sorteo al instante',
-    'text' => 'Proceso simple, pago claro y confirmacion inmediata para participar sin friccion.',
-    'link' => 'como-participar.php',
-    'cta' => 'Como participar',
-  ],
-  [
-    'image' => 'assets/uploads/raffle_0003000000000003.jpg',
-    'badge' => 'Transparencia',
-    'title' => 'Sorteos digitales con presencia, confianza y mejor exhibicion visual',
-    'text' => 'Usa este slide como vitrina principal para reforzar marca, premios y conversion.',
-    'link' => 'ganadores.php',
-    'cta' => 'Ver ganadores',
-  ],
-  [
-    'image' => 'assets/uploads/raffle_0004000000000004.jpg',
-    'badge' => 'Disponible ahora',
-    'title' => 'Cuatro imagenes de ejemplo listas para destacar tu portada',
-    'text' => 'Luego puedes reemplazarlas por banners finales manteniendo la misma estructura.',
-    'link' => 'mis-tickets.php#register',
-    'cta' => 'Registrarse',
-  ],
-];
+$homeSlides = [];
+if (!empty($cfg['heroSliderEnabled']) && !empty($cfg['heroSlides']) && is_array($cfg['heroSlides'])) {
+    foreach ($cfg['heroSlides'] as $slide) {
+        if (($slide['active'] ?? true) === false) continue;
+        $image = trim((string)($slide['bgImage'] ?? $slide['image'] ?? ''));
+        if ($image === '') continue;
+        $homeSlides[] = [
+            'image' => $image,
+            'badge' => trim((string)($slide['badge'] ?? '')),
+            'title' => trim((string)($slide['title'] ?? '')),
+            'text'  => trim((string)($slide['subtitle'] ?? $slide['text'] ?? '')),
+            'link'  => trim((string)($slide['ctaLink'] ?? $slide['link'] ?? '')),
+            'cta'   => trim((string)($slide['ctaText'] ?? $slide['cta'] ?? '')),
+        ];
+    }
+}
 ?><!DOCTYPE html>
 <html lang="es">
 <head>
@@ -188,18 +170,20 @@ $homeSlides = [
 </nav>
 
 <!-- ═══════════════════════════ HERO SLIDER ═══════════════════════════ -->
-<div class="hero-slider-wrap" id="heroSliderWrap">
+<div class="hero-slider-wrap<?= empty($homeSlides) ? ' hidden' : '' ?>" id="heroSliderWrap">
   <div class="hs-track" id="hsTrack">
     <?php foreach ($homeSlides as $slide): ?>
       <article class="hs-slide" style="background-image:url('<?= htmlspecialchars($slide['image']) ?>'); background-size:cover; background-position:center; background-repeat:no-repeat;">
         <div class="hs-overlay"></div>
         <div class="hs-slide-inner">
-          <div class="badge"><?= htmlspecialchars($slide['badge']) ?></div>
-          <h1><?= htmlspecialchars($slide['title']) ?></h1>
-          <p><?= htmlspecialchars($slide['text']) ?></p>
-          <div class="mt-3">
-            <a href="<?= htmlspecialchars($slide['link']) ?>" class="btn btn-accent btn-lg"><?= htmlspecialchars($slide['cta']) ?></a>
-          </div>
+          <?php if ($slide['badge'] !== ''): ?><div class="badge"><?= htmlspecialchars($slide['badge']) ?></div><?php endif; ?>
+          <?php if ($slide['title'] !== ''): ?><h1><?= htmlspecialchars($slide['title']) ?></h1><?php endif; ?>
+          <?php if ($slide['text'] !== ''): ?><p><?= htmlspecialchars($slide['text']) ?></p><?php endif; ?>
+          <?php if ($slide['link'] !== '' && $slide['cta'] !== ''): ?>
+            <div class="mt-3">
+              <a href="<?= htmlspecialchars($slide['link']) ?>" class="btn btn-accent btn-lg"><?= htmlspecialchars($slide['cta']) ?></a>
+            </div>
+          <?php endif; ?>
         </div>
       </article>
     <?php endforeach; ?>

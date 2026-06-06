@@ -533,8 +533,20 @@ $apiBase   = BASE_URL . '/api';
     <div class="modal-body">
       <input type="hidden" id="sl_id">
       <div class="form-group">
-        <label class="form-label">Título *</label>
-        <input type="text" class="form-control" id="sl_title" placeholder="¡Gana el iPhone 16 Pro Max!">
+        <label class="form-label">Imagen del slide *</label>
+        <div style="display:flex;align-items:center;gap:.9rem;flex-wrap:wrap;">
+          <div id="sl_imagePreview" style="width:150px;height:78px;border-radius:10px;border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;background:var(--bg-base);color:var(--text-secondary);font-size:.78rem;flex-shrink:0;">Sin imagen</div>
+          <div style="display:flex;flex-direction:column;gap:.4rem;min-width:190px;">
+            <input type="file" id="sl_imageFile" accept="image/*" style="display:none;" onchange="handleSlideImageUpload(this)">
+            <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('sl_imageFile').click()">Subir imagen</button>
+            <button type="button" class="btn btn-ghost btn-sm" style="color:#ef4444;" onclick="clearSlideImage()">Quitar imagen</button>
+          </div>
+        </div>
+        <p class="form-hint">Recomendado: imagen horizontal, 1920x700 px o similar. El texto del slide es opcional.</p>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Título opcional</label>
+        <input type="text" class="form-control" id="sl_title" placeholder="Texto principal sobre la imagen">
       </div>
       <div class="form-group">
         <label class="form-label">Subtítulo</label>
@@ -554,16 +566,15 @@ $apiBase   = BASE_URL . '/api';
           <input type="text" class="form-control" id="sl_ctaLink" placeholder="sorteos.php">
         </div>
       </div>
-      <h5 style="margin:.75rem 0 .5rem; font-size:.85rem;">Fondo</h5>
-      <div style="display:flex; gap:.75rem; margin-bottom:.75rem;">
+      <div style="display:none;">
         <label style="display:flex; align-items:center; gap:.4rem; cursor:pointer; font-size:.875rem;">
-          <input type="radio" name="sl_bgType" value="gradient" checked> Degradado
+          <input type="radio" name="sl_bgType" value="gradient"> Degradado
         </label>
         <label style="display:flex; align-items:center; gap:.4rem; cursor:pointer; font-size:.875rem;">
-          <input type="radio" name="sl_bgType" value="image"> Imagen (URL)
+          <input type="radio" name="sl_bgType" value="image" checked> Imagen
         </label>
       </div>
-      <div id="sl_gradientFields" class="form-row">
+      <div id="sl_gradientFields" class="form-row hidden">
         <div class="form-group">
           <label class="form-label">Color inicial</label>
           <div class="color-input-row"><input type="color" id="sl_color1" value="#1a0a2e"><input type="text" class="form-control" id="sl_color1Hex" value="#1a0a2e"></div>

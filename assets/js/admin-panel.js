@@ -682,7 +682,12 @@ async function renderDiseno() {
     });
   }
 
-  _slides = JSON.parse(s.hero_slides || '[]');
+  try {
+    _slides = JSON.parse(s.hero_slides || '[]');
+  } catch (_) {
+    _slides = [];
+  }
+  if (!Array.isArray(_slides)) _slides = [];
   renderSlidesList();
 
   // Slide modal listeners
@@ -728,12 +733,12 @@ function renderSlidesList() {
     return;
   }
   list.innerHTML = _slides.map((s, i) => {
-    const bg = s.bgType === 'image' ? `url('${s.bgImage}') center/cover` :
+    const bg = s.bgImage ? `url('${s.bgImage}') center/cover` :
                `linear-gradient(135deg,${s.bgColor1||'#1a0a2e'},${s.bgColor2||'#0d0520'})`;
     return `
       <div class="slide-preview-card">
         <div class="slide-preview-thumb" style="background:${bg};"></div>
-        <div class="slide-preview-title">${s.title || '(sin título)'}</div>
+        <div class="slide-preview-title">${s.title || 'Imagen sin texto'}</div>
         <span class="pill ${s.active !== false ? 'pill-green' : 'pill-gray'}" style="font-size:.7rem;">${s.active !== false ? 'Activa' : 'Inactiva'}</span>
         <div class="slide-preview-actions">
           <button class="btn btn-ghost btn-sm" onclick="openSlideModal(${i})">Editar</button>
@@ -752,7 +757,7 @@ function openSlideModal(idx) {
   document.getElementById('sl_ctaText').value = s?.ctaText  || '';
   document.getElementById('sl_ctaLink').value = s?.ctaLink  || 'sorteos.php';
   document.getElementById('sl_active').checked= s?.active !== false;
-  const bgType = s?.bgType || 'gradient';
+  const bgType = 'image';
   document.querySelector(`input[name="sl_bgType"][value="${bgType}"]`).checked = true;
   document.getElementById('sl_gradientFields').classList.toggle('hidden', bgType === 'image');
   document.getElementById('sl_imageFields').classList.toggle('hidden', bgType !== 'image');
@@ -761,6 +766,9 @@ function openSlideModal(idx) {
   document.getElementById('sl_color2').value    = s?.bgColor2 || '#0d0520';
   document.getElementById('sl_color2Hex').value = s?.bgColor2 || '#0d0520';
   document.getElementById('sl_bgImage').value   = s?.bgImage  || '';
+  updateSlideImagePreview(s?.bgImage || '');
+  const fileInput = document.getElementById('sl_imageFile');
+  if (fileInput) fileInput.value = '';
   document.getElementById('slideModalTitle').textContent = s ? 'Editar diapositiva' : 'Nueva diapositiva';
   document.getElementById('slideModal').classList.add('open');
 }
@@ -772,7 +780,7 @@ function closeSlideModal() {
 async function saveSlide() {
   const idxStr = document.getElementById('sl_id').value;
   const idx    = idxStr !== '' ? parseInt(idxStr) : -1;
-  const bgType = document.querySelector('input[name="sl_bgType"]:checked').value;
+  const bgType = 'image';
   const slide  = {
     id:       idx >= 0 ? _slides[idx].id : 'sl_' + Date.now().toString(36),
     title:    document.getElementById('sl_title').value.trim(),
@@ -786,7 +794,8 @@ async function saveSlide() {
     bgImage:  document.getElementById('sl_bgImage').value.trim(),
     active:   document.getElementById('sl_active').checked,
   };
-  if (!slide.title) { showToast('El título es obligatorio', 'error'); return; }
+  if (!slide.bgImage) { showToast('Sube una imagen para el slide', 'error'); return; }
+  if (idx < 0 && _slides.length >= 6) { showToast('Puedes crear hasta 6 diapositivas', 'error'); return; }
   if (idx >= 0) _slides[idx] = slide; else _slides.push(slide);
   await api('/settings.php', { method: 'POST', body: { hero_slides: JSON.stringify(_slides) } });
   closeSlideModal();
@@ -805,6 +814,42 @@ async function deleteSlide(idx) {
 /* ══════════════════════════════════════════════════════════════════════════ */
 /*  SETTINGS                                                                 */
 /* ══════════════════════════════════════════════════════════════════════════ */
+function updateSlideImagePreview(url) {
+  const preview = document.getElementById('sl_imagePreview');
+  if (!preview) return;
+  preview.innerHTML = url
+    ? `<img src="${url}" alt="Slide" style="width:100%;height:100%;object-fit:cover;">`
+    : 'Sin imagen';
+}
+
+async function handleSlideImageUpload(input) {
+  if (!input.files[0]) return;
+  const fd = new FormData();
+  fd.append('file', input.files[0]);
+  fd.append('type', 'slide');
+  try {
+    const resp = await fetch(`${API_BASE}/upload.php`, { method: 'POST', credentials: 'include', body: fd });
+    const json = await resp.json();
+    if (!json.ok) throw new Error(json.error);
+    document.getElementById('sl_bgImage').value = json.data.url;
+    const imageRadio = document.querySelector('input[name="sl_bgType"][value="image"]');
+    if (imageRadio) imageRadio.checked = true;
+    document.getElementById('sl_gradientFields')?.classList.add('hidden');
+    document.getElementById('sl_imageFields')?.classList.remove('hidden');
+    updateSlideImagePreview(json.data.url);
+    showToast('Imagen del slide cargada');
+  } catch (e) {
+    showToast(e.message, 'error');
+  }
+}
+
+function clearSlideImage() {
+  document.getElementById('sl_bgImage').value = '';
+  const fileInput = document.getElementById('sl_imageFile');
+  if (fileInput) fileInput.value = '';
+  updateSlideImagePreview('');
+}
+
 async function renderSettings() {
   try {
     const s = await api('/settings.php');
