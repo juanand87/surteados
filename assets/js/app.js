@@ -616,7 +616,7 @@ function openPurchaseModal(raffleId) {
   if (packsGrid) {
     const sortedPacks = [...raffle.packs].sort((a, b) => (a.qty - b.qty) || (a.price - b.price));
     packsGrid.innerHTML = sortedPacks.map(p => `
-      <div class="pack-card${p.bestValue ? ' best-value' : ''}" onclick="selectPack('${p.id}', '${raffleId}')" data-pack="${p.id}">
+      <div class="pack-card" onclick="selectPack('${p.id}', '${raffleId}')" data-pack="${p.id}">
         <div class="pack-qty">${p.qty}</div>
           <div class="pack-qty-label">${p.qty > 1 ? tLabelP() : tLabel()}</div>
         ${p.originalPrice > p.price ? `<div class="pack-price-original">${formatPrice(p.originalPrice)}</div>` : ''}
@@ -738,7 +738,7 @@ function openMoreRaffle(raffleId) {
       <div style="font-weight:700;color:var(--text-inv);font-size:.95rem;margin-bottom:.75rem;">${raffle.title}</div>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:.5rem;">
         ${sortedPacks.map(p => `
-          <div class="pack-card${p.bestValue ? ' best-value' : ''}${cartItem?.packId === p.id ? ' selected' : ''}"
+          <div class="pack-card${cartItem?.packId === p.id ? ' selected' : ''}"
                style="padding:.55rem .4rem;font-size:.85em;"
                onclick="addRaffleToCart('${raffleId}','${p.id}')"
                data-pack="${p.id}">
