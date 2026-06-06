@@ -13,6 +13,111 @@ $theme    = $cfg['theme'] ?? [];
 $siteLogo = $cfg['logo'] ?? null;
 $ticketLabel  = $cfg['ticketLabel']       ?? 'ticket';
 $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'tickets';
+$comingSoonLogo = $siteLogo ?: 'https://surteados.cl/assets/uploads/logo_e277c8485f11615e.png';
+if (!empty($cfg['developmentMode'])):
+?><!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Surteados - Próximamente</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: <?= htmlspecialchars($theme['primary'] ?? '#7c3aed') ?>;
+      --accent: <?= htmlspecialchars($theme['accent'] ?? '#f59e0b') ?>;
+      --ink: #ffffff;
+      --muted: rgba(255,255,255,.72);
+      --line: rgba(255,255,255,.14);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 20% 15%, color-mix(in srgb, var(--primary) 36%, transparent), transparent 32rem),
+        radial-gradient(circle at 85% 80%, color-mix(in srgb, var(--accent) 26%, transparent), transparent 28rem),
+        linear-gradient(145deg, #12091f 0%, #1a0f2e 48%, #07070c 100%);
+      overflow: hidden;
+    }
+    .soon {
+      width: min(92vw, 760px);
+      text-align: center;
+      padding: 3rem 1.5rem;
+      position: relative;
+    }
+    .soon::before {
+      content: "";
+      position: absolute;
+      inset: -2rem 0 auto;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--line), transparent);
+    }
+    .soon-logo {
+      width: min(280px, 72vw);
+      max-height: 150px;
+      object-fit: contain;
+      margin-bottom: 2rem;
+      filter: drop-shadow(0 18px 40px rgba(0,0,0,.42));
+    }
+    .soon-kicker {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: .45rem .8rem;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: .78rem;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+      background: rgba(255,255,255,.05);
+    }
+    h1 {
+      margin: 0;
+      font-size: clamp(2.4rem, 8vw, 5.4rem);
+      line-height: .95;
+      font-weight: 900;
+      letter-spacing: 0;
+    }
+    p {
+      max-width: 560px;
+      margin: 1.2rem auto 0;
+      color: var(--muted);
+      font-size: clamp(1rem, 2.4vw, 1.2rem);
+      line-height: 1.7;
+    }
+    .soon-line {
+      width: 120px;
+      height: 4px;
+      border-radius: 999px;
+      margin: 1.7rem auto 0;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      box-shadow: 0 0 24px color-mix(in srgb, var(--accent) 45%, transparent);
+    }
+  </style>
+</head>
+<body>
+  <main class="soon" aria-label="Sitio en desarrollo">
+    <img class="soon-logo" src="<?= htmlspecialchars($comingSoonLogo) ?>" alt="Surteados">
+    <div class="soon-kicker">Sitio web en desarrollo</div>
+    <h1>Próximamente</h1>
+    <p>Estamos preparando una nueva experiencia de sorteos digitales. Muy pronto podrás participar, elegir tus imágenes y quizás ser el próximo ganador.</p>
+    <div class="soon-line" aria-hidden="true"></div>
+  </main>
+</body>
+</html>
+<?php
+exit;
+endif;
 $homeSlides = [];
 if (!empty($cfg['heroSliderEnabled']) && !empty($cfg['heroSlides']) && is_array($cfg['heroSlides'])) {
     foreach ($cfg['heroSlides'] as $slide) {

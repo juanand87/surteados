@@ -92,6 +92,7 @@ function getPublicSettings(PDO $pdo): array {
         ],
         'heroSliderEnabled' => !empty($s['hero_slider_enabled']),
         'heroSlides'        => json_decode($s['hero_slides'] ?? '[]', true) ?: [],
+        'developmentMode'    => !empty($s['development_mode_enabled']),
         'ticketLabel'       => $s['ticket_label']        ?? 'imagen',
         'ticketLabelPlural' => $s['ticket_label_plural']  ?? 'imagenes',
     ];

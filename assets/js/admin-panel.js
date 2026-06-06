@@ -850,6 +850,28 @@ function clearSlideImage() {
   updateSlideImagePreview('');
 }
 
+function setupDevelopmentModeSwitch(settings = {}) {
+  const sw = document.getElementById('developmentModeSwitch');
+  if (!sw || sw.dataset.ready === '1') return;
+  sw.dataset.ready = '1';
+  sw.checked = settings.development_mode_enabled === '1' || settings.development_mode_enabled === 1;
+  sw.addEventListener('change', async () => {
+    sw.disabled = true;
+    try {
+      await api('/settings.php', {
+        method: 'POST',
+        body: { development_mode_enabled: sw.checked ? '1' : '0' },
+      });
+      showToast(sw.checked ? 'Modo Próximamente activado' : 'Modo Próximamente desactivado');
+    } catch (e) {
+      sw.checked = !sw.checked;
+      showToast(e.message, 'error');
+    } finally {
+      sw.disabled = false;
+    }
+  });
+}
+
 async function renderSettings() {
   try {
     const s = await api('/settings.php');
@@ -942,9 +964,11 @@ async function saveFlowForm(e) {
   try {
     const s = await api('/settings.php');
     if (s.theme_primary) applyColors(s.theme_primary, s.theme_accent || '#f59e0b');
+    setupDevelopmentModeSwitch(s);
   } catch(e) {
     const saved = JSON.parse(localStorage.getItem('surteados_theme') || '{}');
     if (saved.primary) applyColors(saved.primary, saved.accent);
+    setupDevelopmentModeSwitch();
   }
 
   // Mobile sidebar toggle

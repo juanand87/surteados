@@ -29,7 +29,7 @@ $apiBase   = BASE_URL . '/api';
 <!-- ADMIN NAVBAR -->
 <nav class="navbar" id="navbar" style="background:rgba(10,10,15,0.98);">
   <div class="navbar-inner">
-    <a href="../index.html" class="navbar-logo">
+    <a href="../index.php" class="navbar-logo">
       <div class="logo-icon">🎟️</div>
       <span class="brand">Sur<em>tea</em>dos</span>
     </a>
@@ -38,13 +38,13 @@ $apiBase   = BASE_URL . '/api';
       <span style="font-size:.8rem; color:rgba(255,255,255,.6);">👤 <?= $adminUser ?></span>
     </div>
     <div class="navbar-actions">
-      <a href="../index.html" class="btn btn-outline btn-sm">← Ver sitio</a>
+      <a href="../index.php" class="btn btn-outline btn-sm">← Ver sitio</a>
       <a href="logout.php" class="btn btn-ghost btn-sm">Salir</a>
     </div>
     <button class="navbar-mobile-toggle" id="mobileToggle"><span></span><span></span><span></span></button>
   </div>
   <div class="mobile-nav" id="mobileNav">
-    <a href="../index.html">← Ver sitio</a>
+    <a href="../index.php">← Ver sitio</a>
     <a href="logout.php">Cerrar sesión</a>
   </div>
 </nav>
@@ -72,6 +72,10 @@ $apiBase   = BASE_URL . '/api';
       <div class="admin-nav-item" data-section="flow"><span class="icon">💳</span> Flow.cl Pagos</div>
     </div>
     <div class="admin-sidebar-section" style="margin-top:auto; padding-top:2rem;">
+      <label style="display:flex;align-items:center;justify-content:space-between;gap:.75rem;padding:.75rem 1rem;margin-bottom:.75rem;border:1px solid rgba(255,255,255,.08);border-radius:10px;background:rgba(255,255,255,.04);color:rgba(255,255,255,.78);font-size:.78rem;cursor:pointer;">
+        <span style="line-height:1.25;">Sitio en desarrollo</span>
+        <input type="checkbox" id="developmentModeSwitch" style="width:16px;height:16px;accent-color:var(--color-accent);flex-shrink:0;">
+      </label>
       <a href="logout.php" class="admin-nav-item" style="color:#f87171; text-decoration:none;">
         <span class="icon">🚪</span> Cerrar sesión
       </a>
