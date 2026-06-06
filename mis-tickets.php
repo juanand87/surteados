@@ -467,7 +467,12 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'tickets';
     }
   });
 
-  setTab('code');
+  const initialHashTab = (window.location.hash || '').replace('#', '').toLowerCase();
+  if (initialHashTab === 'login' || initialHashTab === 'register' || initialHashTab === 'code') {
+    setTab(initialHashTab);
+  } else {
+    setTab('code');
+  }
   const urlEmail = new URLSearchParams(window.location.search).get('email');
   if (urlEmail && authEmail) authEmail.value = urlEmail;
   refreshSessionAndData();

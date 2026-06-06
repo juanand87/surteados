@@ -46,8 +46,8 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'tickets';
         <a href="mis-tickets.php">Mis <?= htmlspecialchars(ucfirst($ticketLabelP)) ?></a>
     </nav>
     <div class="navbar-actions">
-        <a href="mis-tickets.php" class="btn btn-outline btn-sm">Mis <?= htmlspecialchars(ucfirst($ticketLabelP)) ?></a>
-      <a href="sorteos.php" class="btn btn-primary btn-sm">Participar 🎟️</a>
+      <a href="mis-tickets.php#login" class="btn btn-outline btn-sm">Iniciar sesión</a>
+      <a href="mis-tickets.php#register" class="btn btn-primary btn-sm">Registrarse</a>
     </div>
     <button class="navbar-mobile-toggle" id="mobileToggle"><span></span><span></span><span></span></button>
   </div>
