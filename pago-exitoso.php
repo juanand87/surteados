@@ -7,7 +7,14 @@ require __DIR__ . '/api/config.php';
 require __DIR__ . '/api/FlowAPI.php';
 require __DIR__ . '/api/order_email_helper.php';
 
-$token  = trim($_GET['token'] ?? '');
+client_session_start();
+
+$requestToken = trim((string)($_GET['token'] ?? $_POST['token'] ?? ''));
+$requestOrderId = trim((string)($_GET['orderId'] ?? $_POST['orderId'] ?? ''));
+$orderId = $requestOrderId !== '' ? $requestOrderId : trim((string)($_SESSION['last_flow_order_id'] ?? ''));
+$token = $requestToken !== ''
+    ? $requestToken
+    : ($requestOrderId === '' ? trim((string)($_SESSION['last_flow_token'] ?? '')) : '');
 $tickets = [];
 $ticket = null;
 $allNums = [];
@@ -15,24 +22,41 @@ $totalAmount = 0;
 
 if ($token) {
     syncFlowStatusFromReturn($token);
+} elseif ($orderId) {
+    syncFlowOrderStatusFromReturn($orderId);
+}
 
-    $stmt = db()->prepare(
-        'SELECT t.*, r.title AS raffle_title
-           FROM tickets t
-           LEFT JOIN raffles r ON r.id = t.raffle_id
-      WHERE t.flow_token = ?
-      ORDER BY t.purchase_date ASC'
-    );
-    $stmt->execute([$token]);
+if ($token || $orderId) {
+    if ($token) {
+        $stmt = db()->prepare(
+            'SELECT t.*, r.title AS raffle_title
+               FROM tickets t
+               LEFT JOIN raffles r ON r.id = t.raffle_id
+              WHERE t.flow_token = ?
+              ORDER BY t.purchase_date ASC'
+        );
+        $stmt->execute([$token]);
+    } else {
+        $stmt = db()->prepare(
+            'SELECT t.*, r.title AS raffle_title
+               FROM tickets t
+               LEFT JOIN raffles r ON r.id = t.raffle_id
+              WHERE t.flow_order = ?
+              ORDER BY t.purchase_date ASC'
+        );
+        $stmt->execute([$orderId]);
+    }
   $tickets = $stmt->fetchAll();
   if ($tickets) {
     $ticket = $tickets[0];
+    if (!$orderId) $orderId = (string)($ticket['flow_order'] ?? '');
+    if (!$token) $token = (string)($ticket['flow_token'] ?? '');
     foreach ($tickets as $t) {
       $nums = json_decode($t['ticket_numbers'] ?? '[]', true) ?? [];
       $allNums = array_merge($allNums, $nums);
       $totalAmount += (int)($t['amount'] ?? 0);
     }
-    }
+  }
 }
 
 $isPending = $ticket && $ticket['payment_status'] === 'pending';
@@ -54,7 +78,7 @@ if ($isPaid && !empty($ticket['flow_order'])) {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><?= $isPaid ? '¡Pago exitoso!' : ($isPending ? 'Verificando pago…' : 'Resultado del pago') ?> — Surteados</title>
   <?php if ($isPending): ?>
-  <meta http-equiv="refresh" content="6;url=pago-exitoso.php?token=<?= htmlspecialchars($token) ?>">
+  <meta http-equiv="refresh" content="6;url=pago-exitoso.php?<?= $token ? 'token=' . htmlspecialchars(rawurlencode($token)) : 'orderId=' . htmlspecialchars(rawurlencode($orderId)) ?>">
   <?php endif; ?>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -148,8 +172,8 @@ if ($isPaid && !empty($ticket['flow_order'])) {
       <div class="result-icon">🤔</div>
       <h1>No encontramos tu pago</h1>
       <p>No pudimos encontrar una compra asociada a este enlace.</p>
-      <?php if (!$token): ?>
-      <p style="font-size:.85rem;">El enlace no contiene un token de pago válido.</p>
+      <?php if (!$token && !$orderId): ?>
+      <p style="font-size:.85rem;">El enlace no contiene un identificador de pago válido.</p>
       <?php endif; ?>
       <a href="sorteos.php" class="btn btn-primary" style="margin-top:1rem;">Volver a sorteos</a>
     <?php endif; ?>
@@ -242,6 +266,93 @@ function syncFlowStatusFromReturn(string $token): void {
         }
     } catch (Throwable $e) {
         error_log('Flow return sync error: ' . $e->getMessage());
+    }
+}
+
+function syncFlowOrderStatusFromReturn(string $orderId): void {
+    try {
+        $pdo = db();
+        $stmt = $pdo->query(
+            "SELECT `key`, `value` FROM settings
+              WHERE `key` IN ('flow_api_key','flow_secret_key','flow_environment')"
+        );
+        $flowCfg = [];
+        foreach ($stmt->fetchAll() as $row) {
+            $flowCfg[$row['key']] = $row['value'];
+        }
+
+        $apiKey = $flowCfg['flow_api_key'] ?? '';
+        $secretKey = $flowCfg['flow_secret_key'] ?? '';
+        if (!$apiKey || !$secretKey) return;
+
+        $flow = new FlowAPI($apiKey, $secretKey, $flowCfg['flow_environment'] ?? 'sandbox');
+        $status = $flow->getStatusByCommerceId($orderId);
+        if (empty($status['commerceOrder'])) {
+            $status['commerceOrder'] = $orderId;
+        }
+
+        $commerceOrder = $status['commerceOrder'];
+        $stmt = $pdo->prepare('SELECT * FROM tickets WHERE flow_order = ?');
+        $stmt->execute([$commerceOrder]);
+        $tickets = $stmt->fetchAll();
+        if (!$tickets) return;
+
+        $flowStatus = (int)($status['status'] ?? 0);
+        if ($flowStatus === 2) {
+            $pendingTickets = array_values(array_filter($tickets, fn($t) => $t['payment_status'] === 'pending'));
+            if (!$pendingTickets) return;
+
+            $emailJobs = [];
+            $pdo->beginTransaction();
+            try {
+                foreach ($pendingTickets as $ticket) {
+                    $qty = 1;
+                    if ($ticket['pack_id']) {
+                        $packStmt = $pdo->prepare('SELECT qty FROM raffle_packs WHERE id = ?');
+                        $packStmt->execute([$ticket['pack_id']]);
+                        $pack = $packStmt->fetch();
+                        if ($pack) $qty = (int)$pack['qty'];
+                    }
+
+                    $numbers = generateReturnUniqueNumbers($pdo, $ticket['raffle_id'], $qty);
+                    $pdo->prepare(
+                        "UPDATE tickets
+                            SET payment_status = 'paid',
+                                ticket_numbers = ?,
+                                flow_token = COALESCE(NULLIF(?, ''), flow_token),
+                                flow_order = ?
+                          WHERE id = ?"
+                    )->execute([
+                        json_encode($numbers),
+                        $status['token'] ?? '',
+                        $ticket['flow_order'] ?: $commerceOrder,
+                        $ticket['id'],
+                    ]);
+
+                    $pdo->prepare('UPDATE raffles SET sold_tickets = sold_tickets + ? WHERE id = ?')
+                        ->execute([$qty, $ticket['raffle_id']]);
+                    $emailJobs[$ticket['flow_order'] ?: $commerceOrder] = $ticket['buyer_email'] ?? '';
+                }
+                $pdo->commit();
+                foreach ($emailJobs as $jobOrderId => $email) {
+                    try {
+                        surteados_send_order_confirmation($pdo, (string)$jobOrderId, (string)$email);
+                    } catch (Throwable $mailError) {
+                        error_log('Order email error: ' . $mailError->getMessage());
+                    }
+                }
+            } catch (Throwable $e) {
+                if ($pdo->inTransaction()) $pdo->rollBack();
+            }
+        } elseif ($flowStatus === 3) {
+            $pdo->prepare("UPDATE tickets SET payment_status = 'failed' WHERE payment_status = 'pending' AND flow_order = ?")
+                ->execute([$commerceOrder]);
+        } elseif ($flowStatus === 4) {
+            $pdo->prepare("UPDATE tickets SET payment_status = 'refunded' WHERE payment_status = 'pending' AND flow_order = ?")
+                ->execute([$commerceOrder]);
+        }
+    } catch (Throwable $e) {
+        error_log('Flow order return sync error: ' . $e->getMessage());
     }
 }
 

@@ -150,7 +150,7 @@ try {
         'amount'          => $totalAmount,
         'email'           => $buyerEmail,
         'urlConfirmation' => $siteUrl . '/api/flow_callback.php',
-        'urlReturn'       => $siteUrl . '/pago-exitoso.php',
+        'urlReturn'       => $siteUrl . '/pago-exitoso.php?orderId=' . rawurlencode($orderId),
         'paymentMethod'   => 9,
     ]);
 
@@ -162,6 +162,11 @@ try {
     // Save flow references for all pending tickets in this order
     $pdo->prepare('UPDATE tickets SET flow_token = ?, flow_order = ? WHERE flow_order = ? AND payment_status = ?')
         ->execute([$payment['token'], $orderId, $orderId, 'pending']);
+
+    client_session_start();
+    $_SESSION['last_flow_order_id'] = $orderId;
+    $_SESSION['last_flow_token'] = $payment['token'];
+    $_SESSION['last_flow_email'] = $buyerEmail;
 
     json_ok([
         'redirectUrl' => $payment['url'] . '?token=' . $payment['token'],
