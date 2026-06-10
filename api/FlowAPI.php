@@ -86,6 +86,10 @@ class FlowAPI {
         return $this->request('GET', '/payment/getStatus', ['token' => $token]);
     }
 
+    public function getPaymentStatus(string $token): array {
+        return $this->getStatus($token);
+    }
+
     /**
      * Get payment status by commerceOrder.
      */

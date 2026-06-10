@@ -4,6 +4,8 @@
  * URL: /surteados/pago-exitoso.php?token=XXXX
  */
 require __DIR__ . '/api/config.php';
+require __DIR__ . '/api/FlowAPI.php';
+require __DIR__ . '/api/order_email_helper.php';
 
 $token  = trim($_GET['token'] ?? '');
 $tickets = [];
@@ -12,6 +14,8 @@ $allNums = [];
 $totalAmount = 0;
 
 if ($token) {
+    syncFlowStatusFromReturn($token);
+
     $stmt = db()->prepare(
         'SELECT t.*, r.title AS raffle_title
            FROM tickets t
@@ -34,6 +38,14 @@ if ($token) {
 $isPending = $ticket && $ticket['payment_status'] === 'pending';
 $isPaid    = $ticket && $ticket['payment_status'] === 'paid';
 $isFailed  = $ticket && in_array($ticket['payment_status'], ['failed', 'refunded']);
+
+if ($isPaid && !empty($ticket['flow_order'])) {
+    try {
+        surteados_send_order_confirmation(db(), (string)$ticket['flow_order'], (string)($ticket['buyer_email'] ?? ''));
+    } catch (Throwable $mailError) {
+        error_log('Order email error: ' . $mailError->getMessage());
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -146,3 +158,117 @@ $isFailed  = $ticket && in_array($ticket['payment_status'], ['failed', 'refunded
 </div>
 </body>
 </html>
+
+<?php
+function syncFlowStatusFromReturn(string $token): void {
+    try {
+        $pdo = db();
+        $stmt = $pdo->query(
+            "SELECT `key`, `value` FROM settings
+              WHERE `key` IN ('flow_api_key','flow_secret_key','flow_environment')"
+        );
+        $flowCfg = [];
+        foreach ($stmt->fetchAll() as $row) {
+            $flowCfg[$row['key']] = $row['value'];
+        }
+
+        $apiKey = $flowCfg['flow_api_key'] ?? '';
+        $secretKey = $flowCfg['flow_secret_key'] ?? '';
+        if (!$apiKey || !$secretKey) return;
+
+        $flow = new FlowAPI($apiKey, $secretKey, $flowCfg['flow_environment'] ?? 'sandbox');
+        $status = $flow->getPaymentStatus($token);
+        $commerceOrder = $status['commerceOrder'] ?? '';
+        if (!$commerceOrder) return;
+
+        $stmt = $pdo->prepare('SELECT * FROM tickets WHERE flow_order = ?');
+        $stmt->execute([$commerceOrder]);
+        $tickets = $stmt->fetchAll();
+        if (!$tickets) return;
+
+        $flowStatus = (int)($status['status'] ?? 0);
+        if ($flowStatus === 2) {
+            $pendingTickets = array_values(array_filter($tickets, fn($t) => $t['payment_status'] === 'pending'));
+            if (!$pendingTickets) return;
+
+            $emailJobs = [];
+            $pdo->beginTransaction();
+            try {
+                foreach ($pendingTickets as $ticket) {
+                    $qty = 1;
+                    if ($ticket['pack_id']) {
+                        $packStmt = $pdo->prepare('SELECT qty FROM raffle_packs WHERE id = ?');
+                        $packStmt->execute([$ticket['pack_id']]);
+                        $pack = $packStmt->fetch();
+                        if ($pack) $qty = (int)$pack['qty'];
+                    }
+
+                    $numbers = generateReturnUniqueNumbers($pdo, $ticket['raffle_id'], $qty);
+                    $pdo->prepare(
+                        "UPDATE tickets
+                            SET payment_status = 'paid',
+                                ticket_numbers = ?,
+                                flow_token = ?,
+                                flow_order = ?
+                          WHERE id = ?"
+                    )->execute([
+                        json_encode($numbers),
+                        $status['token'] ?? $token,
+                        $ticket['flow_order'] ?: $commerceOrder,
+                        $ticket['id'],
+                    ]);
+
+                    $pdo->prepare('UPDATE raffles SET sold_tickets = sold_tickets + ? WHERE id = ?')
+                        ->execute([$qty, $ticket['raffle_id']]);
+                    $emailJobs[$ticket['flow_order'] ?: $commerceOrder] = $ticket['buyer_email'] ?? '';
+                }
+                $pdo->commit();
+                foreach ($emailJobs as $orderId => $email) {
+                    try {
+                        surteados_send_order_confirmation($pdo, (string)$orderId, (string)$email);
+                    } catch (Throwable $mailError) {
+                        error_log('Order email error: ' . $mailError->getMessage());
+                    }
+                }
+            } catch (Throwable $e) {
+                if ($pdo->inTransaction()) $pdo->rollBack();
+            }
+        } elseif ($flowStatus === 3) {
+            $pdo->prepare("UPDATE tickets SET payment_status = 'failed' WHERE payment_status = 'pending' AND flow_order = ?")
+                ->execute([$commerceOrder]);
+        } elseif ($flowStatus === 4) {
+            $pdo->prepare("UPDATE tickets SET payment_status = 'refunded' WHERE payment_status = 'pending' AND flow_order = ?")
+                ->execute([$commerceOrder]);
+        }
+    } catch (Throwable $e) {
+        error_log('Flow return sync error: ' . $e->getMessage());
+    }
+}
+
+function generateReturnUniqueNumbers(PDO $pdo, string $raffleId, int $qty): array {
+    $stmt = $pdo->prepare(
+        "SELECT ticket_numbers FROM tickets
+          WHERE raffle_id = ? AND payment_status = 'paid' AND ticket_numbers IS NOT NULL"
+    );
+    $stmt->execute([$raffleId]);
+
+    $existing = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $nums = json_decode($row['ticket_numbers'], true) ?? [];
+        $existing = array_merge($existing, $nums);
+    }
+    $existingSet = array_flip($existing);
+
+    $numbers = [];
+    $attempts = 0;
+    while (count($numbers) < $qty && $attempts < 100000) {
+        $num = str_pad((string)mt_rand(1, 99999), 6, '0', STR_PAD_LEFT);
+        if (!isset($existingSet[$num])) {
+            $numbers[] = $num;
+            $existingSet[$num] = true;
+        }
+        $attempts++;
+    }
+    return $numbers;
+}
+?>

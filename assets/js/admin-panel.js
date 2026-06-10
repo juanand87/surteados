@@ -897,6 +897,7 @@ async function saveSettingsForm(e) {
   e.preventDefault();
   const data = {};
   new FormData(e.target).forEach((v, k) => { data[k] = v; });
+  if (data.site_url) data.site_url = normalizeSiteUrlForFlow(data.site_url);
   try {
     await api('/settings.php', { method: 'POST', body: data });
     showToast('Configuración guardada ✅');
@@ -922,6 +923,7 @@ async function saveSmtpForm(e) {
   e.preventDefault();
   const data = {};
   new FormData(e.target).forEach((v, k) => { data[k] = v; });
+  if (data.site_url) data.site_url = normalizeSiteUrlForFlow(data.site_url);
   try {
     await api('/settings.php', { method: 'POST', body: data });
     showToast('Configuración SMTP guardada ✅');
@@ -951,14 +953,24 @@ async function renderFlow() {
 function updateCallbackPreview(siteUrl) {
   const preview = document.getElementById('flowCallbackPreview');
   if (!preview) return;
-  const url = siteUrl ? siteUrl.replace(/\/$/, '') + '/api/flow_callback.php' : '—';
+  const cleanUrl = normalizeSiteUrlForFlow(siteUrl);
+  const url = cleanUrl ? cleanUrl + '/api/flow_callback.php' : '�';
   preview.textContent = `Callback URL: ${url}`;
+}
+
+function normalizeSiteUrlForFlow(siteUrl) {
+  return String(siteUrl || '')
+    .trim()
+    .replace(/\/(api\/flow_callback\.php|pago-exitoso\.php)(\/.*)?$/i, '')
+    .replace(/\/api\/?$/i, '')
+    .replace(/\/$/, '');
 }
 
 async function saveFlowForm(e) {
   e.preventDefault();
   const data = {};
   new FormData(e.target).forEach((v, k) => { data[k] = v; });
+  if (data.site_url) data.site_url = normalizeSiteUrlForFlow(data.site_url);
   try {
     await api('/settings.php', { method: 'POST', body: data });
     showToast('Configuración Flow.cl guardada ✅');

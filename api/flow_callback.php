@@ -2,6 +2,13 @@
 /** SURTEADOS — Flow.cl payment callback (webhook from Flow.cl) */
 require __DIR__ . '/config.php';
 require __DIR__ . '/FlowAPI.php';
+require __DIR__ . '/order_email_helper.php';
+
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && str_contains($_SERVER['REQUEST_URI'] ?? '', 'flow_callback.php/pago-exitoso.php')) {
+    $query = $_SERVER['QUERY_STRING'] ?? '';
+    header('Location: ' . rtrim(BASE_URL, '/') . '/pago-exitoso.php' . ($query ? '?' . $query : ''), true, 302);
+    exit;
+}
 
 // Flow sends a POST with 'token' in the body
 $token = trim($_POST['token'] ?? '');
@@ -82,6 +89,7 @@ if ($flowStatus === 2) {
     try {
         $pdo->beginTransaction();
 
+        $emailJobs = [];
         foreach ($pendingTickets as $ticket) {
             $pack = null;
             if ($ticket['pack_id']) {
@@ -110,9 +118,17 @@ if ($flowStatus === 2) {
             // Increment raffle sold_tickets for each paid pending item
             $pdo->prepare('UPDATE raffles SET sold_tickets = sold_tickets + ? WHERE id = ?')
                 ->execute([$qty, $ticket['raffle_id']]);
+            $emailJobs[$ticket['flow_order'] ?: $commerceOrder] = $ticket['buyer_email'] ?? '';
         }
 
         $pdo->commit();
+        foreach ($emailJobs as $orderId => $email) {
+            try {
+                surteados_send_order_confirmation($pdo, (string)$orderId, (string)$email);
+            } catch (Throwable $mailError) {
+                error_log('Order email error: ' . $mailError->getMessage());
+            }
+        }
     } catch (\Throwable $e) {
         if ($pdo->inTransaction()) {
             $pdo->rollBack();

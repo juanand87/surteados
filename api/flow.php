@@ -90,7 +90,7 @@ foreach ($stmt->fetchAll() as $row) {
 $apiKey    = $flowCfg['flow_api_key']     ?? '';
 $secretKey = $flowCfg['flow_secret_key']  ?? '';
 $env       = $flowCfg['flow_environment'] ?? 'sandbox';
-$siteUrl   = rtrim($flowCfg['site_url'] ?? BASE_URL, '/');
+$siteUrl   = normalize_site_url($flowCfg['site_url'] ?? BASE_URL);
 
 if (!$apiKey || !$secretKey) {
     json_error('Pasarela de pagos no configurada. Configure las credenciales de Flow.cl en el panel de administración.');
@@ -140,11 +140,12 @@ try {
 // Call Flow.cl API
 try {
     $flow    = new FlowAPI($apiKey, $secretKey, $env);
+    $subject = count($resolved) > 1
+        ? ('Imágenes Surteados (' . count($resolved) . ' sorteos)')
+        : ('Imágenes ' . $resolved[0]['raffle']['title']);
     $payment = $flow->createPayment([
         'commerceOrder'   => $orderId,
-        'subject'         => count($resolved) > 1
-            ? ('Compra Surteados (' . count($resolved) . ' sorteos)')
-            : ('Tickets sorteo: ' . $resolved[0]['raffle']['title']),
+        'subject'         => $subject,
         'currency'        => 'CLP',
         'amount'          => $totalAmount,
         'email'           => $buyerEmail,
@@ -173,4 +174,15 @@ try {
     $pdo->prepare('DELETE FROM tickets WHERE flow_order = ? AND payment_status = ?')
         ->execute([$orderId, 'pending']);
     json_error('Error al crear pago: ' . $e->getMessage(), 502);
+}
+
+function normalize_site_url(string $url): string {
+    $url = trim($url);
+    if ($url === '') {
+        $url = BASE_URL;
+    }
+
+    $url = preg_replace('~/(api/flow_callback\.php|pago-exitoso\.php)(/.*)?$~i', '', $url);
+    $url = preg_replace('~/api/?$~i', '', $url);
+    return rtrim($url, '/');
 }
