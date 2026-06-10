@@ -199,7 +199,7 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'tickets';
         </div>
         <h4 class="text-white mb-2">Método de pago</h4>
         <div style="margin-bottom:1.25rem;" id="paymentMethods">
-          <label class="card" style="cursor:pointer; padding:.875rem; display:flex; align-items:center; gap:.75rem; border-color:var(--color-primary);"><input type="radio" name="payMethod" value="flow" checked style="accent-color:var(--color-primary);"><div><div style="font-weight:700; color:var(--text-inv); font-size:.875rem;">Flow</div><div style="font-size:.75rem; color:var(--text-muted);">Pago único para todo el carrito</div></div></label>
+          <label class="card" style="cursor:pointer; padding:.875rem; display:flex; align-items:center; gap:.75rem; border-color:var(--color-primary);"><input type="radio" name="payMethod" value="flow" checked style="accent-color:var(--color-primary);"><div><div style="font-weight:700; color:var(--text-inv); font-size:.875rem;">Flow</div><div style="font-size:.75rem; color:var(--text-muted);">Tarjetas de crédito o débito, transferencias bancarias y otras billeteras digitales</div></div></label>
         </div>
         <div class="separator"></div>
         <div class="flex gap-2">

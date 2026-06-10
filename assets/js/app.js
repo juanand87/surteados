@@ -935,6 +935,18 @@ function updateCartBar() {
   // Step 3 → back
   document.getElementById('step3Back')?.addEventListener('click', () => updatePurchaseStep(2));
 
+  function resetFlowPayButton() {
+    const payBtn = document.getElementById('step3Pay');
+    if (!payBtn) return;
+    payBtn.disabled = false;
+    payBtn.textContent = '🔒 Pagar Ahora';
+  }
+
+  window.addEventListener('pageshow', resetFlowPayButton);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) resetFlowPayButton();
+  });
+
   // Step 3 → Simulate payment (demo only)
   document.getElementById('step3SimulateBtn')?.addEventListener('click', async () => {
     const name  = document.getElementById('buyerName')?.value?.trim() || 'Demo';
