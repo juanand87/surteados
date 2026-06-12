@@ -28,7 +28,7 @@ function surteados_send_email(
         return false;
     }
     if (!surteados_load_phpmailer()) {
-        surteados_set_email_error('PHPMailer is not available. Upload vendor/ or run composer install.');
+        surteados_set_email_error('PHPMailer is not available. Upload api/lib/phpmailer/ or vendor/, or run composer install.');
         return false;
     }
 
@@ -95,21 +95,34 @@ function surteados_load_phpmailer(): bool
         return true;
     }
 
-    $base = __DIR__ . '/../vendor/phpmailer/phpmailer/src';
-    $files = [
-        $base . '/Exception.php',
-        $base . '/SMTP.php',
-        $base . '/PHPMailer.php',
+    $bases = [
+        __DIR__ . '/../vendor/phpmailer/phpmailer/src',
+        __DIR__ . '/lib/phpmailer/src',
     ];
-    foreach ($files as $file) {
-        if (!file_exists($file)) {
-            return false;
+    foreach ($bases as $base) {
+        $files = [
+            $base . '/Exception.php',
+            $base . '/SMTP.php',
+            $base . '/PHPMailer.php',
+        ];
+        $allPresent = true;
+        foreach ($files as $file) {
+            if (!file_exists($file)) {
+                $allPresent = false;
+                break;
+            }
+        }
+        if (!$allPresent) {
+            continue;
+        }
+        foreach ($files as $file) {
+            require_once $file;
+        }
+        if (class_exists('PHPMailer\\PHPMailer\\PHPMailer', false)) {
+            return true;
         }
     }
-    foreach ($files as $file) {
-        require_once $file;
-    }
-    return class_exists('PHPMailer\\PHPMailer\\PHPMailer', false);
+    return false;
 }
 
 function surteados_normalize_smtp_host(string $host): string
