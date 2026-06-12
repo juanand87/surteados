@@ -340,6 +340,14 @@ $apiBase   = BASE_URL . '/api';
           </div>
           <button type="submit" class="btn btn-primary">Guardar configuración SMTP</button>
         </form>
+        <div style="margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--border);">
+          <label class="form-label">Enviar correo de prueba</label>
+          <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;">
+            <input type="email" class="form-control" id="smtpTestEmail" placeholder="correo@ejemplo.cl" style="flex:1;min-width:220px;">
+            <button type="button" class="btn btn-outline" id="smtpTestBtn" onclick="testSmtpEmail()">Probar SMTP</button>
+          </div>
+          <p class="form-hint" style="margin-top:.5rem;">Usa los datos escritos arriba. Puedes probar antes o despues de guardar.</p>
+        </div>
       </div>
     </div>
 

@@ -904,6 +904,39 @@ async function saveSettingsForm(e) {
   } catch (err) { showToast(err.message, 'error'); }
 }
 
+async function testSmtpEmail() {
+  const form = document.getElementById('smtpForm');
+  const emailEl = document.getElementById('smtpTestEmail');
+  const btn = document.getElementById('smtpTestBtn');
+  const testEmail = emailEl?.value?.trim() || '';
+  if (!form) return;
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(testEmail)) {
+    showToast('Ingresa un correo de prueba valido', 'warning');
+    emailEl?.focus();
+    return;
+  }
+
+  const data = { test_email: testEmail };
+  new FormData(form).forEach((v, k) => { data[k] = v; });
+
+  const prevText = btn?.textContent;
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Enviando...';
+  }
+  try {
+    await api('/smtp_test.php', { method: 'POST', body: data });
+    showToast('Correo de prueba enviado. Revisa la bandeja de entrada.');
+  } catch (err) {
+    showToast(err.message, 'error');
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = prevText || 'Probar SMTP';
+    }
+  }
+}
+
 /* ══════════════════════════════════════════════════════════════════════════ */
 /*  SMTP                                                                     */
 /* ══════════════════════════════════════════════════════════════════════════ */
