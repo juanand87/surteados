@@ -10,24 +10,25 @@ function surteados_send_email(
     string $subject,
     string $htmlBody
 ): bool {
+    $GLOBALS['surteados_last_email_error'] = '';
     $fromEmail = $cfg['smtp_from_email'] ?: 'noreply@surteados.cl';
     $fromName = $cfg['smtp_from_name'] ?: ($cfg['site_name'] ?? 'Surteados');
     $smtpHost = surteados_normalize_smtp_host($cfg['smtp_host'] ?? '');
 
     if ($smtpHost === '') {
-        error_log('Surteados email error: SMTP host is empty');
+        surteados_set_email_error('SMTP host is empty');
         return false;
     }
     if (!filter_var($fromEmail, FILTER_VALIDATE_EMAIL)) {
-        error_log('Surteados email error: invalid SMTP from email');
+        surteados_set_email_error('Invalid SMTP from email');
         return false;
     }
     if (!filter_var($toEmail, FILTER_VALIDATE_EMAIL)) {
-        error_log('Surteados email error: invalid recipient email');
+        surteados_set_email_error('Invalid recipient email');
         return false;
     }
     if (!surteados_load_phpmailer()) {
-        error_log('Surteados email error: PHPMailer is not available');
+        surteados_set_email_error('PHPMailer is not available. Upload vendor/ or run composer install.');
         return false;
     }
 
@@ -63,9 +64,21 @@ function surteados_send_email(
         $mail->send();
         return true;
     } catch (Throwable $e) {
-        error_log('Surteados PHPMailer SMTP error: ' . ($mail->ErrorInfo ?: $e->getMessage()));
+        surteados_set_email_error($mail->ErrorInfo ?: $e->getMessage());
         return false;
     }
+}
+
+function surteados_set_email_error(string $message): void
+{
+    $message = trim($message);
+    $GLOBALS['surteados_last_email_error'] = $message;
+    error_log('Surteados PHPMailer SMTP error: ' . $message);
+}
+
+function surteados_last_email_error(): string
+{
+    return (string)($GLOBALS['surteados_last_email_error'] ?? '');
 }
 
 function surteados_load_phpmailer(): bool

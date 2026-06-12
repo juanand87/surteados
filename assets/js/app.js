@@ -1066,8 +1066,12 @@ function updateCartBar() {
       renderCartDrawerPanel();
       updatePurchaseStep(4);
 
-      if (json.data.mailSent) showToast('📧 Correo de confirmación enviado', 'success', 3500);
-      else showToast(`✅ ${tLabelP()} generados (correo no disponible en local)`, 'success', 3500);
+      if (json.data.mailSent) {
+        showToast('Correo de confirmacion enviado', 'success', 3500);
+      } else {
+        const mailError = json.data.mailError ? ` Detalle: ${json.data.mailError}` : '';
+        showToast(`Compra generada, pero no se pudo enviar el correo.${mailError}`, 'error', 8000);
+      }
 
     } catch (err) {
       showToast('❌ ' + err.message, 'error', 6000);

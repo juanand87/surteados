@@ -60,7 +60,10 @@ $sent = surteados_send_email(
 );
 
 if (!$sent) {
-    json_error('No se pudo enviar por PHPMailer SMTP. Revisa servidor, puerto, cifrado, usuario, clave y que PHPMailer este instalado.', 500);
+    $detail = function_exists('surteados_last_email_error') ? surteados_last_email_error() : '';
+    $msg = 'No se pudo enviar por PHPMailer SMTP.';
+    if ($detail !== '') $msg .= ' Detalle: ' . $detail;
+    json_error($msg, 500);
 }
 
 json_ok(['sent' => true, 'to' => $testEmail]);

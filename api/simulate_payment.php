@@ -156,10 +156,12 @@ if (!$createdTickets) {
 }
 
 $mailSent = surteados_send_order_confirmation($pdo, $orderId, $buyerEmail);
+$mailError = function_exists('surteados_last_email_error') ? surteados_last_email_error() : '';
 
 json_ok([
     'orderId' => $orderId,
     'tickets' => $createdTickets,
     'total' => $total,
     'mailSent' => $mailSent,
+    'mailError' => $mailSent ? '' : $mailError,
 ]);
