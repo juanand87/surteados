@@ -14,7 +14,40 @@ $siteLogo = $cfg['logo'] ?? null;
 $ticketLabel  = $cfg['ticketLabel']       ?? 'ticket';
 $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'tickets';
 $comingSoonLogo = $siteLogo ?: 'https://surteados.cl/assets/uploads/logo_e277c8485f11615e.png';
-if (!empty($cfg['developmentMode'])):
+$developmentAccessPassword = 'surteados';
+if (!empty($cfg['developmentMode']) && isset($pdo)) {
+    try {
+        $passStmt = $pdo->prepare("SELECT `value` FROM settings WHERE `key` = 'development_access_password' LIMIT 1");
+        $passStmt->execute();
+        $storedPass = trim((string)$passStmt->fetchColumn());
+        if ($storedPass !== '') $developmentAccessPassword = $storedPass;
+    } catch (Throwable $e) {
+        $developmentAccessPassword = 'surteados';
+    }
+}
+$devAccessError = '';
+$devAccessGranted = false;
+if (!empty($cfg['developmentMode'])) {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_name('surteados_dev_access');
+        session_start();
+    }
+    $devPassword = trim($developmentAccessPassword);
+    if ($devPassword === '') $devPassword = 'surteados';
+
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['dev_access_action'] ?? '') === 'login') {
+        $entered = trim((string)($_POST['dev_access_password'] ?? ''));
+        if (hash_equals($devPassword, $entered)) {
+            $_SESSION['surteados_dev_access_ok'] = true;
+            header('Location: index.php');
+            exit;
+        }
+        $devAccessError = 'Clave incorrecta';
+    }
+
+    $devAccessGranted = !empty($_SESSION['surteados_dev_access_ok']);
+}
+if (!empty($cfg['developmentMode']) && !$devAccessGranted):
 ?><!DOCTYPE html>
 <html lang="es">
 <head>
@@ -88,6 +121,69 @@ if (!empty($cfg['developmentMode'])):
       background: linear-gradient(90deg, var(--primary), var(--accent));
       box-shadow: 0 0 24px color-mix(in srgb, var(--accent) 45%, transparent);
     }
+    .dev-access {
+      position: fixed;
+      left: 50%;
+      bottom: 2rem;
+      transform: translateX(-50%);
+      width: min(92vw, 360px);
+      display: grid;
+      gap: .65rem;
+      justify-items: center;
+    }
+    .dev-access-toggle,
+    .dev-access-submit {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255,255,255,.08);
+      color: var(--ink);
+      padding: .75rem 1.35rem;
+      font-weight: 800;
+      font-size: .92rem;
+      cursor: pointer;
+      backdrop-filter: blur(14px);
+      transition: transform .16s ease, border-color .16s ease, background .16s ease;
+    }
+    .dev-access-toggle:hover,
+    .dev-access-submit:hover {
+      transform: translateY(-1px);
+      border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+      background: rgba(255,255,255,.13);
+    }
+    .dev-access-form {
+      display: none;
+      width: 100%;
+      padding: .85rem;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(10,10,15,.58);
+      backdrop-filter: blur(18px);
+      box-shadow: 0 18px 44px rgba(0,0,0,.28);
+    }
+    .dev-access.open .dev-access-form { display: grid; gap: .65rem; }
+    .dev-access-input {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255,255,255,.1);
+      color: var(--ink);
+      padding: .78rem 1rem;
+      outline: none;
+      font: inherit;
+      text-align: center;
+    }
+    .dev-access-input::placeholder { color: rgba(255,255,255,.45); }
+    .dev-access-error {
+      color: #fecaca;
+      font-size: .8rem;
+      font-weight: 700;
+      text-align: center;
+    }
+    @media (max-height: 680px) {
+      .soon { padding-top: 1.4rem; }
+      .soon-logo { margin-bottom: 1rem; max-height: 110px; }
+      .dev-access { bottom: 1rem; }
+    }
   </style>
 </head>
 <body>
@@ -97,6 +193,24 @@ if (!empty($cfg['developmentMode'])):
     <p>Estamos preparando una nueva experiencia de sorteos digitales. Muy pronto podrás participar, elegir tus imágenes y quizás ser el próximo ganador.</p>
     <div class="soon-line" aria-hidden="true"></div>
   </main>
+  <div class="dev-access<?= $devAccessError ? ' open' : '' ?>" id="devAccess">
+    <button class="dev-access-toggle" type="button" id="devAccessToggle">Surteados</button>
+    <form class="dev-access-form" method="post" autocomplete="off">
+      <input type="hidden" name="dev_access_action" value="login">
+      <input class="dev-access-input" type="password" name="dev_access_password" placeholder="Clave de acceso" aria-label="Clave de acceso" required>
+      <button class="dev-access-submit" type="submit">Entrar al sitio</button>
+      <?php if ($devAccessError): ?><div class="dev-access-error"><?= htmlspecialchars($devAccessError) ?></div><?php endif; ?>
+    </form>
+  </div>
+  <script>
+    document.getElementById('devAccessToggle')?.addEventListener('click', function() {
+      const wrap = document.getElementById('devAccess');
+      wrap?.classList.toggle('open');
+      setTimeout(function() {
+        wrap?.querySelector('input[type="password"]')?.focus();
+      }, 50);
+    });
+  </script>
 </body>
 </html>
 <?php
