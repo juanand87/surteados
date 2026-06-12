@@ -56,6 +56,8 @@ DROP TABLE IF EXISTS raffle_packs;
 DROP TABLE IF EXISTS tickets;
 DROP TABLE IF EXISTS winners;
 DROP TABLE IF EXISTS raffles;
+DROP TABLE IF EXISTS communes;
+DROP TABLE IF EXISTS regions;
 
 CREATE TABLE raffles (
   id                  VARCHAR(25)  PRIMARY KEY,
@@ -108,6 +110,25 @@ CREATE TABLE raffle_packs (
   INDEX idx_raffle (raffle_id)
 ) ENGINE=InnoDB;
 
+CREATE TABLE regions (
+  id          TINYINT UNSIGNED PRIMARY KEY,
+  name        VARCHAR(120) NOT NULL,
+  roman       VARCHAR(8),
+  sort_order  TINYINT UNSIGNED NOT NULL,
+  created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+CREATE TABLE communes (
+  id          SMALLINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  region_id   TINYINT UNSIGNED NOT NULL,
+  name        VARCHAR(120) NOT NULL,
+  sort_order  SMALLINT UNSIGNED NOT NULL,
+  created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_region_commune (region_id, name),
+  INDEX idx_region (region_id),
+  FOREIGN KEY (region_id) REFERENCES regions(id) ON DELETE RESTRICT
+) ENGINE=InnoDB;
+
 -- ── Tickets ───────────────────────────────────────────────────
 CREATE TABLE tickets (
   id              VARCHAR(25)   PRIMARY KEY,
@@ -118,6 +139,7 @@ CREATE TABLE tickets (
   buyer_phone     VARCHAR(30),
   buyer_address   VARCHAR(255),
   buyer_comuna    VARCHAR(120),
+  buyer_commune_id SMALLINT UNSIGNED NULL,
   pack_id         VARCHAR(25),
   pack_label      VARCHAR(100),
   ticket_numbers  TEXT,          -- JSON array of strings
@@ -128,8 +150,10 @@ CREATE TABLE tickets (
   flow_order      VARCHAR(100),
   purchase_date   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (raffle_id) REFERENCES raffles(id) ON DELETE SET NULL,
+  FOREIGN KEY (buyer_commune_id) REFERENCES communes(id) ON DELETE SET NULL,
   INDEX idx_raffle    (raffle_id),
   INDEX idx_email     (buyer_email),
+  INDEX idx_buyer_commune (buyer_commune_id),
   INDEX idx_flow_tok  (flow_token),
   INDEX idx_status    (payment_status)
 ) ENGINE=InnoDB;

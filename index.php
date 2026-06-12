@@ -619,9 +619,17 @@ if (!empty($cfg['heroSliderEnabled']) && !empty($cfg['heroSlides']) && is_array(
             <input type="text" class="form-control" id="buyerAddress" placeholder="Av. Siempre Viva 123" required>
           </div>
           <div class="form-group">
-            <label class="form-label">Comuna *</label>
-            <input type="text" class="form-control" id="buyerComuna" placeholder="Santiago" required>
+            <label class="form-label">Región *</label>
+            <select class="form-control" id="buyerRegion" required>
+              <option value="">Selecciona tu región</option>
+            </select>
           </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Comuna / ciudad *</label>
+          <select class="form-control" id="buyerComuna" required disabled>
+            <option value="">Primero selecciona una región</option>
+          </select>
         </div>
         <div class="form-group">
           <label class="form-label">RUT *</label>

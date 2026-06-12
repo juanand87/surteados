@@ -2,6 +2,7 @@
 /** SURTEADOS — Flow.cl payment initiation (single or multi-item cart) */
 require __DIR__ . '/config.php';
 require __DIR__ . '/FlowAPI.php';
+require_once __DIR__ . '/location_helper.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     json_error('Method not allowed', 405);
@@ -15,6 +16,7 @@ $buyerEmail = trim($b['buyerEmail'] ?? '');
 $buyerPhone = trim($b['buyerPhone'] ?? '');
 $buyerAddress = trim($b['buyerAddress'] ?? '');
 $buyerComuna  = trim($b['buyerComuna']  ?? '');
+$buyerCommuneId = $b['buyerCommuneId'] ?? null;
 $items      = $b['items'] ?? [];
 
 if (!$buyerName || !$buyerEmail) {
@@ -45,6 +47,9 @@ if (count($items) > 10) {
 }
 
 $pdo = db();
+$buyerCommune = surteados_resolve_commune($pdo, $buyerCommuneId, $buyerComuna);
+$buyerComuna = $buyerCommune['name'];
+$buyerCommuneId = $buyerCommune['id'];
 
 // Resolve cart items
 $resolved = [];
@@ -104,9 +109,9 @@ try {
     $pdo->beginTransaction();
     $stmtInsert = $pdo->prepare(
         'INSERT INTO tickets
-              (id, raffle_id, buyer_name, buyer_rut, buyer_email, buyer_phone, buyer_address, buyer_comuna,
+              (id, raffle_id, buyer_name, buyer_rut, buyer_email, buyer_phone, buyer_address, buyer_comuna, buyer_commune_id,
             pack_id, pack_label, amount, payment_method, payment_status, flow_order)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
     );
 
     foreach ($resolved as $entry) {
@@ -121,6 +126,7 @@ try {
             $buyerPhone,
             $buyerAddress,
             $buyerComuna,
+            $buyerCommuneId,
             $entry['pack']['id'],
             $entry['pack']['label'],
             $entry['pack']['price'],

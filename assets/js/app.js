@@ -43,6 +43,64 @@ function raffleClosedMessage(drawDate) {
   return `Se ha cerrado la compra de ${tLabelP()}, faltan ${info.remainingText} para que puedas ganar.`;
 }
 
+let _locationsCache = null;
+async function loadChileLocations() {
+  if (_locationsCache) return _locationsCache;
+  const base = window.location.pathname.replace(/\/index\.php.*|\/$/, '').replace(/\/[^/]+\.php.*/, '');
+  const resp = await fetch(base + '/api/locations.php', { credentials: 'same-origin' });
+  const json = await resp.json();
+  if (!json.ok) throw new Error(json.error || 'No se pudieron cargar regiones y comunas');
+  _locationsCache = json.data?.regions || [];
+  return _locationsCache;
+}
+
+function fillRegionSelect(regions) {
+  const regionEl = document.getElementById('buyerRegion');
+  if (!regionEl) return;
+  const current = regionEl.value;
+  regionEl.innerHTML = '<option value="">Selecciona tu región</option>' + regions.map(r =>
+    `<option value="${escHtml(r.id)}">${escHtml(r.name)}</option>`
+  ).join('');
+  if (current) regionEl.value = current;
+}
+
+function fillCommuneSelect(regionId) {
+  const communeEl = document.getElementById('buyerComuna');
+  if (!communeEl) return;
+  const region = (_locationsCache || []).find(r => String(r.id) === String(regionId));
+  if (!region) {
+    communeEl.innerHTML = '<option value="">Primero selecciona una región</option>';
+    communeEl.disabled = true;
+    return;
+  }
+  communeEl.innerHTML = '<option value="">Selecciona tu comuna</option>' + region.communes.map(c =>
+    `<option value="${escHtml(c.id)}" data-name="${escHtml(c.name)}">${escHtml(c.name)}</option>`
+  ).join('');
+  communeEl.disabled = false;
+}
+
+async function setupLocationSelectors() {
+  const regionEl = document.getElementById('buyerRegion');
+  const communeEl = document.getElementById('buyerComuna');
+  if (!regionEl || !communeEl) return;
+  try {
+    const regions = await loadChileLocations();
+    fillRegionSelect(regions);
+    regionEl.addEventListener('change', () => fillCommuneSelect(regionEl.value));
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+function selectedCommunePayload() {
+  const communeEl = document.getElementById('buyerComuna');
+  const selected = communeEl?.selectedOptions?.[0];
+  return {
+    id: communeEl?.value?.trim() || '',
+    name: selected?.dataset?.name || selected?.textContent?.trim() || '',
+  };
+}
+
 // ─── Apply server theme & logo (before any render) ───────────────────────────
 (function() {
   const settings = window.SURTEADOS_DATA?.settings;
@@ -795,6 +853,7 @@ function updateCartBar() {
   const modal = document.getElementById('purchaseModal');
   const modalClose = document.getElementById('modalClose');
   const closeAfterPurchase = document.getElementById('closeAfterPurchase');
+  setupLocationSelectors();
 
   function closeModal() { modal.classList.remove('open'); }
   if (modalClose) modalClose.addEventListener('click', closeModal);
@@ -892,14 +951,14 @@ function updateCartBar() {
     const name         = document.getElementById('buyerName')?.value?.trim();
     const rutInput     = document.getElementById('buyerRut')?.value?.trim();
     const address      = document.getElementById('buyerAddress')?.value?.trim();
-    const comuna       = document.getElementById('buyerComuna')?.value?.trim();
+    const comuna       = selectedCommunePayload();
     const email        = document.getElementById('buyerEmail')?.value?.trim();
     const emailConfirm = document.getElementById('buyerEmailConfirm')?.value?.trim();
     const termsAccepted = !!document.getElementById('buyerTermsAccepted')?.checked;
     if (!name)  { showToast('Ingresa tu nombre completo', 'warning'); return; }
     if (!rutInput) { showToast('Ingresa tu RUT', 'warning'); return; }
     if (!address) { showToast('Ingresa tu dirección', 'warning'); return; }
-    if (!comuna) { showToast('Ingresa tu comuna', 'warning'); return; }
+    if (!comuna.id) { showToast('Selecciona tu comuna', 'warning'); return; }
     const rut = formatChileanRut(rutInput);
     if (!isValidChileanRut(rut)) { showToast('Ingresa un RUT chileno válido', 'warning'); return; }
     const rutEl = document.getElementById('buyerRut');
@@ -954,11 +1013,11 @@ function updateCartBar() {
     const email = document.getElementById('buyerEmail')?.value?.trim() || 'demo@surteados.cl';
     const phone = document.getElementById('buyerPhone')?.value?.trim() || '';
     const address = document.getElementById('buyerAddress')?.value?.trim() || '';
-    const comuna = document.getElementById('buyerComuna')?.value?.trim() || '';
+    const comuna = selectedCommunePayload();
     const items = _cart.load();
     if (!items.length) { showToast('Tu carrito está vacío', 'warning'); return; }
     if (!rut || !isValidChileanRut(rut)) { showToast('Ingresa un RUT chileno válido', 'warning'); return; }
-    if (!address || !comuna) { showToast('Completa dirección y comuna', 'warning'); return; }
+    if (!address || !comuna.id) { showToast('Completa dirección y comuna', 'warning'); return; }
 
     const btn = document.getElementById('step3SimulateBtn');
     btn.disabled = true;
@@ -976,7 +1035,8 @@ function updateCartBar() {
           buyerEmail: email,
           buyerPhone: phone,
           buyerAddress: address,
-          buyerComuna: comuna,
+          buyerComuna: comuna.name,
+          buyerCommuneId: comuna.id,
         }),
       });
       const json = await resp.json();
@@ -1024,14 +1084,14 @@ function updateCartBar() {
     const email  = document.getElementById('buyerEmail')?.value?.trim();
     const phone  = document.getElementById('buyerPhone')?.value?.trim() || '';
     const address = document.getElementById('buyerAddress')?.value?.trim() || '';
-    const comuna = document.getElementById('buyerComuna')?.value?.trim() || '';
+    const comuna = selectedCommunePayload();
     const method = 'flow';
 
     if (!rut || !isValidChileanRut(rut)) {
       showToast('Ingresa un RUT chileno válido', 'warning');
       return;
     }
-    if (!address || !comuna) {
+    if (!address || !comuna.id) {
       showToast('Completa dirección y comuna', 'warning');
       return;
     }
@@ -1061,7 +1121,8 @@ function updateCartBar() {
           buyerEmail: email,
           buyerPhone: phone,
           buyerAddress: address,
-          buyerComuna: comuna,
+          buyerComuna: comuna.name,
+          buyerCommuneId: comuna.id,
           paymentMethod: method,
         }),
       });

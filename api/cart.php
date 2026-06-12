@@ -12,6 +12,7 @@
  * }
  */
 require __DIR__ . '/config.php';
+require_once __DIR__ . '/location_helper.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     json_error('Method not allowed', 405);
@@ -26,6 +27,7 @@ $buyerEmail  = trim($b['buyerEmail'] ?? '');
 $buyerPhone  = trim($b['buyerPhone'] ?? '');
 $buyerAddress = trim($b['buyerAddress'] ?? '');
 $buyerComuna  = trim($b['buyerComuna']  ?? '');
+$buyerCommuneId = $b['buyerCommuneId'] ?? null;
 $payMethod   = trim($b['paymentMethod'] ?? 'transfer');
 
 // ── Validate inputs ──────────────────────────────────────────────────────────
@@ -51,6 +53,9 @@ $buyerAddress = htmlspecialchars($buyerAddress, ENT_QUOTES, 'UTF-8');
 $buyerComuna  = htmlspecialchars($buyerComuna, ENT_QUOTES, 'UTF-8');
 
 $pdo = db();
+$buyerCommune = surteados_resolve_commune($pdo, $buyerCommuneId, $buyerComuna);
+$buyerComuna = htmlspecialchars($buyerCommune['name'], ENT_QUOTES, 'UTF-8');
+$buyerCommuneId = $buyerCommune['id'];
 
 // ── Validate & load all items ────────────────────────────────────────────────
 $resolved = [];
@@ -111,9 +116,9 @@ try {
 
         $pdo->prepare(
             'INSERT INTO tickets
-               (id, raffle_id, buyer_name, buyer_rut, buyer_email, buyer_phone, buyer_address, buyer_comuna,
+               (id, raffle_id, buyer_name, buyer_rut, buyer_email, buyer_phone, buyer_address, buyer_comuna, buyer_commune_id,
                 pack_id, pack_label, amount, payment_method, payment_status, ticket_numbers)
-             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)'
+             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
         )->execute([
             $ticketId,
             $raffle['id'],
@@ -123,6 +128,7 @@ try {
             $buyerPhone,
             $buyerAddress,
             $buyerComuna,
+            $buyerCommuneId,
             $pack['id'],
             $pack['label'],
             $pack['price'],

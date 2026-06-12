@@ -7,6 +7,7 @@
  */
 require __DIR__ . '/config.php';
 require_once __DIR__ . '/order_email_helper.php';
+require_once __DIR__ . '/location_helper.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -23,6 +24,7 @@ $buyerEmail    = trim($b['buyerEmail'] ?? '');
 $buyerPhone    = trim($b['buyerPhone'] ?? '');
 $buyerAddress  = trim($b['buyerAddress'] ?? '');
 $buyerComuna   = trim($b['buyerComuna'] ?? '');
+$buyerCommuneId = $b['buyerCommuneId'] ?? null;
 
 if (!$items || !$buyerName || !$buyerEmail) {
     json_error('Datos incompletos: items, buyerName y buyerEmail son requeridos');
@@ -35,6 +37,9 @@ if (!filter_var($buyerEmail, FILTER_VALIDATE_EMAIL)) {
 }
 
 $pdo = db();
+$buyerCommune = surteados_resolve_commune($pdo, $buyerCommuneId, $buyerComuna);
+$buyerComuna = $buyerCommune['name'];
+$buyerCommuneId = $buyerCommune['id'];
 
 function sim_genNumbers(PDO $pdo, string $raffleId, int $qty): array
 {
@@ -104,8 +109,8 @@ try {
         $pdo->prepare(
             "INSERT INTO tickets
              (id, raffle_id, buyer_name, buyer_rut, buyer_email, buyer_phone, buyer_address, buyer_comuna,
-              pack_id, pack_label, amount, payment_method, payment_status, ticket_numbers, flow_order)
-             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+              buyer_commune_id, pack_id, pack_label, amount, payment_method, payment_status, ticket_numbers, flow_order)
+             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
         )->execute([
             $ticketId,
             $raffleId,
@@ -115,6 +120,7 @@ try {
             $buyerPhone,
             $buyerAddress,
             $buyerComuna,
+            $buyerCommuneId,
             $packId,
             $pack['label'],
             $amount,
