@@ -132,9 +132,55 @@ usort($sortedPacks, fn($a, $b) => $b['price'] - $a['price']);
   top: 68px;
   z-index: 50;
 }
-.vs-stat-card { padding: 1.1rem; text-align: center; }
-.vs-stat-num  { font-size: 1.75rem; font-weight: 800; }
-.vs-stat-lbl  { font-size: .78rem; color: var(--text-muted); margin-top: .1rem; }
+.vs-action-bar .container {
+  justify-content: center !important;
+}
+.vs-action-content {
+  display: flex;
+  gap: .85rem;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  text-align: center;
+}
+.vs-action-price {
+  font-size: .88rem;
+  color: var(--text-muted);
+}
+.vs-action-price strong {
+  font-size: 1.28rem;
+  color: var(--color-primary);
+}
+.vs-buy-card {
+  max-width: 760px;
+  margin: 0 auto 1.4rem;
+  padding: 2rem;
+  text-align: center;
+  border-color: rgba(245,158,11,.38);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(245,158,11,.15), transparent 38%),
+    linear-gradient(135deg, rgba(124,58,237,.18), rgba(245,158,11,.08)),
+    var(--bg-card);
+}
+.vs-buy-title {
+  margin: 0 0 .45rem;
+  color: var(--text-inv);
+  font-size: clamp(1.35rem, 3vw, 2rem);
+}
+.vs-buy-copy {
+  max-width: 560px;
+  margin: 0 auto 1.25rem;
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+.vs-buy-card .packs-grid {
+  margin-bottom: 1.35rem;
+}
+.vs-buy-card .btn-lg {
+  min-width: min(100%, 340px);
+  padding: 1rem 1.5rem;
+  font-size: 1.08rem;
+}
 </style>
 </head>
 <body>
@@ -239,16 +285,13 @@ usort($sortedPacks, fn($a, $b) => $b['price'] - $a['price']);
   <!-- ─── Sticky Action Bar ───────────────────────────────────────── -->
   <?php if ($status === 'active' || $meetLink): ?>
   <div class="vs-action-bar">
-    <div class="container" style="display:flex;justify-content:space-between;align-items:center;gap:.75rem;flex-wrap:wrap;">
-      <div>
+    <div class="container">
+      <div class="vs-action-content">
         <?php if ($minPrice > 0): ?>
-        <span style="font-size:.82rem;color:var(--text-muted);">Desde&nbsp;</span>
-        <strong style="font-size:1.2rem;color:var(--color-primary);">$<?= number_format($minPrice, 0, ',', '.') ?></strong>
+        <span class="vs-action-price">Desde <strong>$<?= number_format($minPrice, 0, ',', '.') ?></strong></span>
         <?php endif; ?>
-      </div>
-      <div style="display:flex;gap:.65rem;align-items:center;flex-wrap:wrap;justify-content:flex-end;">
         <?php if ($salesClosedMsg): ?>
-        <div style="font-size:.78rem;color:#fbbf24;max-width:380px;text-align:right;"><?= $salesClosedMsg ?></div>
+        <div style="font-size:.78rem;color:#fbbf24;max-width:420px;"><?= $salesClosedMsg ?></div>
         <?php endif; ?>
         <?php if ($meetLink): ?>
         <a href="<?= htmlspecialchars($meetLink) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-ghost" style="display:inline-flex;align-items:center;gap:.35rem;">
@@ -271,46 +314,41 @@ usort($sortedPacks, fn($a, $b) => $b['price'] - $a['price']);
   <section class="section">
     <div class="container" style="max-width:820px;">
 
+      <!-- Packs (only if active) -->
+      <?php if (!empty($sortedPacks) && $status === 'active'): ?>
+      <div class="card vs-buy-card">
+        <h2 class="vs-buy-title">Comprar <?= htmlspecialchars(ucfirst($ticketLabel)) ?></h2>
+        <p class="vs-buy-copy">Elige tu pack, completa tus datos y recibe tus imagenes oficiales en el correo registrado.</p>
+        <div class="packs-grid">
+          <?php foreach ($sortedPacks as $pack): ?>
+          <div class="pack-card<?= !empty($pack['bestValue']) ? ' best-value' : '' ?>"
+               onclick="openPurchaseModal('<?= htmlspecialchars($raffle['id']) ?>')"
+               style="cursor:pointer;">
+            <div class="pack-qty"><?= (int)$pack['qty'] ?></div>
+            <div class="pack-qty-label"><?= (int)$pack['qty'] === 1 ? htmlspecialchars($ticketLabel) : htmlspecialchars($ticketLabelP) ?></div>
+            <?php if (!empty($pack['originalPrice']) && $pack['originalPrice'] > $pack['price']): ?>
+            <div class="pack-price-original">$<?= number_format((int)$pack['originalPrice'], 0, ',', '.') ?></div>
+            <?php endif; ?>
+            <div class="pack-price">$<?= number_format((int)$pack['price'], 0, ',', '.') ?></div>
+            <?php if (!empty($pack['discount'])): ?>
+            <div class="pack-discount">-<?= (int)$pack['discount'] ?>% OFF</div>
+            <?php endif; ?>
+          </div>
+          <?php endforeach; ?>
+        </div>
+        <div style="text-align:center;margin-top:1.25rem;">
+          <button class="btn btn-primary btn-lg" onclick="openPurchaseModal('<?= htmlspecialchars($raffle['id']) ?>')" style="font-weight:800;">
+            Comprar <?= htmlspecialchars(ucfirst($ticketLabel)) ?> ahora
+          </button>
+        </div>
+      </div>
+      <?php endif; ?>
+
       <!-- Description -->
       <?php if (!empty($raffle['description'])): ?>
       <div class="card mb-4" style="padding:1.6rem;">
         <h3 class="text-white mb-2">📝 Descripción</h3>
         <p style="line-height:1.75;white-space:pre-wrap;color:var(--text-muted);"><?= htmlspecialchars($raffle['description']) ?></p>
-      </div>
-      <?php endif; ?>
-
-      <!-- Stats Grid -->
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:.85rem;margin-bottom:1rem;">
-        <div class="card vs-stat-card">
-          <div class="vs-stat-num" style="color:var(--color-primary);"><?= $hasLimit ? number_format($raffle['totalTickets'], 0, ',', '.') : '∞' ?></div>
-          <div class="vs-stat-lbl"><?= $hasLimit ? ('Total ' . htmlspecialchars($ticketLabelP)) : 'Sin límite' ?></div>
-        </div>
-        <div class="card vs-stat-card">
-          <div class="vs-stat-num" style="color:var(--color-accent);"><?= number_format($raffle['soldTickets'], 0, ',', '.') ?></div>
-          <div class="vs-stat-lbl"><?= htmlspecialchars(ucfirst($ticketLabelP)) ?> vendidos</div>
-        </div>
-        <?php if ($hasLimit): ?>
-          <div class="card vs-stat-card">
-            <div class="vs-stat-num" style="color:var(--color-primary-light);"><?= $pct ?>%</div>
-            <div class="vs-stat-lbl">Completado</div>
-          </div>
-          <div class="card vs-stat-card">
-            <div class="vs-stat-num" style="color:var(--text-inv);"><?= number_format(max(0, $raffle['totalTickets'] - $raffle['soldTickets']), 0, ',', '.') ?></div>
-            <div class="vs-stat-lbl">Disponibles</div>
-          </div>
-        <?php endif; ?>
-      </div>
-
-      <!-- Progress Bar -->
-      <?php if ($hasLimit): ?>
-      <div class="card mb-4" style="padding:1.1rem 1.4rem;">
-        <div style="display:flex;justify-content:space-between;margin-bottom:.45rem;">
-          <span style="font-size:.82rem;color:var(--text-muted);"><?= htmlspecialchars(ucfirst($ticketLabelP)) ?> vendidos</span>
-          <span style="font-size:.82rem;font-weight:700;color:var(--text-inv);"><?= $pct ?>%</span>
-        </div>
-        <div class="progress-bar">
-          <div class="progress-fill" style="width:<?= $pct ?>%;transition:width .6s ease;"></div>
-        </div>
       </div>
       <?php endif; ?>
 
@@ -332,36 +370,6 @@ usort($sortedPacks, fn($a, $b) => $b['price'] - $a['price']);
             </div>
           </div>
           <?php endforeach; ?>
-        </div>
-      </div>
-      <?php endif; ?>
-
-      <!-- Packs (only if active) -->
-      <?php if (!empty($sortedPacks) && $status === 'active'): ?>
-      <div class="card mb-4" style="padding:1.6rem;">
-        <h3 class="text-white mb-1">🎟️ Packs disponibles</h3>
-        <p style="font-size:.83rem;color:var(--text-muted);margin-bottom:1.1rem;">Elige el pack que más te acomode y participa ahora.</p>
-        <div class="packs-grid">
-          <?php foreach ($sortedPacks as $pack): ?>
-          <div class="pack-card<?= !empty($pack['bestValue']) ? ' best-value' : '' ?>"
-               onclick="openPurchaseModal('<?= htmlspecialchars($raffle['id']) ?>')"
-               style="cursor:pointer;">
-            <div class="pack-qty"><?= (int)$pack['qty'] ?></div>
-            <div class="pack-qty-label"><?= (int)$pack['qty'] === 1 ? htmlspecialchars($ticketLabel) : htmlspecialchars($ticketLabelP) ?></div>
-            <?php if (!empty($pack['originalPrice']) && $pack['originalPrice'] > $pack['price']): ?>
-            <div class="pack-price-original">$<?= number_format((int)$pack['originalPrice'], 0, ',', '.') ?></div>
-            <?php endif; ?>
-            <div class="pack-price">$<?= number_format((int)$pack['price'], 0, ',', '.') ?></div>
-            <?php if (!empty($pack['discount'])): ?>
-            <div class="pack-discount">-<?= (int)$pack['discount'] ?>% OFF</div>
-            <?php endif; ?>
-          </div>
-          <?php endforeach; ?>
-        </div>
-        <div style="text-align:center;margin-top:1.25rem;">
-          <button class="btn btn-primary btn-lg" onclick="openPurchaseModal('<?= htmlspecialchars($raffle['id']) ?>')" style="font-weight:800;">
-            🎟️ Comprar ahora
-          </button>
         </div>
       </div>
       <?php endif; ?>
