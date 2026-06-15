@@ -4,9 +4,10 @@
  * GET /api/ticket_pdf.php?orderId=xxx&email=xxx
  */
 require __DIR__ . '/config.php';
+require_once __DIR__ . '/ticket_verification_helper.php';
 
 $orderId = trim((string)($_GET['orderId'] ?? ''));
-$email   = trim((string)($_GET['email'] ?? ''));
+$email = trim((string)($_GET['email'] ?? ''));
 
 if ($orderId === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
     http_response_code(400);
@@ -29,17 +30,17 @@ if (isset($ticketColumns['created_at'])) $dateParts[] = 't.created_at';
 $dateExpr = $dateParts ? ('COALESCE(' . implode(', ', $dateParts) . ')') : 'NULL';
 
 $stmt = $pdo->prepare(
-    "SELECT t.id, t.ticket_numbers, t.pack_label, t.amount,
-            t.buyer_name, t.buyer_email,
+    "SELECT t.id, t.ticket_numbers, t.pack_label, t.amount, t.flow_order,
+            t.buyer_name, t.buyer_email, t.buyer_rut, t.buyer_phone,
             {$dateExpr} AS paid_date,
             r.title AS raffle_title, r.image_url AS raffle_image,
-            r.draw_date
+            r.draw_date, r.category
        FROM tickets t
        JOIN raffles r ON r.id = t.raffle_id
       WHERE t.flow_order = ?
         AND t.buyer_email = ?
         AND t.payment_status = 'paid'
-      ORDER BY paid_date ASC"
+      ORDER BY paid_date ASC, t.id ASC"
 );
 $stmt->execute([$orderId, $email]);
 $tickets = $stmt->fetchAll();
@@ -51,10 +52,17 @@ if (!$tickets) {
 }
 
 $cfgRows = $pdo->query(
-    "SELECT `key`, `value` FROM settings WHERE `key` IN ('site_name','ticket_label','ticket_label_plural')"
+    "SELECT `key`, `value` FROM settings WHERE `key` IN ('site_name','site_logo','site_url')"
 )->fetchAll();
 $cfg = [];
 foreach ($cfgRows as $row) $cfg[$row['key']] = $row['value'];
+
+$siteNameRaw = $cfg['site_name'] ?? 'Surteados';
+$siteName = htmlspecialchars($siteNameRaw, ENT_QUOTES, 'UTF-8');
+$siteLogo = trim((string)($cfg['site_logo'] ?? ''));
+if ($siteLogo === '') $siteLogo = 'https://surteados.cl/assets/uploads/logo_e277c8485f11615e.png';
+$siteLogoSafe = htmlspecialchars($siteLogo, ENT_QUOTES, 'UTF-8');
+$siteUrl = surteados_pdf_site_url($cfg['site_url'] ?? BASE_URL);
 
 $ticketItems = [];
 foreach ($tickets as $ticket) {
@@ -63,27 +71,32 @@ foreach ($tickets as $ticket) {
     $unitAmount = $count > 0 ? (int)round((int)$ticket['amount'] / $count) : (int)$ticket['amount'];
 
     foreach ($numbers as $index => $number) {
+        $number = (string)$number;
+        $token = surteados_ticket_token($pdo, (string)$ticket['id'], $number, $orderId, $email);
+        $verifyUrl = $siteUrl . '/api/verify_ticket.php?token=' . rawurlencode($token);
         $ticketItems[] = [
-            'number'       => (string)$number,
-            'index'        => $index + 1,
-            'count'        => $count,
-            'amount'       => $unitAmount,
-            'pack_label'   => $ticket['pack_label'] ?? '',
+            'ticket_id' => (string)$ticket['id'],
+            'number' => $number,
+            'number_label' => surteados_ticket_number_label($number),
+            'index' => $index + 1,
+            'count' => $count,
+            'amount' => $unitAmount,
+            'pack_label' => $ticket['pack_label'] ?? '',
+            'order_id' => $ticket['flow_order'] ?: $orderId,
+            'buyer_name' => $ticket['buyer_name'] ?? '',
+            'buyer_email' => $ticket['buyer_email'] ?? '',
+            'buyer_rut' => $ticket['buyer_rut'] ?? '',
+            'buyer_phone' => $ticket['buyer_phone'] ?? '',
             'raffle_title' => $ticket['raffle_title'] ?? '',
             'raffle_image' => $ticket['raffle_image'] ?? '',
-            'draw_date'    => $ticket['draw_date'] ?? null,
-            'paid_date'    => $ticket['paid_date'] ?? null,
+            'draw_date' => $ticket['draw_date'] ?? null,
+            'category' => $ticket['category'] ?? '',
+            'paid_date' => $ticket['paid_date'] ?? null,
+            'verify_url' => $verifyUrl,
+            'token_short' => strtoupper(substr(hash('sha256', $token), 0, 12)),
         ];
     }
 }
-
-$siteName = htmlspecialchars($cfg['site_name'] ?? 'Surteados', ENT_QUOTES, 'UTF-8');
-$ticketLabelP = htmlspecialchars($cfg['ticket_label_plural'] ?? 'imagenes', ENT_QUOTES, 'UTF-8');
-$buyerName = htmlspecialchars($tickets[0]['buyer_name'] ?? '', ENT_QUOTES, 'UTF-8');
-$orderIdSafe = htmlspecialchars($orderId, ENT_QUOTES, 'UTF-8');
-$emailSafe = htmlspecialchars($email, ENT_QUOTES, 'UTF-8');
-$total = array_sum(array_column($tickets, 'amount'));
-$totalFmt = '$' . number_format($total, 0, ',', '.');
 
 header('Content-Type: text/html; charset=UTF-8');
 header('X-Robots-Tag: noindex, nofollow');
@@ -92,87 +105,261 @@ header('X-Robots-Tag: noindex, nofollow');
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Mis <?= $ticketLabelP ?> compradas - <?= $siteName ?></title>
+  <title>Tickets oficiales - <?= $siteName ?></title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: Arial, Helvetica, sans-serif; background: #f0eaf8; color: #1a1a2e; padding: 1.5rem; }
-    .page-header { text-align: center; margin-bottom: 1.8rem; padding: 1.6rem 2rem; background: linear-gradient(135deg, #7c3aed, #db2777); color: #fff; border-radius: 14px; }
-    .page-header h1 { font-size: 1.5rem; margin-bottom: .4rem; }
-    .page-header p { opacity: .88; font-size: .9rem; }
-    .order-info { font-size: .75rem; opacity: .72; margin-top: .3rem; }
-    .print-btn { display: flex; align-items: center; justify-content: center; gap: .5rem; margin: 0 auto 1.8rem; padding: .65rem 2.2rem; background: #7c3aed; color: #fff; border: none; border-radius: 50px; font-size: .95rem; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(124,58,237,.35); }
-    .summary { max-width: 720px; margin: 0 auto 1.5rem; background: #fff; border-radius: 12px; padding: 1rem 1.4rem; border: 1px solid #ddd6fe; }
-    .summary-row { display: flex; justify-content: space-between; gap: 1rem; font-size: .85rem; padding: .3rem 0; border-bottom: 1px solid #f3f4f6; }
-    .summary-row:last-child { border-bottom: none; font-weight: 700; font-size: .95rem; }
-    .tickets-wrap { max-width: 720px; margin: 0 auto; }
-    .ticket-card { background: #fff; border-radius: 14px; padding: 1.4rem 1.5rem; margin-bottom: 1.4rem; border: 2px solid #7c3aed; box-shadow: 0 4px 18px rgba(124,58,237,.13); page-break-inside: avoid; break-inside: avoid; }
-    .ticket-img { width: 100%; max-height: 250px; object-fit: cover; border-radius: 10px; margin-bottom: 1rem; }
-    .ticket-title { font-size: 1.08rem; font-weight: 800; color: #5b21b6; margin-bottom: .35rem; }
-    .ticket-meta { font-size: .78rem; color: #666; line-height: 1.7; margin-bottom: .9rem; }
-    .ticket-meta strong { color: #333; }
-    .numbers-label { font-size: .82rem; font-weight: 700; color: #374151; margin-bottom: .45rem; }
-    .ticket-number-hero { background: linear-gradient(135deg, #7c3aed, #5b21b6); color: #fff; border-radius: 12px; padding: 1rem; text-align: center; font-family: "Courier New", monospace; font-size: 2rem; font-weight: 800; letter-spacing: .08em; margin: 1rem 0 .2rem; }
-    .footer-note { text-align: center; color: #888; font-size: .72rem; margin-top: 1.5rem; padding-bottom: 1.5rem; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 22px 12px;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #eee7f7;
+      color: #fff;
+    }
+    .print-actions {
+      display: flex;
+      justify-content: center;
+      margin: 0 auto 18px;
+    }
+    .print-btn {
+      border: 0;
+      border-radius: 999px;
+      padding: 11px 24px;
+      background: #ffb000;
+      color: #210934;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: 0 12px 28px rgba(38,11,75,.18);
+    }
+    .ticket-page {
+      width: min(100%, 1120px);
+      min-height: 720px;
+      margin: 0 auto 28px;
+      padding: 0;
+      page-break-after: always;
+      break-after: page;
+    }
+    .ticket {
+      min-height: 720px;
+      display: grid;
+      grid-template-columns: 1fr 280px;
+      overflow: hidden;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.13);
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.04), transparent 42%),
+        linear-gradient(145deg, #2c0e52 0%, #260b49 48%, #170227 100%);
+      box-shadow: inset 0 4px 0 #00b4d8, inset 0 -4px 0 #db2777, 0 26px 70px rgba(25,5,45,.28);
+      position: relative;
+    }
+    .ticket-main { padding: 36px 34px 0; display: grid; grid-template-rows: auto auto 1fr auto; }
+    .ticket-side { border-left: 2px dashed rgba(255,255,255,.2); padding: 24px 22px; display: grid; grid-template-rows: auto auto 1fr auto; gap: 16px; position: relative; }
+    .ticket-side::before,
+    .ticket-side::after {
+      content: "";
+      position: absolute;
+      left: -9px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #eee7f7;
+    }
+    .ticket-side::before { top: 86px; }
+    .ticket-side::after { bottom: 86px; }
+    .topline { display:flex; align-items:flex-start; justify-content:space-between; gap: 18px; padding-bottom: 26px; border-bottom: 1px solid rgba(255,255,255,.08); }
+    .logo { max-width: 120px; max-height: 54px; object-fit: contain; }
+    .official { text-align:right; color:rgba(255,255,255,.58); font-size:12px; line-height:1.65; }
+    .official strong { display:block; color:#fff; font-size:13px; }
+    .label { color:#9b7ab5; text-transform:uppercase; letter-spacing:.24em; font-size:11px; font-weight:800; margin-bottom:8px; }
+    .number { font-size:56px; line-height:.95; font-weight:900; letter-spacing:-1px; text-shadow:0 10px 28px rgba(124,58,237,.55); margin: 24px 0 22px; }
+    .info-grid { display:grid; grid-template-columns: 1fr 1fr; gap: 26px; margin-bottom: 20px; }
+    .info-value { color:#fff; font-weight:800; font-size:16px; }
+    .accent { color:#ffb000; }
+    .pack-row { display:grid; grid-template-columns: 1fr 1fr; gap:20px; padding:16px 20px; border:1px solid rgba(255,255,255,.12); border-radius:12px; background:rgba(255,255,255,.055); margin: 0 0 22px; }
+    .participant { margin-top: 8px; }
+    .participant .name { font-size:18px; font-weight:900; margin-bottom:8px; }
+    .details { color:#b79ecb; font-size:14px; line-height:1.75; }
+    .footer { margin-top:auto; padding:16px 0; color:#8d73a5; font-size:12px; border-top:1px solid rgba(255,255,255,.08); display:flex; justify-content:space-between; gap:20px; }
+    .side-head { text-align:right; color:#9b7ab5; font-size:11px; text-transform:uppercase; letter-spacing:.24em; font-weight:900; line-height:1.6; }
+    .prize-label { color:#9b7ab5; text-transform:uppercase; letter-spacing:.22em; font-size:10px; font-weight:900; }
+    .prize-card { align-self:start; text-align:center; }
+    .prize-img { width: 176px; height: 176px; object-fit: cover; border-radius: 16px; border:1px solid rgba(255,255,255,.14); box-shadow:0 18px 34px rgba(0,0,0,.24); background:#3a155d; }
+    .prize-title { color:#ffb000; font-size:14px; font-weight:900; line-height:1.35; margin:12px auto 0; max-width:200px; }
+    .verify { align-self:end; display:grid; justify-items:center; gap:9px; padding-top:14px; border-top:1px solid rgba(255,255,255,.09); }
+    .qr { background:#fff; padding:8px; border-radius:10px; line-height:0; width:132px; height:132px; display:flex; align-items:center; justify-content:center; }
+    .qr canvas, .qr img { width:116px !important; height:116px !important; }
+    .verify-url { max-width: 210px; color:#8d73a5; font-size:9px; line-height:1.35; text-align:center; word-break:break-all; }
+    .side-number { color:#d8c5e9; text-align:center; font-size:20px; font-weight:900; }
+    .fallback-img { width:176px;height:176px;border-radius:16px;background:linear-gradient(135deg,#ffb000,#db2777);display:grid;place-items:center;font-size:44px;font-weight:900;color:#260b49;margin:0 auto; }
     @media print {
-      body { background: #fff; padding: .3rem; }
-      .print-btn { display: none !important; }
-      .page-header { border-radius: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .ticket-card { box-shadow: none; border: 1px solid #ccc; page-break-inside: avoid; break-inside: avoid; }
-      .ticket-number-hero { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      @page { size: A4 landscape; margin: 8mm; }
+      body { background:#fff; padding:0; }
+      .print-actions { display:none !important; }
+      .ticket-page { width:100%; min-height: 190mm; margin:0; }
+      .ticket { min-height: 190mm; box-shadow: inset 0 4px 0 #00b4d8, inset 0 -4px 0 #db2777; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .ticket-side::before, .ticket-side::after { background:#fff; }
     }
   </style>
 </head>
 <body>
-  <div class="page-header">
-    <div style="font-size:2.4rem;margin-bottom:.4rem;">🎟️</div>
-    <h1>Compra exitosa</h1>
-    <p>Hola <strong><?= $buyerName ?></strong>, aqui estan tus <?= $ticketLabelP ?> compradas.</p>
-    <div class="order-info">Pedido <?= $orderIdSafe ?> &middot; <?= $emailSafe ?></div>
+  <div class="print-actions">
+    <button class="print-btn" onclick="window.print()">Guardar como PDF / Imprimir</button>
   </div>
 
-  <button class="print-btn" onclick="window.print()">Guardar como PDF / Imprimir</button>
+  <?php foreach ($ticketItems as $idx => $item):
+      $title = htmlspecialchars($item['raffle_title'], ENT_QUOTES, 'UTF-8');
+      $label = htmlspecialchars($item['pack_label'], ENT_QUOTES, 'UTF-8');
+      $num = htmlspecialchars($item['number_label'], ENT_QUOTES, 'UTF-8');
+      $order = htmlspecialchars((string)$item['order_id'], ENT_QUOTES, 'UTF-8');
+      $name = htmlspecialchars((string)$item['buyer_name'], ENT_QUOTES, 'UTF-8');
+      $mail = htmlspecialchars((string)$item['buyer_email'], ENT_QUOTES, 'UTF-8');
+      $rut = htmlspecialchars((string)$item['buyer_rut'], ENT_QUOTES, 'UTF-8');
+      $phone = htmlspecialchars((string)$item['buyer_phone'], ENT_QUOTES, 'UTF-8');
+      $amt = '$' . number_format((int)$item['amount'], 0, ',', '.') . ' CLP';
+      $img = trim((string)$item['raffle_image']);
+      $imgSafe = $img !== '' ? htmlspecialchars($img, ENT_QUOTES, 'UTF-8') : '';
+      $drawFmt = $item['draw_date'] ? surteados_format_date_es($item['draw_date'], true) : '-';
+      $paidFmt = $item['paid_date'] ? surteados_format_date_es($item['paid_date'], true) : '-';
+      $category = htmlspecialchars((string)$item['category'], ENT_QUOTES, 'UTF-8');
+      $verifyUrl = htmlspecialchars($item['verify_url'], ENT_QUOTES, 'UTF-8');
+      $tokenShort = htmlspecialchars($item['token_short'], ENT_QUOTES, 'UTF-8');
+  ?>
+  <section class="ticket-page">
+    <article class="ticket">
+      <div class="ticket-main">
+        <div class="topline">
+          <img class="logo" src="<?= $siteLogoSafe ?>" alt="<?= $siteName ?>">
+          <div class="official">
+            Ticket oficial
+            <strong><?= $siteName ?></strong>
+            ID venta: <span class="accent"><?= $order ?></span>
+          </div>
+        </div>
 
-  <div class="summary">
-    <div class="summary-row"><span>Correo confirmacion:</span><span><?= $emailSafe ?></span></div>
-    <div class="summary-row"><span>Total de <?= $ticketLabelP ?>:</span><span><?= count($ticketItems) ?></span></div>
-    <div class="summary-row"><span>Total pagado:</span><span style="color:#7c3aed;"><?= $totalFmt ?></span></div>
-  </div>
+        <div>
+          <div class="number-block">
+            <div class="label">N° de ticket</div>
+            <div class="number"><?= $num ?></div>
+          </div>
 
-  <div class="tickets-wrap">
-    <?php foreach ($ticketItems as $item):
-        $title = htmlspecialchars($item['raffle_title'], ENT_QUOTES, 'UTF-8');
-        $label = htmlspecialchars($item['pack_label'], ENT_QUOTES, 'UTF-8');
-        $num = htmlspecialchars($item['number'], ENT_QUOTES, 'UTF-8');
-        $amt = '$' . number_format((int)$item['amount'], 0, ',', '.');
-        $img = $item['raffle_image'] ? htmlspecialchars($item['raffle_image'], ENT_QUOTES, 'UTF-8') : null;
-        $drawFmt = $item['draw_date'] ? date('d/m/Y', strtotime($item['draw_date'])) : '-';
-        $dateFmt = $item['paid_date'] ? date('d/m/Y H:i', strtotime($item['paid_date'])) : '-';
-    ?>
-    <div class="ticket-card">
-      <?php if ($img): ?><img class="ticket-img" src="<?= $img ?>" alt="<?= $title ?>"><?php endif; ?>
-      <div class="ticket-title"><?= $title ?></div>
-      <div class="ticket-meta">
-        Pack: <strong><?= $label ?></strong>
-        &nbsp;&middot;&nbsp; Imagen: <strong><?= (int)$item['index'] ?> de <?= (int)$item['count'] ?></strong>
-        &nbsp;&middot;&nbsp; Valor ref.: <strong><?= $amt ?></strong>
-        &nbsp;&middot;&nbsp; Sorteo: <strong><?= $drawFmt ?></strong>
-        &nbsp;&middot;&nbsp; Comprado: <strong><?= $dateFmt ?></strong>
+          <div class="info-grid">
+            <div>
+              <div class="label">Sorteo</div>
+              <div class="info-value"><?= $title ?></div>
+            </div>
+            <div>
+              <div class="label">Fecha del sorteo</div>
+              <div class="info-value"><?= htmlspecialchars($drawFmt, ENT_QUOTES, 'UTF-8') ?></div>
+            </div>
+            <div>
+              <div class="label">Categoría</div>
+              <div class="info-value accent"><?= $category ?: 'General' ?></div>
+            </div>
+            <div>
+              <div class="label">Imagen del pack</div>
+              <div class="info-value"><?= (int)$item['index'] ?> de <?= (int)$item['count'] ?></div>
+            </div>
+          </div>
+
+          <div class="pack-row">
+            <div>
+              <div class="label">Pack</div>
+              <div class="info-value accent"><?= $label ?></div>
+            </div>
+            <div>
+              <div class="label">Valor pagado</div>
+              <div class="info-value accent"><?= htmlspecialchars($amt, ENT_QUOTES, 'UTF-8') ?></div>
+            </div>
+          </div>
+
+          <div class="participant">
+            <div class="label">Participante</div>
+            <div class="name"><?= $name ?></div>
+            <div class="details">
+              Correo: <?= $mail ?><br>
+              RUT: <?= $rut !== '' ? $rut : '-' ?> &nbsp; | &nbsp; Teléfono: <?= $phone !== '' ? $phone : '-' ?><br>
+              Fecha de compra: <?= htmlspecialchars($paidFmt, ENT_QUOTES, 'UTF-8') ?>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer">
+          <span>Este ticket es válido únicamente con registro digital y verificación firmada.</span>
+          <span><?= $siteName ?> © <?= date('Y') ?></span>
+        </div>
       </div>
-      <div class="numbers-label">Codigo de esta imagen:</div>
-      <div class="ticket-number-hero"><?= $num ?></div>
-    </div>
-    <?php endforeach; ?>
-  </div>
 
-  <div class="footer-note">
-    <?= $siteName ?> &middot; Orden <?= $orderIdSafe ?> &middot; <?= date('d/m/Y') ?>
-    <br>Guarda este comprobante para participar en el sorteo. Buena suerte.
-  </div>
+      <aside class="ticket-side">
+        <div class="side-head">Ticket oficial<br><?= $siteName ?></div>
+        <div class="prize-card">
+          <div class="prize-label">Premio principal</div>
+          <?php if ($imgSafe): ?>
+            <img class="prize-img" src="<?= $imgSafe ?>" alt="<?= $title ?>">
+          <?php else: ?>
+            <div class="fallback-img">S</div>
+          <?php endif; ?>
+          <div class="prize-title"><?= $title ?></div>
+        </div>
+        <div class="verify">
+          <div class="label">Verificación</div>
+          <div class="qr" id="qr-<?= (int)$idx ?>" data-url="<?= $verifyUrl ?>"></div>
+          <a class="verify-url" href="<?= $verifyUrl ?>" target="_blank" rel="noopener"><?= $verifyUrl ?></a>
+          <div class="label">Código firma</div>
+          <div class="side-number"><?= $tokenShort ?></div>
+          <div class="label">N° ticket</div>
+          <div class="side-number"><?= $num ?></div>
+        </div>
+      </aside>
+    </article>
+  </section>
+  <?php endforeach; ?>
 
   <script>
+    function renderQrCodes() {
+      document.querySelectorAll('.qr').forEach(function(el) {
+        var url = el.getAttribute('data-url') || '';
+        if (!url || !window.QRCode) {
+          el.textContent = 'QR';
+          return;
+        }
+        el.innerHTML = '';
+        new QRCode(el, {
+          text: url,
+          width: 116,
+          height: 116,
+          colorDark: '#260b49',
+          colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.M
+        });
+      });
+    }
     window.addEventListener('load', function() {
-      setTimeout(function() { window.print(); }, 900);
+      renderQrCodes();
+      setTimeout(function() { window.print(); }, 1200);
     });
   </script>
 </body>
 </html>
+<?php
+function surteados_pdf_site_url(string $url): string
+{
+    $url = trim($url);
+    if ($url === '') $url = BASE_URL;
+    $url = preg_replace('~/(api/flow_callback\.php|pago-exitoso\.php)(/.*)?$~i', '', $url);
+    $url = preg_replace('~/api/?$~i', '', $url);
+    return rtrim($url, '/');
+}
+
+function surteados_format_date_es(string $date, bool $withTime = false): string
+{
+    $ts = strtotime($date);
+    if (!$ts) return '-';
+    $months = [
+        1 => 'enero', 2 => 'febrero', 3 => 'marzo', 4 => 'abril',
+        5 => 'mayo', 6 => 'junio', 7 => 'julio', 8 => 'agosto',
+        9 => 'septiembre', 10 => 'octubre', 11 => 'noviembre', 12 => 'diciembre',
+    ];
+    $out = date('d', $ts) . ' de ' . $months[(int)date('n', $ts)] . ' de ' . date('Y', $ts);
+    if ($withTime) $out .= ' ' . date('H:i', $ts);
+    return $out;
+}
