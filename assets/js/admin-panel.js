@@ -39,6 +39,9 @@ function fmtDate(d) {
   if (!d) return '—';
   return new Date(d).toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' });
 }
+function escHtml(v) {
+  return String(v ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+}
 function paymentBadge(s) {
   const map = { paid: ['pill-green', '✅ Pagado'], pending: ['pill-yellow', '⏳ Pendiente'], failed: ['pill-red', '❌ Fallido'], refunded: ['pill-gray', '↩ Devuelto'] };
   const [cls, txt] = map[s] || ['pill-gray', s];
@@ -129,7 +132,7 @@ async function renderDashboard() {
 
   document.getElementById('dashStats').innerHTML = `
     <div class="stat-card"><div class="stat-number">${raffles.length}</div><div class="stat-label">Sorteos activos</div></div>
-    <div class="stat-card"><div class="stat-number">${paid.length}</div><div class="stat-label">Tickets vendidos</div></div>
+    <div class="stat-card"><div class="stat-number">${paid.length}</div><div class="stat-label">Im�genes vendidas</div></div>
     <div class="stat-card"><div class="stat-number">${fmtCLP(revenue)}</div><div class="stat-label">Ingresos totales</div></div>
     <div class="stat-card"><div class="stat-number">${winners.length}</div><div class="stat-label">Ganadores</div></div>
   `;
@@ -419,7 +422,7 @@ function renderTicketRows(list) {
     const nums = Array.isArray(t.ticket_numbers) ? t.ticket_numbers : [];
     return `<tr>
       <td style="font-family:monospace; font-size:.8rem;">${nums.join(', ') || '—'}</td>
-      <td><div>${t.buyer_name}</div><small style="opacity:.6;">${t.buyer_email}</small></td>
+      <td><button type="button" class="btn-link-like" onclick="openBuyerDetails('${t.id}')" title="Ver datos del comprador">${escHtml(t.buyer_name || 'Sin nombre')}</button><small style="opacity:.6;display:block;">${escHtml(t.buyer_email || '')}</small></td>
       <td>${t.raffle_title || '—'}</td>
       <td>${t.pack_label || '—'}</td>
       <td>${fmtCLP(t.amount)}</td>
@@ -431,6 +434,56 @@ function renderTicketRows(list) {
 }
 
 /* ══════════════════════════════════════════════════════════════════════════ */
+function detailRow(label, value) {
+  const display = value === null || value === undefined || value === '' ? '�' : value;
+  return `<div style="display:grid;grid-template-columns:160px 1fr;gap:.75rem;padding:.55rem 0;border-bottom:1px solid rgba(255,255,255,.08);">
+    <div style="font-size:.78rem;color:var(--text-muted);">${escHtml(label)}</div>
+    <div style="font-size:.9rem;color:var(--text-inv);word-break:break-word;">${escHtml(display)}</div>
+  </div>`;
+}
+
+function openBuyerDetails(ticketId) {
+  const ticket = _allTickets.find(t => t.id === ticketId);
+  if (!ticket) return;
+  const nums = Array.isArray(ticket.ticket_numbers) ? ticket.ticket_numbers.join(', ') : '';
+  const body = document.getElementById('buyerDetailsBody');
+  if (!body) return;
+  body.innerHTML = `
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:1rem;">
+      <div>
+        <h3 style="margin:0;color:var(--text-inv);font-size:1.1rem;">${escHtml(ticket.buyer_name || 'Comprador')}</h3>
+        <p style="margin:.2rem 0 0;color:var(--text-muted);font-size:.85rem;">${escHtml(ticket.buyer_email || '')}</p>
+      </div>
+      ${paymentBadge(ticket.payment_status)}
+    </div>
+    <div class="card" style="padding:1rem;margin-bottom:1rem;">
+      <h4 style="margin:0 0 .65rem;color:var(--text-inv);font-size:.95rem;">Datos personales</h4>
+      ${detailRow('Nombre completo', ticket.buyer_name)}
+      ${detailRow('Correo', ticket.buyer_email)}
+      ${detailRow('RUT', ticket.buyer_rut)}
+      ${detailRow('Tel�fono', ticket.buyer_phone)}
+      ${detailRow('Direcci�n', ticket.buyer_address)}
+      ${detailRow('Comuna / ciudad', ticket.buyer_comuna)}
+      ${detailRow('ID comuna', ticket.buyer_commune_id)}
+    </div>
+    <div class="card" style="padding:1rem;">
+      <h4 style="margin:0 0 .65rem;color:var(--text-inv);font-size:.95rem;">Datos de compra</h4>
+      ${detailRow('ID venta', ticket.id)}
+      ${detailRow('Sorteo', ticket.raffle_title || ticket.raffle_id)}
+      ${detailRow('Pack', ticket.pack_label)}
+      ${detailRow('Im�genes compradas', nums)}
+      ${detailRow('Monto', fmtCLP(ticket.amount || 0))}
+      ${detailRow('M�todo de pago', ticket.payment_method)}
+      ${detailRow('Estado de pago', ticket.payment_status)}
+      ${detailRow('Orden Flow', ticket.flow_order)}
+      ${detailRow('Fecha', fmtDate(ticket.created_at || ticket.purchase_date))}
+    </div>`;
+  document.getElementById('buyerDetailsModal')?.classList.add('open');
+}
+
+function closeBuyerDetails() {
+  document.getElementById('buyerDetailsModal')?.classList.remove('open');
+}
 /*  GANADORES                                                                */
 /* ══════════════════════════════════════════════════════════════════════════ */
 async function renderGanadores() {

@@ -22,6 +22,20 @@ $apiBase   = '../api';
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../assets/css/styles.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    .btn-link-like {
+      appearance: none;
+      border: 0;
+      background: transparent;
+      padding: 0;
+      color: var(--color-primary-light);
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: left;
+    }
+    .btn-link-like:hover { text-decoration: underline; }
+  </style>
 </head>
 <body>
 
@@ -56,7 +70,7 @@ $apiBase   = '../api';
       <p>Principal</p>
       <div class="admin-nav-item active" data-section="dashboard"><span class="icon">📊</span> Dashboard</div>
       <div class="admin-nav-item" data-section="sorteos"><span class="icon">🎟️</span> Sorteos</div>
-      <div class="admin-nav-item" data-section="tickets"><span class="icon">🎫</span> Tickets vendidos</div>
+      <div class="admin-nav-item" data-section="tickets"><span class="icon">🎫</span> Imágenes vendidas</div>
       <div class="admin-nav-item" data-section="ganadores"><span class="icon">🏆</span> Ganadores</div>
     </div>
     <div class="admin-sidebar-section">
@@ -127,7 +141,7 @@ $apiBase   = '../api';
     <!-- ═══ TICKETS ═══ -->
     <div class="admin-section" id="sec-tickets">
       <div class="admin-header">
-        <h2>🎫 Tickets Vendidos</h2>
+        <h2>🎫 Imágenes Vendidas</h2>
         <div style="display:flex; gap:.5rem; align-items:center;">
           <select class="form-control" id="ticketsFilter" style="width:200px; padding:.45rem .75rem;">
             <option value="">Todos los sorteos</option>
@@ -137,11 +151,11 @@ $apiBase   = '../api';
       </div>
       <div class="table-container">
         <div class="table-header flex-between">
-          <h3>Listado de tickets</h3>
+          <h3>Listado de imágenes vendidas</h3>
           <span class="pill pill-purple" id="ticketsCount">0 registros</span>
         </div>
         <table class="admin-table">
-          <thead><tr><th>Ticket(s)</th><th>Comprador</th><th>Sorteo</th><th>Pack</th><th>Monto</th><th>Fecha</th><th>Pago</th><th></th></tr></thead>
+          <thead><tr><th>Imagen(es)</th><th>Comprador</th><th>Sorteo</th><th>Pack</th><th>Monto</th><th>Fecha</th><th>Pago</th><th></th></tr></thead>
           <tbody id="ticketsTable"></tbody>
         </table>
       </div>
@@ -616,6 +630,18 @@ $apiBase   = '../api';
         <button class="btn btn-primary" onclick="saveSlide()">💾 Guardar</button>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- BUYER DETAILS MODAL -->
+<div class="modal-backdrop" id="buyerDetailsModal">
+  <div class="modal" style="max-width:620px;">
+    <div class="modal-top-bar"></div>
+    <div class="modal-header">
+      <span class="modal-title">Datos del comprador</span>
+      <button class="modal-close" onclick="closeBuyerDetails()">×</button>
+    </div>
+    <div class="modal-body" id="buyerDetailsBody"></div>
   </div>
 </div>
 
