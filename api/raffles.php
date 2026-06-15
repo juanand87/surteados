@@ -7,6 +7,7 @@ $method = $_SERVER['REQUEST_METHOD'];
 // ── GET ───────────────────────────────────────────────────────────────────────
 if ($method === 'GET') {
     $pdo = db();
+    ensureRaffleLegalColumns($pdo);
     $id  = $_GET['id'] ?? '';
 
     if ($id) {
@@ -23,6 +24,8 @@ if ($method === 'GET') {
         $stmtPk = $pdo->prepare('SELECT * FROM raffle_packs WHERE raffle_id = ? ORDER BY id');
         $stmtPk->execute([$id]);
         $raffle['packs'] = $stmtPk->fetchAll();
+        $raffle['legal_text'] = $raffle['legal_text'] ?? ($raffle['legal_organizer'] ?? '');
+        $raffle['legal_url'] = $raffle['legal_url'] ?? '';
 
         json_ok($raffle);
     }
@@ -38,6 +41,8 @@ if ($method === 'GET') {
         $stmtPk = $pdo->prepare('SELECT * FROM raffle_packs WHERE raffle_id = ? ORDER BY id');
         $stmtPk->execute([$r['id']]);
         $r['packs'] = $stmtPk->fetchAll();
+        $r['legal_text'] = $r['legal_text'] ?? ($r['legal_organizer'] ?? '');
+        $r['legal_url'] = $r['legal_url'] ?? '';
     }
 
     json_ok($raffles);
@@ -57,16 +62,20 @@ if ($method === 'POST') {
     }
 
     $pdo = db();
+    ensureRaffleLegalColumns($pdo);
     $id  = generate_id('r');
     $totalTickets = isset($b['total_tickets']) && $b['total_tickets'] !== '' && (int)$b['total_tickets'] > 0
         ? (int)$b['total_tickets']
         : null;
+    $legalText = trim((string)($b['legal_text'] ?? ''));
+    $legalLegacy = mb_substr($legalText, 0, 190);
+    $legalUrl = trim((string)($b['legal_url'] ?? ''));
 
     $pdo->prepare(
         'INSERT INTO raffles
            (id, title, description, category, status, total_tickets, sold_tickets,
-            draw_date, image_url, image_emoji, legal_organizer, featured, meet_link)
-         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)'
+            draw_date, image_url, image_emoji, legal_organizer, legal_text, legal_url, featured, meet_link)
+         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
     )->execute([
         $id,
         $b['title'],
@@ -78,7 +87,9 @@ if ($method === 'POST') {
         $b['draw_date'] ?? ($b['end_date'] ?? null),
         $b['image_url']       ?? '',
         $b['image_emoji']     ?? '🎁',
-        $b['legal_text']      ?? '',
+        $legalLegacy,
+        $legalText,
+        $legalUrl,
         !empty($b['featured']) ? 1 : 0,
         $b['meet_link']       ?? null,
     ]);
@@ -96,9 +107,13 @@ if ($method === 'PUT') {
     if (!$id) json_error('ID requerido');
 
     $pdo = db();
+    ensureRaffleLegalColumns($pdo);
     $totalTickets = isset($b['total_tickets']) && $b['total_tickets'] !== '' && (int)$b['total_tickets'] > 0
         ? (int)$b['total_tickets']
         : null;
+    $legalText = trim((string)($b['legal_text'] ?? ''));
+    $legalLegacy = mb_substr($legalText, 0, 190);
+    $legalUrl = trim((string)($b['legal_url'] ?? ''));
 
     // Check exists
     $check = $pdo->prepare('SELECT id FROM raffles WHERE id = ?');
@@ -108,7 +123,7 @@ if ($method === 'PUT') {
     $pdo->prepare(
         'UPDATE raffles SET
            title=?, description=?, category=?, status=?, total_tickets=?,
-           draw_date=?, image_url=?, image_emoji=?, legal_organizer=?, featured=?,
+           draw_date=?, image_url=?, image_emoji=?, legal_organizer=?, legal_text=?, legal_url=?, featured=?,
            meet_link=?
          WHERE id=?'
     )->execute([
@@ -120,7 +135,9 @@ if ($method === 'PUT') {
         $b['draw_date'] ?? ($b['end_date'] ?? null),
         $b['image_url']       ?? '',
         $b['image_emoji']     ?? '🎁',
-        $b['legal_text']      ?? '',
+        $legalLegacy,
+        $legalText,
+        $legalUrl,
         !empty($b['featured']) ? 1 : 0,
         $b['meet_link']       ?? null,
         $id,
@@ -152,6 +169,25 @@ if ($method === 'DELETE') {
 }
 
 // ── Helper ────────────────────────────────────────────────────────────────────
+function ensureRaffleLegalColumns(PDO $pdo): void
+{
+    static $done = false;
+    if ($done) return;
+
+    $cols = $pdo->query("SHOW COLUMNS FROM raffles")->fetchAll();
+    $existing = array_column($cols, 'Field');
+
+    if (!in_array('legal_text', $existing, true)) {
+        $pdo->exec("ALTER TABLE raffles ADD COLUMN legal_text TEXT NULL AFTER legal_organizer");
+        $pdo->exec("UPDATE raffles SET legal_text = legal_organizer WHERE legal_text IS NULL AND legal_organizer IS NOT NULL AND legal_organizer <> ''");
+    }
+    if (!in_array('legal_url', $existing, true)) {
+        $pdo->exec("ALTER TABLE raffles ADD COLUMN legal_url VARCHAR(500) NULL AFTER legal_text");
+    }
+
+    $done = true;
+}
+
 function savePrizesAndPacks(PDO $pdo, string $raffleId, array $prizes, array $packs): void
 {
     if (count($prizes) > 1) {

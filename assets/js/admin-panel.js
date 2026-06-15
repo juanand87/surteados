@@ -197,7 +197,7 @@ function openRaffleModal() {
   _editingRaffleId = null;
   _packs  = [];
   document.getElementById('raffleModalTitle').textContent = 'Nuevo Sorteo';
-  ['rf_title','rf_description','rf_legalText','rf_meetLink','rf_prizeName','rf_prizeEmoji'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  ['rf_title','rf_description','rf_legalText','rf_legalUrl','rf_meetLink','rf_prizeName','rf_prizeEmoji'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   document.getElementById('rf_category').value  = 'Tecnología';
   document.getElementById('rf_status').value    = 'active';
   document.getElementById('rf_drawDate').value  = '';
@@ -224,7 +224,8 @@ async function editRaffle(id) {
     document.getElementById('rf_status').value       = r.status       || 'active';
     document.getElementById('rf_totalTickets').value = r.total_tickets || '';
     document.getElementById('rf_featured').checked   = !!r.featured;
-    document.getElementById('rf_legalText').value    = r.legal_text   || '';
+    document.getElementById('rf_legalText').value    = r.legal_text   || r.legal_organizer || '';
+    if (document.getElementById('rf_legalUrl')) document.getElementById('rf_legalUrl').value = r.legal_url || '';
     document.getElementById('rf_prizeName').value    = prize.name || prize.label || '';
     document.getElementById('rf_prizeEmoji').value   = prize.emoji || '🏆';
     document.getElementById('rf_prizeImageUrl').value = prize.image_url || '';
@@ -328,6 +329,7 @@ async function saveRaffle() {
     featured:      document.getElementById('rf_featured').checked,
     image_url:     document.getElementById('rf_imageUrl').value,
     legal_text:    document.getElementById('rf_legalText').value.trim(),
+    legal_url:     (document.getElementById('rf_legalUrl')?.value || '').trim(),
     meet_link:     (document.getElementById('rf_meetLink')?.value || '').trim() || null,
     prizes: [{
       place: 1,

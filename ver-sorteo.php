@@ -53,7 +53,8 @@ if ($drawDate) {
     }
   }
 }
-$legalText   = $raffle['legalInfo']['organizer']   ?? '';
+$legalText   = $raffle['legalInfo']['text']        ?? ($raffle['legalInfo']['organizer'] ?? '');
+$legalUrl    = $raffle['legalInfo']['url']         ?? '';
 $legalRut    = $raffle['legalInfo']['rut']         ?? '';
 $legalNotary = $raffle['legalInfo']['notary']      ?? '';
 $legalCert   = $raffle['legalInfo']['certificate'] ?? '';
@@ -395,7 +396,7 @@ usort($sortedPacks, fn($a, $b) => $b['price'] - $a['price']);
       <?php endif; ?>
 
       <!-- Legal Section -->
-      <?php if ($legalText || $legalRut || $legalNotary || $legalCert || $legalPeriod): ?>
+      <?php if ($legalText || $legalUrl || $legalRut || $legalNotary || $legalCert || $legalPeriod): ?>
       <div class="card mb-4" style="padding:1.6rem;">
         <h3 class="text-white mb-1">📜 Información Legal</h3>
         <p style="font-size:.81rem;color:var(--text-muted);margin-bottom:1.1rem;">Aspectos legales y bases de este sorteo.</p>
@@ -427,6 +428,12 @@ usort($sortedPacks, fn($a, $b) => $b['price'] - $a['price']);
           </div>
           <?php endif; ?>
         </div>
+        <?php endif; ?>
+
+        <?php if ($legalUrl): ?>
+        <a href="<?= htmlspecialchars($legalUrl) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-ghost mb-3" style="display:inline-flex;align-items:center;gap:.4rem;">
+          Ver documento de bases legales
+        </a>
         <?php endif; ?>
 
         <?php if ($legalText): ?>
@@ -515,14 +522,7 @@ usort($sortedPacks, fn($a, $b) => $b['price'] - $a['price']);
           </label>
         </div>
         <div class="card" id="buyerPoliciesPanel" style="display:none;padding:.85rem 1rem;margin-bottom:.75rem;max-height:340px;overflow:auto;">
-          <h5 style="margin:0 0 .5rem;color:var(--text-inv);font-size:.92rem;">Politicas de compra (demo)</h5>
-          <p class="text-sm" style="margin:0 0 .55rem;">Las compras en Surteados son digitales y la confirmacion se envia al correo ingresado por el cliente en el proceso de pago.</p>
-          <p class="text-sm" style="margin:0 0 .55rem;">Es responsabilidad del comprador revisar que nombre, correo, RUT y demas datos esten correctos antes de confirmar el pago.</p>
-          <p class="text-sm" style="margin:0 0 .55rem;">Una vez aprobado el pago, la asignacion de numeros se realiza de forma automatica y no puede modificarse manualmente.</p>
-          <p class="text-sm" style="margin:0 0 .55rem;">Las compras confirmadas no son anulables ni transferibles, salvo en los casos exigidos por la normativa aplicable.</p>
-          <p class="text-sm" style="margin:0 0 .55rem;">Si no recibes el correo de confirmacion, revisa spam o correo no deseado y luego contactanos para asistencia.</p>
-          <p class="text-sm" style="margin:0 0 .55rem;">El participante acepta que este proceso corresponde a productos digitales y comprende los plazos y condiciones del sorteo publicado.</p>
-          <p class="text-sm" style="margin:0 0 .8rem;">Para dudas de soporte, puedes escribir a nuestro canal de contacto y te ayudaremos a validar tu compra.</p>
+          <?php include __DIR__ . '/partials/purchase_policies.php'; ?>
           <div style="position:sticky;bottom:0;padding-top:.5rem;margin-top:.35rem;background:var(--bg-card);border-top:1px solid rgba(255,255,255,.14);">
             <button type="button" class="btn btn-sm" id="buyerPoliciesBackBtn" style="width:100%;font-weight:800;border:1px solid var(--color-primary);background:rgba(124,58,237,.2);color:var(--text-inv);">← Volver al pago</button>
           </div>

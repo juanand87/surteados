@@ -27,6 +27,8 @@ function normalizeRaffle(array $r, PDO $pdo): array {
         'featured'     => (bool)($r['featured'] ?? false),
         'meetLink'     => $r['meet_link'] ?? null,
         'legalInfo'    => [
+            'text'        => $r['legal_text'] ?? ($r['legal_organizer'] ?? ''),
+            'url'         => $r['legal_url'] ?? '',
             'organizer'   => $r['legal_organizer'] ?? '',
             'rut'         => $r['legal_rut'] ?? '',
             'notary'      => $r['legal_notary'] ?? '',

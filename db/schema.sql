@@ -74,6 +74,8 @@ CREATE TABLE raffles (
   sold_tickets        INT          DEFAULT 0,
   featured            TINYINT(1)   DEFAULT 0,
   legal_organizer     VARCHAR(200),
+  legal_text          TEXT,
+  legal_url           VARCHAR(500),
   legal_rut           VARCHAR(30),
   legal_notary        VARCHAR(200),
   legal_certificate   VARCHAR(100),
@@ -232,7 +234,11 @@ INSERT INTO settings (`key`, `value`) VALUES
   ('flow_environment',   'sandbox');
 
 -- ── Seed: raffles ─────────────────────────────────────────────
-INSERT INTO raffles VALUES
+INSERT INTO raffles
+  (id, title, category, description, status, draw_date, image_emoji, image_url,
+   total_tickets, sold_tickets, featured, legal_organizer, legal_rut, legal_notary,
+   legal_certificate, legal_sales_period, created_at, updated_at)
+VALUES
   ('r001','iPhone 16 Pro Max 256GB','Tecnología',
    'El smartphone más avanzado de Apple. Cámara pro, chip A18 Pro y diseño premium de titanio.',
    'active','2026-05-15 19:00:00','📱',NULL,5000,3241,1,

@@ -475,8 +475,11 @@ $apiBase   = '../api';
 
       <!-- Legal -->
       <div id="rtab-legal-panel" class="hidden">
-        <div class="form-group"><label class="form-label">Texto legal / bases</label>
+        <div class="form-group"><label class="form-label">Texto general / bases</label>
           <textarea class="form-control" id="rf_legalText" rows="6" placeholder="Ingresa las bases legales del sorteo..."></textarea>
+        </div>
+        <div class="form-group"><label class="form-label">Enlace a bases legales</label>
+          <input type="url" class="form-control" id="rf_legalUrl" placeholder="https://surteados.cl/documentos/Bases_Condiciones.pdf">
         </div>
       </div>
 
