@@ -6,6 +6,9 @@
 
 function surteados_ensure_ticket_number_tables(PDO $pdo): void
 {
+    static $ensured = false;
+    if ($ensured) return;
+
     $pdo->exec("CREATE TABLE IF NOT EXISTS ticket_number_sequence (
         id TINYINT UNSIGNED PRIMARY KEY,
         next_number BIGINT UNSIGNED NOT NULL
@@ -31,6 +34,7 @@ function surteados_ensure_ticket_number_tables(PDO $pdo): void
          ON DUPLICATE KEY UPDATE next_number = GREATEST(next_number, VALUES(next_number))"
     );
     $stmt->execute([$next]);
+    $ensured = true;
 }
 
 function surteados_seed_existing_ticket_numbers(PDO $pdo): void

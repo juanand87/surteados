@@ -20,6 +20,7 @@ if (!$token) {
 }
 
 $pdo = db();
+surteados_ensure_ticket_number_tables($pdo);
 
 // Load Flow credentials
 $stmt = $pdo->query(

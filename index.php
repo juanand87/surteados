@@ -598,7 +598,7 @@ if (!empty($cfg['heroSliderEnabled']) && !empty($cfg['heroSlides']) && is_array(
         <h5>Información</h5>
         <a href="como-participar.php">¿Cómo participar?</a>
         <a href="#beneficios">Beneficios</a>
-        <a href="#">Bases legales</a>
+        <a href="https://surteados.cl/documentos/Bases_Condiciones.pdf" target="_blank" rel="noopener">Bases legales</a>
         <a href="#">Política de privacidad</a>
       </div>
       <div class="footer-col">

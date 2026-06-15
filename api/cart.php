@@ -54,6 +54,7 @@ $buyerAddress = htmlspecialchars($buyerAddress, ENT_QUOTES, 'UTF-8');
 $buyerComuna  = htmlspecialchars($buyerComuna, ENT_QUOTES, 'UTF-8');
 
 $pdo = db();
+surteados_ensure_ticket_number_tables($pdo);
 $buyerCommune = surteados_resolve_commune($pdo, $buyerCommuneId, $buyerComuna);
 $buyerComuna = htmlspecialchars($buyerCommune['name'], ENT_QUOTES, 'UTF-8');
 $buyerCommuneId = $buyerCommune['id'];

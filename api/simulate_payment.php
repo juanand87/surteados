@@ -38,6 +38,7 @@ if (!filter_var($buyerEmail, FILTER_VALIDATE_EMAIL)) {
 }
 
 $pdo = db();
+surteados_ensure_ticket_number_tables($pdo);
 $buyerCommune = surteados_resolve_commune($pdo, $buyerCommuneId, $buyerComuna);
 $buyerComuna = $buyerCommune['name'];
 $buyerCommuneId = $buyerCommune['id'];
