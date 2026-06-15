@@ -506,8 +506,22 @@ usort($sortedPacks, fn($a, $b) => ((int)$a['qty'] <=> (int)$b['qty']) ?: ((int)$
           <div class="form-group"><label class="form-label">Teléfono</label><input type="tel" class="form-control" id="buyerPhone" placeholder="+56 9 1234 5678"></div>
         </div>
         <div class="form-row">
-          <div class="form-group"><label class="form-label">Dirección *</label><input type="text" class="form-control" id="buyerAddress" placeholder="Av. Siempre Viva 123"></div>
-          <div class="form-group"><label class="form-label">Comuna *</label><input type="text" class="form-control" id="buyerComuna" placeholder="Santiago"></div>
+          <div class="form-group">
+            <label class="form-label">Dirección *</label>
+            <input type="text" class="form-control" id="buyerAddress" placeholder="Av. Siempre Viva 123" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Región *</label>
+            <select class="form-control" id="buyerRegion" required>
+              <option value="">Selecciona tu región</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Comuna / ciudad *</label>
+          <select class="form-control" id="buyerComuna" required disabled>
+            <option value="">Primero selecciona una región</option>
+          </select>
         </div>
         <div class="form-group"><label class="form-label">RUT *</label><input type="text" class="form-control" id="buyerRut" placeholder="12.345.678-5" autocomplete="off"><p class="form-hint">🇨🇱 Ingresa tu RUT chileno válido.</p></div>
         <div class="form-group"><label class="form-label">Correo electrónico *</label><input type="email" class="form-control" id="buyerEmail" placeholder="tu@correo.com"><p class="form-hint">📧 Aquí recibirás tus <?= htmlspecialchars($ticketLabelP) ?> digitales</p></div>
