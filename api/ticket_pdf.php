@@ -16,6 +16,7 @@ if ($orderId === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
 }
 
 $pdo = db();
+surteados_ensure_flow_order_number_column($pdo);
 
 $colStmt = $pdo->query('SHOW COLUMNS FROM tickets');
 $ticketColumns = [];
@@ -30,7 +31,7 @@ if (isset($ticketColumns['created_at'])) $dateParts[] = 't.created_at';
 $dateExpr = $dateParts ? ('COALESCE(' . implode(', ', $dateParts) . ')') : 'NULL';
 
 $stmt = $pdo->prepare(
-    "SELECT t.id, t.ticket_numbers, t.pack_label, t.amount, t.flow_order,
+    "SELECT t.id, t.ticket_numbers, t.pack_label, t.amount, t.flow_order, t.flow_order_number,
             t.buyer_name, t.buyer_email, t.buyer_rut, t.buyer_phone,
             {$dateExpr} AS paid_date,
             r.title AS raffle_title, r.image_url AS raffle_image,
@@ -82,7 +83,7 @@ foreach ($tickets as $ticket) {
             'count' => $count,
             'amount' => $unitAmount,
             'pack_label' => $ticket['pack_label'] ?? '',
-            'order_id' => $ticket['flow_order'] ?: $orderId,
+            'order_id' => $ticket['flow_order_number'] ?: ($ticket['flow_order'] ?: $orderId),
             'buyer_name' => $ticket['buyer_name'] ?? '',
             'buyer_email' => $ticket['buyer_email'] ?? '',
             'buyer_rut' => $ticket['buyer_rut'] ?? '',

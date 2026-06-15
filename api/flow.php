@@ -47,6 +47,7 @@ if (count($items) > 10) {
 }
 
 $pdo = db();
+surteados_ensure_flow_order_number_column($pdo);
 $buyerCommune = surteados_resolve_commune($pdo, $buyerCommuneId, $buyerComuna);
 $buyerComuna = $buyerCommune['name'];
 $buyerCommuneId = $buyerCommune['id'];
@@ -165,9 +166,11 @@ try {
         throw new RuntimeException('Flow no retornó token: ' . $errMsg);
     }
 
+    $flowOrderNumber = surteados_flow_order_number($payment);
+
     // Save flow references for all pending tickets in this order
-    $pdo->prepare('UPDATE tickets SET flow_token = ?, flow_order = ? WHERE flow_order = ? AND payment_status = ?')
-        ->execute([$payment['token'], $orderId, $orderId, 'pending']);
+    $pdo->prepare('UPDATE tickets SET flow_token = ?, flow_order = ?, flow_order_number = ? WHERE flow_order = ? AND payment_status = ?')
+        ->execute([$payment['token'], $orderId, $flowOrderNumber ?: null, $orderId, 'pending']);
 
     client_session_start();
     $_SESSION['last_flow_order_id'] = $orderId;

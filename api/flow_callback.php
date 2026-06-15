@@ -21,6 +21,7 @@ if (!$token) {
 
 $pdo = db();
 surteados_ensure_ticket_number_tables($pdo);
+surteados_ensure_flow_order_number_column($pdo);
 
 // Load Flow credentials
 $stmt = $pdo->query(
@@ -78,11 +79,16 @@ if (!$tickets) {
 
 // Flow status codes: 1=pending, 2=paid, 3=rejected, 4=cancelled
 $flowStatus = (int)($status['status'] ?? 0);
+$flowOrderNumber = surteados_flow_order_number($status);
 
 if ($flowStatus === 2) {
     // Idempotency: if all are already paid, return OK without side effects
     $pendingTickets = array_values(array_filter($tickets, fn($t) => $t['payment_status'] === 'pending'));
     if (count($pendingTickets) === 0) {
+        if ($flowOrderNumber !== '') {
+            $pdo->prepare("UPDATE tickets SET flow_order_number = COALESCE(NULLIF(flow_order_number, ''), ?) WHERE flow_order = ? OR id = ?")
+                ->execute([$flowOrderNumber, $commerceOrder, $commerceOrder]);
+        }
         http_response_code(200);
         echo 'OK';
         exit;
@@ -108,12 +114,14 @@ if ($flowStatus === 2) {
                     SET payment_status = 'paid',
                         ticket_numbers = ?,
                         flow_token     = ?,
-                        flow_order     = ?
+                        flow_order     = ?,
+                        flow_order_number = COALESCE(NULLIF(?, ''), flow_order_number)
                   WHERE id = ?"
             )->execute([
                 json_encode($numbers),
                 $status['token']       ?? $token,
                 $ticket['flow_order']  ?: $commerceOrder,
+                $flowOrderNumber,
                 $ticket['id'],
             ]);
 
@@ -141,11 +149,11 @@ if ($flowStatus === 2) {
     }
 
 } elseif ($flowStatus === 3) {
-    $pdo->prepare("UPDATE tickets SET payment_status = 'failed' WHERE payment_status = 'pending' AND (flow_order = ? OR id = ?)")
-        ->execute([$commerceOrder, $commerceOrder]);
+    $pdo->prepare("UPDATE tickets SET payment_status = 'failed', flow_order_number = COALESCE(NULLIF(?, ''), flow_order_number) WHERE payment_status = 'pending' AND (flow_order = ? OR id = ?)")
+        ->execute([$flowOrderNumber, $commerceOrder, $commerceOrder]);
 } elseif ($flowStatus === 4) {
-    $pdo->prepare("UPDATE tickets SET payment_status = 'refunded' WHERE payment_status = 'pending' AND (flow_order = ? OR id = ?)")
-        ->execute([$commerceOrder, $commerceOrder]);
+    $pdo->prepare("UPDATE tickets SET payment_status = 'refunded', flow_order_number = COALESCE(NULLIF(?, ''), flow_order_number) WHERE payment_status = 'pending' AND (flow_order = ? OR id = ?)")
+        ->execute([$flowOrderNumber, $commerceOrder, $commerceOrder]);
 }
 
 http_response_code(200);

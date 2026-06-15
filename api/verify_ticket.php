@@ -41,7 +41,7 @@ header('X-Robots-Tag: noindex, nofollow');
       <div class="row"><span>N° ticket</span><span><?= htmlspecialchars($ticketLabel) ?></span></div>
       <div class="row"><span>Sorteo</span><span><?= htmlspecialchars((string)$ticket['raffle_title']) ?></span></div>
       <div class="row"><span>Fecha sorteo</span><span><?= htmlspecialchars($drawDate) ?></span></div>
-      <div class="row"><span>ID venta</span><span><?= htmlspecialchars((string)$ticket['flow_order']) ?></span></div>
+    <div class="row"><span>ID venta</span><span><?= htmlspecialchars((string)($ticket['flow_order_number'] ?: $ticket['flow_order'])) ?></span></div>
       <div class="row"><span>Participante</span><span><?= htmlspecialchars((string)$ticket['buyer_name']) ?></span></div>
       <div class="row"><span>Correo</span><span><?= htmlspecialchars((string)$ticket['buyer_email']) ?></span></div>
       <div class="row"><span>Fecha compra</span><span><?= htmlspecialchars($paidDate) ?></span></div>

@@ -475,7 +475,7 @@ function openBuyerDetails(ticketId) {
       ${detailRow('Monto', fmtCLP(ticket.amount || 0))}
       ${detailRow('Método de pago', ticket.payment_method)}
       ${detailRow('Estado de pago', ticket.payment_status)}
-      ${detailRow('Orden Flow', ticket.flow_order)}
+      ${detailRow('Orden Flow', ticket.flow_order_number || ticket.flow_order)}
       ${detailRow('Fecha', fmtDate(ticket.created_at || ticket.purchase_date))}
     </div>`;
   document.getElementById('buyerDetailsModal')?.classList.add('open');

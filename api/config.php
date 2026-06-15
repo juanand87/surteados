@@ -166,6 +166,28 @@ function raffle_closed_sale_message(?string $drawDate): string {
 }
 
 // ── Settings helper ───────────────────────────────────────────────────────────
+function surteados_ensure_flow_order_number_column(PDO $pdo): void {
+    static $done = false;
+    if ($done) return;
+
+    $cols = $pdo->query("SHOW COLUMNS FROM tickets")->fetchAll();
+    $existing = array_column($cols, 'Field');
+    if (!in_array('flow_order_number', $existing, true)) {
+        $pdo->exec("ALTER TABLE tickets ADD COLUMN flow_order_number VARCHAR(100) NULL AFTER flow_order");
+        $pdo->exec("ALTER TABLE tickets ADD INDEX idx_flow_order_number (flow_order_number)");
+    }
+    $done = true;
+}
+
+function surteados_flow_order_number(array $flowStatus): string {
+    foreach (['flowOrder', 'flow_order', 'flowOrderNumber', 'order'] as $key) {
+        if (isset($flowStatus[$key]) && trim((string)$flowStatus[$key]) !== '') {
+            return trim((string)$flowStatus[$key]);
+        }
+    }
+    return '';
+}
+
 function get_settings(array $keys = []): array {
     $pdo = db();
     if ($keys) {

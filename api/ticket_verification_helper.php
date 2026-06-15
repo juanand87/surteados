@@ -63,6 +63,8 @@ function surteados_verify_ticket_token(PDO $pdo, string $token): array
         return ['valid' => false, 'reason' => 'Token inválido'];
     }
 
+    surteados_ensure_flow_order_number_column($pdo);
+
     $stmt = $pdo->prepare(
         "SELECT t.*, r.title AS raffle_title, r.draw_date, r.image_url AS raffle_image
            FROM tickets t

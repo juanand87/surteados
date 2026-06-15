@@ -112,7 +112,7 @@ if ($isPaid && !empty($ticket['flow_order'])) {
       <p>Tu compra fue procesada correctamente. Guarda tus números de ticket.</p>
 
       <div style="background:var(--bg-base); border-radius:1rem; padding:1.5rem; margin-bottom:1.5rem;">
-        <p style="font-weight:600; margin-bottom:.25rem;">Compra #<?= htmlspecialchars($ticket['flow_order'] ?? '') ?></p>
+        <p style="font-weight:600; margin-bottom:.25rem;">Compra #<?= htmlspecialchars($ticket['flow_order_number'] ?: ($ticket['flow_order'] ?? '')) ?></p>
         <p style="font-size:.85rem; color:var(--text-secondary); margin-bottom:1rem;">
           <?= count($tickets) ?> sorteo(s) — <?= '$' . number_format($totalAmount, 0, ',', '.') ?> CLP
         </p>
@@ -140,7 +140,7 @@ if ($isPaid && !empty($ticket['flow_order'])) {
         (<?= htmlspecialchars($ticket['buyer_email']) ?>)
       </p>
       <p style="font-size:.78rem; color:var(--text-secondary); margin-top:.25rem;">
-        Guarda este número de orden Flow: <code><?= htmlspecialchars($ticket['flow_order'] ?? '') ?></code>
+        Guarda este número de orden Flow: <code><?= htmlspecialchars($ticket['flow_order_number'] ?: ($ticket['flow_order'] ?? '')) ?></code>
       </p>
 
       <?php
@@ -194,6 +194,7 @@ if ($isPaid && !empty($ticket['flow_order'])) {
 function syncFlowStatusFromReturn(string $token): void {
     try {
         $pdo = db();
+        surteados_ensure_flow_order_number_column($pdo);
         $stmt = $pdo->query(
             "SELECT `key`, `value` FROM settings
               WHERE `key` IN ('flow_api_key','flow_secret_key','flow_environment')"
@@ -218,9 +219,16 @@ function syncFlowStatusFromReturn(string $token): void {
         if (!$tickets) return;
 
         $flowStatus = (int)($status['status'] ?? 0);
+        $flowOrderNumber = surteados_flow_order_number($status);
         if ($flowStatus === 2) {
             $pendingTickets = array_values(array_filter($tickets, fn($t) => $t['payment_status'] === 'pending'));
-            if (!$pendingTickets) return;
+            if (!$pendingTickets) {
+                if ($flowOrderNumber !== '') {
+                    $pdo->prepare("UPDATE tickets SET flow_order_number = COALESCE(NULLIF(flow_order_number, ''), ?) WHERE flow_order = ?")
+                        ->execute([$flowOrderNumber, $commerceOrder]);
+                }
+                return;
+            }
 
             $emailJobs = [];
             $pdo->beginTransaction();
@@ -240,12 +248,14 @@ function syncFlowStatusFromReturn(string $token): void {
                             SET payment_status = 'paid',
                                 ticket_numbers = ?,
                                 flow_token = ?,
-                                flow_order = ?
+                                flow_order = ?,
+                                flow_order_number = COALESCE(NULLIF(?, ''), flow_order_number)
                           WHERE id = ?"
                     )->execute([
                         json_encode($numbers),
                         $status['token'] ?? $token,
                         $ticket['flow_order'] ?: $commerceOrder,
+                        $flowOrderNumber,
                         $ticket['id'],
                     ]);
 
@@ -265,11 +275,11 @@ function syncFlowStatusFromReturn(string $token): void {
                 if ($pdo->inTransaction()) $pdo->rollBack();
             }
         } elseif ($flowStatus === 3) {
-            $pdo->prepare("UPDATE tickets SET payment_status = 'failed' WHERE payment_status = 'pending' AND flow_order = ?")
-                ->execute([$commerceOrder]);
+            $pdo->prepare("UPDATE tickets SET payment_status = 'failed', flow_order_number = COALESCE(NULLIF(?, ''), flow_order_number) WHERE payment_status = 'pending' AND flow_order = ?")
+                ->execute([$flowOrderNumber, $commerceOrder]);
         } elseif ($flowStatus === 4) {
-            $pdo->prepare("UPDATE tickets SET payment_status = 'refunded' WHERE payment_status = 'pending' AND flow_order = ?")
-                ->execute([$commerceOrder]);
+            $pdo->prepare("UPDATE tickets SET payment_status = 'refunded', flow_order_number = COALESCE(NULLIF(?, ''), flow_order_number) WHERE payment_status = 'pending' AND flow_order = ?")
+                ->execute([$flowOrderNumber, $commerceOrder]);
         }
     } catch (Throwable $e) {
         error_log('Flow return sync error: ' . $e->getMessage());
@@ -279,6 +289,7 @@ function syncFlowStatusFromReturn(string $token): void {
 function syncFlowOrderStatusFromReturn(string $orderId): void {
     try {
         $pdo = db();
+        surteados_ensure_flow_order_number_column($pdo);
         $stmt = $pdo->query(
             "SELECT `key`, `value` FROM settings
               WHERE `key` IN ('flow_api_key','flow_secret_key','flow_environment')"
@@ -305,9 +316,16 @@ function syncFlowOrderStatusFromReturn(string $orderId): void {
         if (!$tickets) return;
 
         $flowStatus = (int)($status['status'] ?? 0);
+        $flowOrderNumber = surteados_flow_order_number($status);
         if ($flowStatus === 2) {
             $pendingTickets = array_values(array_filter($tickets, fn($t) => $t['payment_status'] === 'pending'));
-            if (!$pendingTickets) return;
+            if (!$pendingTickets) {
+                if ($flowOrderNumber !== '') {
+                    $pdo->prepare("UPDATE tickets SET flow_order_number = COALESCE(NULLIF(flow_order_number, ''), ?) WHERE flow_order = ?")
+                        ->execute([$flowOrderNumber, $commerceOrder]);
+                }
+                return;
+            }
 
             $emailJobs = [];
             $pdo->beginTransaction();
@@ -327,12 +345,14 @@ function syncFlowOrderStatusFromReturn(string $orderId): void {
                             SET payment_status = 'paid',
                                 ticket_numbers = ?,
                                 flow_token = COALESCE(NULLIF(?, ''), flow_token),
-                                flow_order = ?
+                                flow_order = ?,
+                                flow_order_number = COALESCE(NULLIF(?, ''), flow_order_number)
                           WHERE id = ?"
                     )->execute([
                         json_encode($numbers),
                         $status['token'] ?? '',
                         $ticket['flow_order'] ?: $commerceOrder,
+                        $flowOrderNumber,
                         $ticket['id'],
                     ]);
 
@@ -352,11 +372,11 @@ function syncFlowOrderStatusFromReturn(string $orderId): void {
                 if ($pdo->inTransaction()) $pdo->rollBack();
             }
         } elseif ($flowStatus === 3) {
-            $pdo->prepare("UPDATE tickets SET payment_status = 'failed' WHERE payment_status = 'pending' AND flow_order = ?")
-                ->execute([$commerceOrder]);
+            $pdo->prepare("UPDATE tickets SET payment_status = 'failed', flow_order_number = COALESCE(NULLIF(?, ''), flow_order_number) WHERE payment_status = 'pending' AND flow_order = ?")
+                ->execute([$flowOrderNumber, $commerceOrder]);
         } elseif ($flowStatus === 4) {
-            $pdo->prepare("UPDATE tickets SET payment_status = 'refunded' WHERE payment_status = 'pending' AND flow_order = ?")
-                ->execute([$commerceOrder]);
+            $pdo->prepare("UPDATE tickets SET payment_status = 'refunded', flow_order_number = COALESCE(NULLIF(?, ''), flow_order_number) WHERE payment_status = 'pending' AND flow_order = ?")
+                ->execute([$flowOrderNumber, $commerceOrder]);
         }
     } catch (Throwable $e) {
         error_log('Flow order return sync error: ' . $e->getMessage());

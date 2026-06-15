@@ -170,6 +170,7 @@ CREATE TABLE tickets (
   payment_status  ENUM('pending','paid','failed','refunded') DEFAULT 'pending',
   flow_token      VARCHAR(255),
   flow_order      VARCHAR(100),
+  flow_order_number VARCHAR(100),
   purchase_date   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (raffle_id) REFERENCES raffles(id) ON DELETE SET NULL,
   FOREIGN KEY (buyer_commune_id) REFERENCES communes(id) ON DELETE SET NULL,
@@ -177,6 +178,7 @@ CREATE TABLE tickets (
   INDEX idx_email     (buyer_email),
   INDEX idx_buyer_commune (buyer_commune_id),
   INDEX idx_flow_tok  (flow_token),
+  INDEX idx_flow_order_number (flow_order_number),
   INDEX idx_status    (payment_status)
 ) ENGINE=InnoDB;
 
