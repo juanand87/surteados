@@ -655,7 +655,7 @@ function goToCheckoutFromCart() {
 // ─── Purchase Modal ───────────────────────────────────────────────────────────
 let _purchaseState = { raffleId: null, pack: null, currentStep: 1 };
 
-function openPurchaseModal(raffleId) {
+function openPurchaseModal(raffleId, initialPackId = null) {
   const raffle = db.getRaffle(raffleId);
   if (!raffle) return;
   if (raffle.status !== 'active') {
@@ -689,22 +689,20 @@ function openPurchaseModal(raffleId) {
     `).join('');
   }
 
-  // Restore previously selected pack for this raffle from cart
   const saved = _cart.load().find(i => i.raffleId === raffleId);
-  if (saved) {
-    const restoredPack = raffle.packs.find(p => p.id === saved.packId);
-    if (restoredPack) {
-      _purchaseState.pack = restoredPack;
-      packsGrid?.querySelectorAll('.pack-card').forEach(c => {
-        c.classList.toggle('selected', c.dataset.pack === restoredPack.id);
-      });
-      const lbl = document.getElementById('selectedPackLabel');
-      if (lbl) lbl.textContent = `${restoredPack.label} — ${formatPrice(restoredPack.price)}`;
-      const btn = document.getElementById('step1Next');
-      if (btn) btn.disabled = false;
-      const addMore = document.getElementById('step1AddMore');
-      if (addMore) addMore.disabled = false;
-    }
+  const initialPack = initialPackId
+    ? raffle.packs.find(p => p.id === initialPackId)
+    : (saved ? raffle.packs.find(p => p.id === saved.packId) : null);
+
+  const lbl = document.getElementById('selectedPackLabel');
+  if (lbl) lbl.textContent = 'Ninguno';
+  const btn = document.getElementById('step1Next');
+  if (btn) btn.disabled = true;
+  const addMore = document.getElementById('step1AddMore');
+  if (addMore) addMore.disabled = true;
+
+  if (initialPack) {
+    selectPack(initialPack.id, raffleId);
   }
 
   updatePurchaseStep(1);

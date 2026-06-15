@@ -83,9 +83,9 @@ if ($drawDate) {
     $drawDateHuman = date('j', $ts) . ' de ' . ($months[(int)date('n', $ts)] ?? '') . ' de ' . date('Y', $ts) . ' a las ' . date('H:i', $ts) . ' hrs';
 }
 
-// Sort packs by price desc for display
+// Sort packs by quantity asc for display
 $sortedPacks = $raffle['packs'] ?? [];
-usort($sortedPacks, fn($a, $b) => $b['price'] - $a['price']);
+usort($sortedPacks, fn($a, $b) => ((int)$a['qty'] <=> (int)$b['qty']) ?: ((int)$a['price'] <=> (int)$b['price']));
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -323,7 +323,7 @@ usort($sortedPacks, fn($a, $b) => $b['price'] - $a['price']);
         <div class="packs-grid">
           <?php foreach ($sortedPacks as $pack): ?>
           <div class="pack-card<?= !empty($pack['bestValue']) ? ' best-value' : '' ?>"
-               onclick="openPurchaseModal('<?= htmlspecialchars($raffle['id']) ?>')"
+               onclick="openPurchaseModal('<?= htmlspecialchars($raffle['id']) ?>', '<?= htmlspecialchars($pack['id']) ?>')"
                style="cursor:pointer;">
             <div class="pack-qty"><?= (int)$pack['qty'] ?></div>
             <div class="pack-qty-label"><?= (int)$pack['qty'] === 1 ? htmlspecialchars($ticketLabel) : htmlspecialchars($ticketLabelP) ?></div>
