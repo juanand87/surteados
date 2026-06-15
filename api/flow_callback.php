@@ -3,6 +3,7 @@
 require __DIR__ . '/config.php';
 require __DIR__ . '/FlowAPI.php';
 require __DIR__ . '/order_email_helper.php';
+require_once __DIR__ . '/ticket_number_helper.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && str_contains($_SERVER['REQUEST_URI'] ?? '', 'flow_callback.php/pago-exitoso.php')) {
     $query = $_SERVER['QUERY_STRING'] ?? '';
@@ -99,7 +100,7 @@ if ($flowStatus === 2) {
             }
             $qty = $pack ? (int)$pack['qty'] : 1;
 
-            $numbers = generateUniqueNumbers($pdo, $ticket['raffle_id'], $qty);
+            $numbers = surteados_allocate_ticket_numbers($pdo, (string)$ticket['id'], (string)$ticket['raffle_id'], $qty);
 
             $pdo->prepare(
                 "UPDATE tickets
@@ -150,30 +151,3 @@ http_response_code(200);
 echo 'OK';
 
 // ── Helper ────────────────────────────────────────────────────────────────────
-function generateUniqueNumbers(PDO $pdo, string $raffleId, int $qty): array
-{
-    $stmt = $pdo->prepare(
-        "SELECT ticket_numbers FROM tickets
-          WHERE raffle_id = ? AND payment_status = 'paid' AND ticket_numbers IS NOT NULL"
-    );
-    $stmt->execute([$raffleId]);
-
-    $existing = [];
-    foreach ($stmt->fetchAll() as $row) {
-        $nums     = json_decode($row['ticket_numbers'], true) ?? [];
-        $existing = array_merge($existing, $nums);
-    }
-    $existingSet = array_flip($existing);
-
-    $numbers  = [];
-    $attempts = 0;
-    while (count($numbers) < $qty && $attempts < 100000) {
-        $num = str_pad(mt_rand(1, 99999), 6, '0', STR_PAD_LEFT);
-        if (!isset($existingSet[$num])) {
-            $numbers[]           = $num;
-            $existingSet[$num]   = true; // prevent duplicates within this batch
-        }
-        $attempts++;
-    }
-    return $numbers;
-}

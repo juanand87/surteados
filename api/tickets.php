@@ -1,6 +1,7 @@
 <?php
 /** SURTEADOS — Tickets API */
 require __DIR__ . '/config.php';
+require_once __DIR__ . '/ticket_number_helper.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 
@@ -87,26 +88,7 @@ if ($method === 'POST') {
 
     $pdo = db();
 
-    // Generate unique ticket numbers
-    $existingStmt = $pdo->prepare(
-        "SELECT ticket_numbers FROM tickets WHERE raffle_id = ? AND payment_status = 'paid'"
-    );
-    $existingStmt->execute([$b['raffle_id']]);
-    $existing = [];
-    foreach ($existingStmt->fetchAll() as $row) {
-        $nums = json_decode($row['ticket_numbers'], true) ?? [];
-        $existing = array_merge($existing, $nums);
-    }
-    $existingSet = array_flip($existing);
-
-    $attempts = 0;
-    while (count($numbers) < $qty && $attempts < 50000) {
-        $num = str_pad(rand(1, 99999), 6, '0', STR_PAD_LEFT);
-        if (!isset($existingSet[$num]) && !in_array($num, $numbers)) {
-            $numbers[] = $num;
-        }
-        $attempts++;
-    }
+    $numbers = surteados_allocate_ticket_numbers($pdo, $id, (string)$b['raffle_id'], $qty);
 
     $pdo->prepare(
         'INSERT INTO tickets

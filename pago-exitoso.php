@@ -180,6 +180,13 @@ if ($isPaid && !empty($ticket['flow_order'])) {
 
   </div>
 </div>
+<?php if ($isPaid): ?>
+<script>
+  try {
+    localStorage.removeItem('surteados_cart');
+  } catch (_) {}
+</script>
+<?php endif; ?>
 </body>
 </html>
 

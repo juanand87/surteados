@@ -2,8 +2,7 @@
 /** SURTEADOS — Protected Admin Dashboard */
 require __DIR__ . '/../api/config.php';
 
-session_name(SESSION_NAME);
-if (session_status() === PHP_SESSION_NONE) session_start();
+admin_session_start();
 
 if (empty($_SESSION['admin_id'])) {
     header('Location: index.php');
@@ -11,7 +10,7 @@ if (empty($_SESSION['admin_id'])) {
 }
 
 $adminUser = htmlspecialchars($_SESSION['admin_username'] ?? 'Admin');
-$apiBase   = BASE_URL . '/api';
+$apiBase   = '../api';
 ?>
 <!DOCTYPE html>
 <html lang="es">

@@ -13,6 +13,7 @@
  */
 require __DIR__ . '/config.php';
 require_once __DIR__ . '/location_helper.php';
+require_once __DIR__ . '/ticket_number_helper.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     json_error('Method not allowed', 405);
@@ -104,15 +105,8 @@ try {
         $raffle    = $entry['raffle'];
         $pack      = $entry['pack'];
         $qty       = $entry['qty'];
-
-        $numbers = generateCartNumbers($pdo, $raffle['id'], $qty);
-        if (count($numbers) < $qty) {
-            throw new \RuntimeException(
-                'No hay suficientes números disponibles en el sorteo "' . $raffle['title'] . '"'
-            );
-        }
-
         $ticketId = generate_id('t');
+        $numbers = surteados_allocate_ticket_numbers($pdo, $ticketId, $raffle['id'], $qty);
 
         $pdo->prepare(
             'INSERT INTO tickets
@@ -161,33 +155,3 @@ json_ok([
     'totalAmount' => $totalAmount,
 ]);
 
-// ── Helper ────────────────────────────────────────────────────────────────────
-function generateCartNumbers(PDO $pdo, string $raffleId, int $qty): array
-{
-    $stmt = $pdo->prepare(
-        "SELECT ticket_numbers FROM tickets
-          WHERE raffle_id = ?
-            AND payment_status IN ('paid', 'pending')
-            AND ticket_numbers IS NOT NULL"
-    );
-    $stmt->execute([$raffleId]);
-
-    $existing = [];
-    foreach ($stmt->fetchAll() as $row) {
-        $nums     = json_decode($row['ticket_numbers'], true) ?? [];
-        $existing = array_merge($existing, $nums);
-    }
-    $existingSet = array_flip($existing);
-
-    $numbers  = [];
-    $attempts = 0;
-    while (count($numbers) < $qty && $attempts < 100000) {
-        $num = str_pad(mt_rand(1, 99999), 6, '0', STR_PAD_LEFT);
-        if (!isset($existingSet[$num])) {
-            $numbers[]         = $num;
-            $existingSet[$num] = true;
-        }
-        $attempts++;
-    }
-    return $numbers;
-}

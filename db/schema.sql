@@ -58,6 +58,8 @@ DROP TABLE IF EXISTS winners;
 DROP TABLE IF EXISTS raffles;
 DROP TABLE IF EXISTS communes;
 DROP TABLE IF EXISTS regions;
+DROP TABLE IF EXISTS ticket_number_registry;
+DROP TABLE IF EXISTS ticket_number_sequence;
 
 CREATE TABLE raffles (
   id                  VARCHAR(25)  PRIMARY KEY,
@@ -128,6 +130,24 @@ CREATE TABLE communes (
   INDEX idx_region (region_id),
   FOREIGN KEY (region_id) REFERENCES regions(id) ON DELETE RESTRICT
 ) ENGINE=InnoDB;
+
+CREATE TABLE ticket_number_sequence (
+  id           TINYINT UNSIGNED PRIMARY KEY,
+  next_number  BIGINT UNSIGNED NOT NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE ticket_number_registry (
+  id          BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  number      VARCHAR(30) NOT NULL,
+  ticket_id   VARCHAR(25),
+  raffle_id   VARCHAR(25),
+  created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_ticket_number (number),
+  INDEX idx_ticket_id (ticket_id),
+  INDEX idx_raffle_id (raffle_id)
+) ENGINE=InnoDB;
+
+INSERT INTO ticket_number_sequence (id, next_number) VALUES (1, 1);
 
 -- ── Tickets ───────────────────────────────────────────────────
 CREATE TABLE tickets (

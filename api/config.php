@@ -73,9 +73,27 @@ function json_error(string $msg, int $code = 400): never {
 }
 
 // ── Session auth guard ────────────────────────────────────────────────────────
-function auth_required(): void {
+function admin_session_start(): void {
     session_name(SESSION_NAME);
-    if (session_status() === PHP_SESSION_NONE) session_start();
+    if (session_status() === PHP_SESSION_NONE) {
+        $isHttps = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on')
+                || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
+                || (isset($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on')
+                || (isset($_SERVER['SERVER_PORT']) && (int)$_SERVER['SERVER_PORT'] === 443);
+
+        session_set_cookie_params([
+            'lifetime' => 0,
+            'path' => '/',
+            'secure' => $isHttps,
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]);
+        session_start();
+    }
+}
+
+function auth_required(): void {
+    admin_session_start();
     if (empty($_SESSION['admin_id'])) {
         json_error('No autorizado', 401);
     }

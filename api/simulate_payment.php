@@ -8,6 +8,7 @@
 require __DIR__ . '/config.php';
 require_once __DIR__ . '/order_email_helper.php';
 require_once __DIR__ . '/location_helper.php';
+require_once __DIR__ . '/ticket_number_helper.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -40,34 +41,6 @@ $pdo = db();
 $buyerCommune = surteados_resolve_commune($pdo, $buyerCommuneId, $buyerComuna);
 $buyerComuna = $buyerCommune['name'];
 $buyerCommuneId = $buyerCommune['id'];
-
-function sim_genNumbers(PDO $pdo, string $raffleId, int $qty): array
-{
-    $stmt = $pdo->prepare(
-        "SELECT ticket_numbers FROM tickets
-          WHERE raffle_id = ? AND payment_status = 'paid' AND ticket_numbers IS NOT NULL"
-    );
-    $stmt->execute([$raffleId]);
-
-    $existing = [];
-    foreach ($stmt->fetchAll() as $row) {
-        $nums = json_decode($row['ticket_numbers'], true) ?? [];
-        $existing = array_merge($existing, $nums);
-    }
-    $existingSet = array_flip($existing);
-
-    $numbers = [];
-    $attempts = 0;
-    while (count($numbers) < $qty && $attempts < 100000) {
-        $num = str_pad((string)mt_rand(1, 99999), 6, '0', STR_PAD_LEFT);
-        if (!isset($existingSet[$num])) {
-            $numbers[] = $num;
-            $existingSet[$num] = true;
-        }
-        $attempts++;
-    }
-    return $numbers;
-}
 
 $orderId = 'sim_' . bin2hex(random_bytes(6));
 $createdTickets = [];
@@ -103,9 +76,9 @@ try {
         $qty = (int)$pack['qty'];
         $amount = (int)$pack['price'];
         $total += $amount;
-        $numbers = sim_genNumbers($pdo, $raffleId, $qty);
 
         $ticketId = generate_id('t');
+        $numbers = surteados_allocate_ticket_numbers($pdo, $ticketId, $raffleId, $qty);
         $pdo->prepare(
             "INSERT INTO tickets
              (id, raffle_id, buyer_name, buyer_rut, buyer_email, buyer_phone, buyer_address, buyer_comuna,

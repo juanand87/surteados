@@ -2,8 +2,7 @@
 /** SURTEADOS — Auth API */
 require __DIR__ . '/config.php';
 
-session_name(SESSION_NAME);
-if (session_status() === PHP_SESSION_NONE) session_start();
+admin_session_start();
 
 $method = $_SERVER['REQUEST_METHOD'];
 
