@@ -133,14 +133,14 @@ header('X-Robots-Tag: noindex, nofollow');
     }
     .ticket-page {
       width: min(100%, 1120px);
-      min-height: 720px;
+      min-height: 570px;
       margin: 0 auto 28px;
       padding: 0;
       page-break-after: always;
       break-after: page;
     }
     .ticket {
-      min-height: 720px;
+      min-height: 570px;
       display: grid;
       grid-template-columns: 1fr 280px;
       overflow: hidden;
@@ -152,8 +152,8 @@ header('X-Robots-Tag: noindex, nofollow');
       box-shadow: inset 0 4px 0 #00b4d8, inset 0 -4px 0 #db2777, 0 26px 70px rgba(25,5,45,.28);
       position: relative;
     }
-    .ticket-main { padding: 36px 34px 0; display: grid; grid-template-rows: auto auto 1fr auto; }
-    .ticket-side { border-left: 2px dashed rgba(255,255,255,.2); padding: 24px 22px; display: grid; grid-template-rows: auto auto 1fr auto; gap: 16px; position: relative; }
+    .ticket-main { padding: 28px 34px 0; display: grid; grid-template-rows: auto auto 1fr auto; }
+    .ticket-side { border-left: 2px dashed rgba(255,255,255,.2); padding: 20px 22px; display: grid; grid-template-rows: auto auto 1fr; gap: 12px; position: relative; }
     .ticket-side::before,
     .ticket-side::after {
       content: "";
@@ -166,37 +166,37 @@ header('X-Robots-Tag: noindex, nofollow');
     }
     .ticket-side::before { top: 86px; }
     .ticket-side::after { bottom: 86px; }
-    .topline { display:flex; align-items:flex-start; justify-content:space-between; gap: 18px; padding-bottom: 26px; border-bottom: 1px solid rgba(255,255,255,.08); }
+    .topline { display:flex; align-items:flex-start; justify-content:space-between; gap: 18px; padding-bottom: 18px; border-bottom: 1px solid rgba(255,255,255,.08); }
     .logo { max-width: 120px; max-height: 54px; object-fit: contain; }
     .official { text-align:right; color:rgba(255,255,255,.58); font-size:12px; line-height:1.65; }
     .official strong { display:block; color:#fff; font-size:13px; }
     .label { color:#9b7ab5; text-transform:uppercase; letter-spacing:.24em; font-size:11px; font-weight:800; margin-bottom:8px; }
-    .number { font-size:56px; line-height:.95; font-weight:900; letter-spacing:-1px; text-shadow:0 10px 28px rgba(124,58,237,.55); margin: 24px 0 22px; }
-    .info-grid { display:grid; grid-template-columns: 1fr 1fr; gap: 26px; margin-bottom: 20px; }
+    .number { font-size:50px; line-height:.95; font-weight:900; letter-spacing:-1px; text-shadow:0 10px 28px rgba(124,58,237,.55); margin: 18px 0 18px; }
+    .info-grid { display:grid; grid-template-columns: 1fr 1fr; gap: 18px 26px; margin-bottom: 16px; }
     .info-value { color:#fff; font-weight:800; font-size:16px; }
     .accent { color:#ffb000; }
-    .pack-row { display:grid; grid-template-columns: 1fr 1fr; gap:20px; padding:16px 20px; border:1px solid rgba(255,255,255,.12); border-radius:12px; background:rgba(255,255,255,.055); margin: 0 0 22px; }
-    .participant { margin-top: 8px; }
-    .participant .name { font-size:18px; font-weight:900; margin-bottom:8px; }
-    .details { color:#b79ecb; font-size:14px; line-height:1.75; }
-    .footer { margin-top:auto; padding:16px 0; color:#8d73a5; font-size:12px; border-top:1px solid rgba(255,255,255,.08); display:flex; justify-content:space-between; gap:20px; }
+    .pack-row { display:grid; grid-template-columns: 1fr 1fr; gap:20px; padding:13px 20px; border:1px solid rgba(255,255,255,.12); border-radius:12px; background:rgba(255,255,255,.055); margin: 0 0 18px; }
+    .participant { margin-top: 4px; }
+    .participant .name { font-size:17px; font-weight:900; margin-bottom:6px; }
+    .details { color:#b79ecb; font-size:13px; line-height:1.55; }
+    .footer { margin-top:auto; padding:12px 0; color:#8d73a5; font-size:11px; border-top:1px solid rgba(255,255,255,.08); display:flex; justify-content:space-between; gap:20px; }
     .side-head { text-align:right; color:#9b7ab5; font-size:11px; text-transform:uppercase; letter-spacing:.24em; font-weight:900; line-height:1.6; }
     .prize-label { color:#9b7ab5; text-transform:uppercase; letter-spacing:.22em; font-size:10px; font-weight:900; }
     .prize-card { align-self:start; text-align:center; }
-    .prize-img { width: 176px; height: 176px; object-fit: cover; border-radius: 16px; border:1px solid rgba(255,255,255,.14); box-shadow:0 18px 34px rgba(0,0,0,.24); background:#3a155d; }
-    .prize-title { color:#ffb000; font-size:14px; font-weight:900; line-height:1.35; margin:12px auto 0; max-width:200px; }
-    .verify { align-self:end; display:grid; justify-items:center; gap:9px; padding-top:14px; border-top:1px solid rgba(255,255,255,.09); }
+    .prize-img { width: 150px; height: 150px; object-fit: cover; border-radius: 16px; border:1px solid rgba(255,255,255,.14); box-shadow:0 18px 34px rgba(0,0,0,.24); background:#3a155d; }
+    .prize-title { color:#ffb000; font-size:13px; font-weight:900; line-height:1.3; margin:10px auto 0; max-width:200px; }
+    .verify { align-self:end; display:grid; justify-items:center; gap:7px; padding-top:12px; border-top:1px solid rgba(255,255,255,.09); }
     .qr { background:#fff; padding:8px; border-radius:10px; line-height:0; width:132px; height:132px; display:flex; align-items:center; justify-content:center; }
     .qr canvas, .qr img { width:116px !important; height:116px !important; }
-    .verify-url { max-width: 210px; color:#8d73a5; font-size:9px; line-height:1.35; text-align:center; word-break:break-all; }
-    .side-number { color:#d8c5e9; text-align:center; font-size:20px; font-weight:900; }
-    .fallback-img { width:176px;height:176px;border-radius:16px;background:linear-gradient(135deg,#ffb000,#db2777);display:grid;place-items:center;font-size:44px;font-weight:900;color:#260b49;margin:0 auto; }
+    .verify-url { display:none; }
+    .side-number { color:#d8c5e9; text-align:center; font-size:18px; font-weight:900; }
+    .fallback-img { width:150px;height:150px;border-radius:16px;background:linear-gradient(135deg,#ffb000,#db2777);display:grid;place-items:center;font-size:40px;font-weight:900;color:#260b49;margin:0 auto; }
     @media print {
       @page { size: A4 landscape; margin: 8mm; }
       body { background:#fff; padding:0; }
       .print-actions { display:none !important; }
-      .ticket-page { width:100%; min-height: 190mm; margin:0; }
-      .ticket { min-height: 190mm; box-shadow: inset 0 4px 0 #00b4d8, inset 0 -4px 0 #db2777; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .ticket-page { width:100%; min-height: 150mm; margin:0; }
+      .ticket { min-height: 150mm; box-shadow: inset 0 4px 0 #00b4d8, inset 0 -4px 0 #db2777; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       .ticket-side::before, .ticket-side::after { background:#fff; }
     }
   </style>
@@ -230,7 +230,7 @@ header('X-Robots-Tag: noindex, nofollow');
         <div class="topline">
           <img class="logo" src="<?= $siteLogoSafe ?>" alt="<?= $siteName ?>">
           <div class="official">
-            Ticket oficial
+            Imagen oficial
             <strong><?= $siteName ?></strong>
             ID venta: <span class="accent"><?= $order ?></span>
           </div>
@@ -238,7 +238,7 @@ header('X-Robots-Tag: noindex, nofollow');
 
         <div>
           <div class="number-block">
-            <div class="label">N° de ticket</div>
+            <div class="label">Número de imagen</div>
             <div class="number"><?= $num ?></div>
           </div>
 
@@ -290,7 +290,7 @@ header('X-Robots-Tag: noindex, nofollow');
       </div>
 
       <aside class="ticket-side">
-        <div class="side-head">Ticket oficial<br><?= $siteName ?></div>
+        <div class="side-head">Imagen oficial<br><?= $siteName ?></div>
         <div class="prize-card">
           <div class="prize-label">Premio principal</div>
           <?php if ($imgSafe): ?>
@@ -306,7 +306,7 @@ header('X-Robots-Tag: noindex, nofollow');
           <a class="verify-url" href="<?= $verifyUrl ?>" target="_blank" rel="noopener"><?= $verifyUrl ?></a>
           <div class="label">Código firma</div>
           <div class="side-number"><?= $tokenShort ?></div>
-          <div class="label">N° ticket</div>
+          <div class="label">Número de imagen</div>
           <div class="side-number"><?= $num ?></div>
         </div>
       </aside>
