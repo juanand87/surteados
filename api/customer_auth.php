@@ -51,6 +51,18 @@ function ensure_customer_auth_schema(PDO $pdo): void {
       INDEX idx_used_at (used_at)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
+    $pdo->exec("CREATE TABLE IF NOT EXISTS customer_email_verifications (
+      id           BIGINT AUTO_INCREMENT PRIMARY KEY,
+      email        VARCHAR(150) NOT NULL,
+      code_hash    VARCHAR(255) NOT NULL,
+      attempts     TINYINT UNSIGNED DEFAULT 0,
+      used_at      DATETIME NULL,
+      expires_at   DATETIME NOT NULL,
+      created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      INDEX idx_email_exp (email, expires_at),
+      INDEX idx_used_at (used_at)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
     $cols = $pdo->query("SHOW COLUMNS FROM customer_users")->fetchAll();
     $existing = array_column($cols, 'Field');
     $adds = [
@@ -60,23 +72,35 @@ function ensure_customer_auth_schema(PDO $pdo): void {
         'commune_id' => "ALTER TABLE customer_users ADD COLUMN commune_id INT NULL AFTER address",
         'comuna' => "ALTER TABLE customer_users ADD COLUMN comuna VARCHAR(120) NULL AFTER commune_id",
         'rut' => "ALTER TABLE customer_users ADD COLUMN rut VARCHAR(30) NULL AFTER comuna",
+        'status' => "ALTER TABLE customer_users ADD COLUMN status ENUM('pending','active','blocked') NOT NULL DEFAULT 'pending' AFTER rut",
+        'email_verified_at' => "ALTER TABLE customer_users ADD COLUMN email_verified_at DATETIME NULL AFTER status",
     ];
+    $addedStatus = false;
     foreach ($adds as $field => $sql) {
         if (!in_array($field, $existing, true)) {
             $pdo->exec($sql);
+            if ($field === 'status') {
+                $addedStatus = true;
+            }
         }
+    }
+    if ($addedStatus) {
+        $pdo->exec("UPDATE customer_users SET status = 'active', email_verified_at = COALESCE(email_verified_at, created_at, NOW()) WHERE email_verified_at IS NULL");
     }
 }
 
-
-function send_code_email(PDO $pdo, string $toEmail, string $code): bool {
+function customer_email_cfg(PDO $pdo): array {
     $rows = $pdo->query(
         "SELECT `key`, `value` FROM settings
           WHERE `key` IN ('site_name','smtp_from_email','smtp_from_name','smtp_host','smtp_port','smtp_user','smtp_pass','smtp_encryption')"
     )->fetchAll();
     $cfg = [];
     foreach ($rows as $row) $cfg[$row['key']] = $row['value'];
+    return $cfg;
+}
 
+function send_code_email(PDO $pdo, string $toEmail, string $code): bool {
+    $cfg = customer_email_cfg($pdo);
     $siteName = htmlspecialchars($cfg['site_name'] ?? 'Surteados', ENT_QUOTES, 'UTF-8');
     $codeSafe = htmlspecialchars($code, ENT_QUOTES, 'UTF-8');
     $html = "
@@ -93,6 +117,26 @@ function send_code_email(PDO $pdo, string $toEmail, string $code): bool {
       </div>";
 
     return surteados_send_email($cfg, $toEmail, '', 'Codigo de acceso - Mis Imagenes Surteados', $html);
+}
+
+function send_account_verification_email(PDO $pdo, string $toEmail, string $code): bool {
+    $cfg = customer_email_cfg($pdo);
+    $siteName = htmlspecialchars($cfg['site_name'] ?? 'Surteados', ENT_QUOTES, 'UTF-8');
+    $codeSafe = htmlspecialchars($code, ENT_QUOTES, 'UTF-8');
+    $html = "
+      <div style='font-family:Arial,sans-serif;max-width:560px;margin:0 auto;background:#140b30;color:#e2e8f0;border-radius:16px;overflow:hidden;border:1px solid #2d1f5e;'>
+        <div style='background:linear-gradient(135deg,#7c3aed,#db2777);padding:24px;text-align:center;'>
+          <h1 style='margin:0;color:#fff;font-size:22px;'>Verifica tu cuenta</h1>
+          <p style='margin:8px 0 0;color:rgba(255,255,255,.82);'>{$siteName}</p>
+        </div>
+        <div style='padding:28px;text-align:center;'>
+          <p style='margin:0 0 16px;color:#a0a0b0;'>Ingresa este codigo para activar tu cuenta en Surteados:</p>
+          <div style='display:inline-block;background:#fff;color:#140b30;font-size:32px;font-weight:800;letter-spacing:8px;padding:14px 22px;border-radius:12px;'>{$codeSafe}</div>
+          <p style='margin:18px 0 0;color:#a0a0b0;font-size:13px;'>Este codigo expira en 30 minutos. Si no creaste esta cuenta, ignora este mensaje.</p>
+        </div>
+      </div>";
+
+    return surteados_send_email($cfg, $toEmail, '', 'Verifica tu cuenta - Surteados', $html);
 }
 if ($action === 'captcha') {
     start_client_auth_session();
@@ -217,6 +261,13 @@ if ($action === 'register') {
         json_error('Captcha incorrecto');
     }
 
+    $existingStmt = $pdo->prepare('SELECT id, status, email_verified_at FROM customer_users WHERE email = ? LIMIT 1');
+    $existingStmt->execute([$email]);
+    $existing = $existingStmt->fetch();
+    if ($existing && (($existing['status'] ?? '') === 'active' || !empty($existing['email_verified_at']))) {
+        json_error('Este correo ya tiene una cuenta verificada. Inicia sesion o solicita un codigo por correo.');
+    }
+
     $commune = surteados_resolve_commune($pdo, $buyerCommuneId, $buyerComuna);
     $username = substr(preg_replace('/[^a-zA-Z0-9._-]/', '_', explode('@', $email)[0]), 0, 24);
     if (strlen($username) < 3) $username = 'user';
@@ -231,39 +282,102 @@ if ($action === 'register') {
 
     $hash = password_hash(bin2hex(random_bytes(24)), PASSWORD_DEFAULT);
     $ins = $pdo->prepare(
-        "INSERT INTO customer_users (username, email, full_name, phone, address, commune_id, comuna, rut, password)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        "INSERT INTO customer_users (username, email, full_name, phone, address, commune_id, comuna, rut, status, email_verified_at, password)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', NULL, ?)
          ON DUPLICATE KEY UPDATE
+           username = VALUES(username),
            full_name = VALUES(full_name),
            phone = VALUES(phone),
            address = VALUES(address),
            commune_id = VALUES(commune_id),
            comuna = VALUES(comuna),
-           rut = VALUES(rut)"
+           rut = VALUES(rut),
+           status = 'pending',
+           email_verified_at = NULL"
     );
     $ins->execute([$username, $email, $fullName, $phone, $address, $commune['id'], $commune['name'], $rut, $hash]);
 
     unset($_SESSION['customer_register_captcha']);
-    $uStmt = $pdo->prepare('SELECT id, username, email FROM customer_users WHERE email = ? LIMIT 1');
-    $uStmt->execute([$email]);
-    $user = $uStmt->fetch() ?: ['id' => $pdo->lastInsertId(), 'username' => $username, 'email' => $email];
-    set_client_auth($user);
+    $pdo->prepare('DELETE FROM customer_email_verifications WHERE email = ? AND (expires_at < NOW() OR used_at IS NOT NULL)')->execute([$email]);
 
-    json_ok(['authenticated' => true, 'email' => $email, 'username' => $username]);
+    $code = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+    $codeHash = password_hash($code, PASSWORD_DEFAULT);
+    $pdo->prepare('INSERT INTO customer_email_verifications (email, code_hash, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 30 MINUTE))')
+        ->execute([$email, $codeHash]);
+
+    $sent = send_account_verification_email($pdo, $email, $code);
+    $resp = [
+        'registered' => true,
+        'pendingVerification' => true,
+        'email' => $email,
+        'sent' => $sent,
+        'message' => $sent
+            ? 'Te enviamos un codigo para verificar tu cuenta.'
+            : 'La cuenta quedo pendiente, pero no se pudo enviar el correo de verificacion. Revisa la configuracion SMTP.',
+    ];
+    if (is_local_dev()) {
+        $resp['dev_code'] = $code;
+    }
+    json_ok($resp);
+}
+
+if ($action === 'verify_register') {
+    $email = strtolower(trim((string)($b['email'] ?? '')));
+    $code = trim((string)($b['code'] ?? ''));
+
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) json_error('Correo invalido');
+    if (!preg_match('/^\d{6}$/', $code)) json_error('Codigo invalido');
+
+    $stmt = $pdo->prepare(
+        'SELECT * FROM customer_email_verifications
+          WHERE email = ? AND used_at IS NULL AND expires_at >= NOW()
+          ORDER BY id DESC LIMIT 1'
+    );
+    $stmt->execute([$email]);
+    $row = $stmt->fetch();
+    if (!$row) json_error('Codigo vencido o no encontrado', 401);
+    if ((int)$row['attempts'] >= 5) json_error('Demasiados intentos. Solicita un nuevo registro.', 429);
+
+    if (!password_verify($code, $row['code_hash'])) {
+        $pdo->prepare('UPDATE customer_email_verifications SET attempts = attempts + 1 WHERE id = ?')->execute([$row['id']]);
+        json_error('Codigo incorrecto', 401);
+    }
+
+    $pdo->beginTransaction();
+    try {
+        $pdo->prepare('UPDATE customer_email_verifications SET used_at = NOW() WHERE id = ?')->execute([$row['id']]);
+        $pdo->prepare("UPDATE customer_users SET status = 'active', email_verified_at = NOW() WHERE email = ?")->execute([$email]);
+        $uStmt = $pdo->prepare('SELECT id, username, email, status FROM customer_users WHERE email = ? LIMIT 1');
+        $uStmt->execute([$email]);
+        $user = $uStmt->fetch();
+        if (!$user || $user['status'] !== 'active') {
+            throw new RuntimeException('No se pudo activar la cuenta');
+        }
+        $pdo->commit();
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
+        json_error('No se pudo activar la cuenta. Intentalo nuevamente.', 500);
+    }
+
+    set_client_auth($user);
+    json_ok(['authenticated' => true, 'email' => $user['email'], 'username' => $user['username']]);
 }
 
 if ($action === 'login') {
     $identifier = trim((string)($b['identifier'] ?? ''));
     $password   = (string)($b['password'] ?? '');
 
-    if ($identifier === '' || $password === '') json_error('Completa usuario/correo y contraseña');
+    if ($identifier === '' || $password === '') json_error('Completa usuario/correo y contrasena');
 
-    $stmt = $pdo->prepare('SELECT id, username, email, password FROM customer_users WHERE username = ? OR email = ? LIMIT 1');
+    $stmt = $pdo->prepare('SELECT id, username, email, password, status, email_verified_at FROM customer_users WHERE username = ? OR email = ? LIMIT 1');
     $stmt->execute([$identifier, strtolower($identifier)]);
     $user = $stmt->fetch();
 
     if (!$user || !password_verify($password, $user['password'])) {
-        json_error('Credenciales inválidas', 401);
+        json_error('Credenciales invalidas', 401);
+    }
+    if (($user['status'] ?? 'pending') !== 'active' || empty($user['email_verified_at'])) {
+        json_error('Debes verificar tu correo antes de iniciar sesion.', 403);
     }
 
     set_client_auth($user);

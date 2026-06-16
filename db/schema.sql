@@ -30,6 +30,8 @@ CREATE TABLE customer_users (
   commune_id   INT NULL,
   comuna       VARCHAR(120) NULL,
   rut          VARCHAR(30) NULL,
+  status       ENUM('pending','active','blocked') NOT NULL DEFAULT 'pending',
+  email_verified_at DATETIME NULL,
   password     VARCHAR(255) NOT NULL,
   created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
@@ -37,6 +39,19 @@ CREATE TABLE customer_users (
 -- ── Email access codes for Mis Tickets ───────────────────────
 DROP TABLE IF EXISTS ticket_access_codes;
 CREATE TABLE ticket_access_codes (
+  id           BIGINT AUTO_INCREMENT PRIMARY KEY,
+  email        VARCHAR(150) NOT NULL,
+  code_hash    VARCHAR(255) NOT NULL,
+  attempts     TINYINT UNSIGNED DEFAULT 0,
+  used_at      DATETIME NULL,
+  expires_at   DATETIME NOT NULL,
+  created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_email_exp (email, expires_at),
+  INDEX idx_used_at (used_at)
+) ENGINE=InnoDB;
+
+DROP TABLE IF EXISTS customer_email_verifications;
+CREATE TABLE customer_email_verifications (
   id           BIGINT AUTO_INCREMENT PRIMARY KEY,
   email        VARCHAR(150) NOT NULL,
   code_hash    VARCHAR(255) NOT NULL,

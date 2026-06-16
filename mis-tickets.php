@@ -113,36 +113,51 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
       </div>
 
       <div id="panelRegister" class="hidden">
-        <div class="form-row">
-          <div class="form-group"><label class="form-label">Nombre completo *</label><input type="text" id="regFullName" class="form-control" placeholder="Juan Pérez"></div>
-          <div class="form-group"><label class="form-label">Teléfono *</label><input type="tel" id="regPhone" class="form-control" placeholder="+56 9 1234 5678"></div>
-        </div>
-        <div class="form-row">
-          <div class="form-group"><label class="form-label">Dirección *</label><input type="text" id="regAddress" class="form-control" placeholder="Av. Siempre Viva 123"></div>
+        <div id="registerFormStep">
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Nombre completo *</label><input type="text" id="regFullName" class="form-control" placeholder="Juan Pérez"></div>
+            <div class="form-group"><label class="form-label">Teléfono *</label><input type="tel" id="regPhone" class="form-control" placeholder="+56 9 1234 5678"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Dirección *</label><input type="text" id="regAddress" class="form-control" placeholder="Av. Siempre Viva 123"></div>
+            <div class="form-group">
+              <label class="form-label">Región *</label>
+              <select class="form-control" id="buyerRegion" required>
+                <option value="">Selecciona tu región</option>
+              </select>
+            </div>
+          </div>
           <div class="form-group">
-            <label class="form-label">Región *</label>
-            <select class="form-control" id="buyerRegion" required>
-              <option value="">Selecciona tu región</option>
+            <label class="form-label">Comuna / ciudad *</label>
+            <select class="form-control" id="buyerComuna" required disabled>
+              <option value="">Primero selecciona una región</option>
             </select>
           </div>
+          <div class="form-group"><label class="form-label">RUT *</label><input type="text" id="regRut" class="form-control" placeholder="12.345.678-5" autocomplete="off"><p class="form-hint">🇨🇱 Ingresa tu RUT chileno válido.</p></div>
+          <div class="form-group"><label class="form-label">Correo electrónico *</label><input type="email" id="regEmail" class="form-control" placeholder="tu@correo.com"></div>
+          <div class="form-group">
+            <label class="form-label">Captcha *</label>
+            <div style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;">
+              <span class="pill pill-purple" id="regCaptchaQuestion">Cargando...</span>
+              <input type="number" id="regCaptcha" class="form-control" placeholder="Respuesta" style="max-width:160px;">
+              <button type="button" class="btn btn-ghost btn-sm" id="refreshCaptchaBtn">Cambiar</button>
+            </div>
+          </div>
+          <button class="btn btn-primary" id="registerBtn">Crear cuenta</button>
         </div>
-        <div class="form-group">
-          <label class="form-label">Comuna / ciudad *</label>
-          <select class="form-control" id="buyerComuna" required disabled>
-            <option value="">Primero selecciona una región</option>
-          </select>
-        </div>
-        <div class="form-group"><label class="form-label">RUT *</label><input type="text" id="regRut" class="form-control" placeholder="12.345.678-5" autocomplete="off"><p class="form-hint">🇨🇱 Ingresa tu RUT chileno válido.</p></div>
-        <div class="form-group"><label class="form-label">Correo electrónico *</label><input type="email" id="regEmail" class="form-control" placeholder="tu@correo.com"></div>
-        <div class="form-group">
-          <label class="form-label">Captcha *</label>
-          <div style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;">
-            <span class="pill pill-purple" id="regCaptchaQuestion">Cargando...</span>
-            <input type="number" id="regCaptcha" class="form-control" placeholder="Respuesta" style="max-width:160px;">
-            <button type="button" class="btn btn-ghost btn-sm" id="refreshCaptchaBtn">Cambiar</button>
+
+        <div id="registerVerifyStep" class="hidden">
+          <div class="empty-state" style="padding:1.5rem;">
+            <div class="empty-icon">✉️</div>
+            <h3 class="text-white mb-1">Confirma tu correo</h3>
+            <p id="registerVerifyText">Te enviamos un código para activar tu cuenta.</p>
+            <div style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;justify-content:center;margin-top:1rem;">
+              <input type="text" id="registerCode" class="form-control" placeholder="Código de 6 dígitos" maxlength="6" style="max-width:220px;" inputmode="numeric">
+              <button class="btn btn-accent" id="verifyRegisterBtn">Activar cuenta</button>
+            </div>
+            <button type="button" class="btn btn-ghost btn-sm mt-2" id="editRegisterBtn">Editar mis datos</button>
           </div>
         </div>
-        <button class="btn btn-primary" id="registerBtn">Crear cuenta</button>
       </div>
     </div>
 
@@ -257,6 +272,12 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
   const regCaptchaQuestion = document.getElementById('regCaptchaQuestion');
   const refreshCaptchaBtn = document.getElementById('refreshCaptchaBtn');
   const registerBtn = document.getElementById('registerBtn');
+  const registerFormStep = document.getElementById('registerFormStep');
+  const registerVerifyStep = document.getElementById('registerVerifyStep');
+  const registerVerifyText = document.getElementById('registerVerifyText');
+  const registerCode = document.getElementById('registerCode');
+  const verifyRegisterBtn = document.getElementById('verifyRegisterBtn');
+  const editRegisterBtn = document.getElementById('editRegisterBtn');
 
   const logoutBtn = document.getElementById('logoutBtn');
   const resultsSection = document.getElementById('resultsSection');
@@ -268,6 +289,7 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
 
   let authState = null;
   let pendingCodeEmail = '';
+  let pendingRegisterEmail = '';
 
   function setTab(tab) {
     panelCode.classList.toggle('hidden', tab !== 'code');
@@ -280,7 +302,10 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
     tabLogin.classList.toggle('btn-ghost', tab !== 'login');
     tabRegister.classList.toggle('btn-primary', tab === 'register');
     tabRegister.classList.toggle('btn-ghost', tab !== 'register');
-    if (tab === 'register') loadCaptcha();
+    if (tab === 'register') {
+      if (!pendingRegisterEmail) showRegisterFormStep();
+      loadCaptcha();
+    }
   }
 
   async function authApi(action, payload = {}, method = 'POST') {
@@ -326,6 +351,22 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
       codeSentText.textContent = `Te enviamos un código temporal a ${email}. Ingresa los 6 dígitos para acceder a tus imágenes compradas.`;
     }
     setTimeout(() => authCode?.focus(), 80);
+  }
+
+  function showRegisterFormStep() {
+    registerFormStep?.classList.remove('hidden');
+    registerVerifyStep?.classList.add('hidden');
+    if (registerCode) registerCode.value = '';
+  }
+
+  function showRegisterVerifyStep(email) {
+    pendingRegisterEmail = email;
+    registerFormStep?.classList.add('hidden');
+    registerVerifyStep?.classList.remove('hidden');
+    if (registerVerifyText) {
+      registerVerifyText.textContent = `Enviamos un codigo de verificacion a ${email}. Ingresa los 6 digitos para activar tu cuenta.`;
+    }
+    setTimeout(() => registerCode?.focus(), 80);
   }
 
   async function loadCaptcha() {
@@ -462,6 +503,11 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
   tabLogin?.addEventListener('click', () => setTab('login'));
   tabRegister?.addEventListener('click', () => setTab('register'));
   refreshCaptchaBtn?.addEventListener('click', loadCaptcha);
+  editRegisterBtn?.addEventListener('click', () => {
+    pendingRegisterEmail = '';
+    showRegisterFormStep();
+    loadCaptcha();
+  });
   changeEmailBtn?.addEventListener('click', () => {
     pendingCodeEmail = '';
     showCodeRequestStep();
@@ -536,7 +582,7 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
       return;
     }
     try {
-      await authApi('register', {
+      const data = await authApi('register', {
         fullName,
         phone,
         address,
@@ -546,11 +592,38 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
         buyerComuna: comuna.name,
         buyerCommuneId: comuna.id,
       });
-      showToast('Cuenta creada y sesión iniciada', 'success');
-      await refreshSessionAndData();
+      if (data.dev_code) showToast(`Código DEV: ${data.dev_code}`, 'warning');
+      showToast(data.sent ? 'Te enviamos un código para activar tu cuenta' : (data.message || 'Cuenta pendiente de verificación'), data.sent ? 'success' : 'error');
+      if (data.sent || data.dev_code) {
+        showRegisterVerifyStep(email);
+      } else {
+        await loadCaptcha();
+      }
     } catch (e) {
       showToast(e.message, 'error');
       await loadCaptcha();
+    }
+  });
+
+  verifyRegisterBtn?.addEventListener('click', async () => {
+    const email = pendingRegisterEmail || regEmail.value.trim();
+    const code = registerCode.value.trim();
+    if (!email || !code) {
+      showToast('Completa el código recibido por correo', 'warning');
+      return;
+    }
+    verifyRegisterBtn.disabled = true;
+    verifyRegisterBtn.textContent = 'Activando...';
+    try {
+      await authApi('verify_register', { email, code });
+      showToast('Cuenta verificada. Sesión iniciada', 'success');
+      pendingRegisterEmail = '';
+      await refreshSessionAndData();
+    } catch (e) {
+      showToast(e.message, 'error');
+    } finally {
+      verifyRegisterBtn.disabled = false;
+      verifyRegisterBtn.textContent = 'Activar cuenta';
     }
   });
 
