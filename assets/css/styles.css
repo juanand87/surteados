@@ -364,17 +364,49 @@ p  { color: var(--text-secondary); }
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.customer-menu-panel a {
+.customer-menu-panel a,
+.customer-menu-logout {
   display: block;
+  width: 100%;
   padding: .7rem .75rem;
   border-radius: 8px;
+  border: 0;
+  background: transparent;
   color: #ffffff;
   font-size: .9rem;
   font-weight: 800;
+  text-align: left;
+  cursor: pointer;
 }
-.customer-menu-panel a:hover {
+.customer-menu-panel a:hover,
+.customer-menu-logout:hover {
   background: rgba(255,255,255,.12);
   color: #ffffff;
+}
+.customer-menu-logout {
+  margin-top: .35rem;
+  border-top: 1px solid rgba(255,255,255,.14);
+  border-radius: 0 0 8px 8px;
+  color: #fecaca;
+}
+.google-auth-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .55rem;
+}
+.google-g {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  font-weight: 900;
+  font-family: Arial, sans-serif;
+  color: #4285f4;
+  box-shadow: inset 0 -3px 0 #34a853, inset 3px 0 0 #fbbc05, inset -3px 0 0 #ea4335;
 }
 .navbar-actions .btn {
   background: #ffffff;

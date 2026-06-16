@@ -132,6 +132,7 @@ function setupCustomerNav() {
         <a href="mis-imagenes.php#datos" role="menuitem">Mis datos</a>
         <a href="mis-imagenes.php#imagenes" role="menuitem">Mis im&aacute;genes</a>
         <a href="mis-imagenes.php#sorteos" role="menuitem">Sorteos</a>
+        <button type="button" class="customer-menu-logout" role="menuitem">Cerrar sesión</button>
       </div>
     `;
     actions.insertBefore(wrap, actions.firstChild);
@@ -145,6 +146,20 @@ function setupCustomerNav() {
     document.addEventListener('click', () => {
       wrap.classList.remove('open');
       btn?.setAttribute('aria-expanded', 'false');
+    });
+    wrap.querySelector('.customer-menu-logout')?.addEventListener('click', async (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      try {
+        await fetch('api/customer_auth.php?action=logout', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: '{}',
+        });
+      } finally {
+        window.location.href = 'mis-imagenes.php#login';
+      }
     });
   });
 }

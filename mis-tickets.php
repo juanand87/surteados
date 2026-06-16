@@ -105,7 +105,7 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
       </div>
 
       <div id="panelLogin" class="hidden">
-        <button type="button" class="btn btn-outline btn-block mb-3" id="googleLoginBtn">Continuar con Google</button>
+        <button type="button" class="btn btn-outline btn-block mb-3 google-auth-btn" id="googleLoginBtn"><span class="google-g">G</span> Continuar con Google</button>
         <div class="form-row">
           <div class="form-group"><label class="form-label">Usuario o correo *</label><input type="text" id="loginIdentifier" class="form-control" placeholder="usuario o correo"></div>
           <div class="form-group"><label class="form-label">Contraseña *</label><input type="password" id="loginPassword" class="form-control" placeholder="********"></div>
@@ -115,7 +115,7 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
 
       <div id="panelRegister" class="hidden">
         <div id="registerFormStep">
-          <button type="button" class="btn btn-outline btn-block mb-3" id="googleRegisterBtn">Registrarme con Google</button>
+          <button type="button" class="btn btn-outline btn-block mb-3 google-auth-btn" id="googleRegisterBtn"><span class="google-g">G</span> Registrarme con Google</button>
           <div class="form-row">
             <div class="form-group"><label class="form-label">Nombre completo *</label><input type="text" id="regFullName" class="form-control" placeholder="Juan Pérez"></div>
             <div class="form-group"><label class="form-label">Teléfono *</label><input type="tel" id="regPhone" class="form-control" placeholder="+56 9 1234 5678"></div>
