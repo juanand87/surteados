@@ -81,16 +81,27 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
       </div>
 
       <div id="panelCode">
-        <div class="form-group">
-          <label class="form-label">Correo electrónico de compra *</label>
-          <input type="email" id="authEmail" class="form-control" placeholder="tu@correo.com" autocomplete="email">
-        </div>
-        <div style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;">
+        <div id="codeRequestStep">
+          <div class="form-group">
+            <label class="form-label">Correo electrónico de compra *</label>
+            <input type="email" id="authEmail" class="form-control" placeholder="tu@correo.com" autocomplete="email">
+          </div>
           <button class="btn btn-primary" id="sendCodeBtn">📧 Enviar código</button>
-          <input type="text" id="authCode" class="form-control" placeholder="Código de 6 dígitos" maxlength="6" style="max-width:220px;" inputmode="numeric">
-          <button class="btn btn-accent" id="verifyCodeBtn">✅ Verificar código</button>
+          <p class="form-hint mt-1" id="codeHint">Te enviaremos un código temporal al correo asociado a tu compra.</p>
         </div>
-        <p class="form-hint mt-1" id="codeHint">Te enviaremos un código temporal al correo.</p>
+
+        <div id="codeVerifyStep" class="hidden">
+          <div class="empty-state" style="padding:1.5rem;">
+            <div class="empty-icon">📬</div>
+            <h3 class="text-white mb-1">Revisa tu correo</h3>
+            <p id="codeSentText">Enviamos un código de acceso. Escríbelo aquí para ver tus imágenes compradas.</p>
+            <div style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;justify-content:center;margin-top:1rem;">
+              <input type="text" id="authCode" class="form-control" placeholder="Código de 6 dígitos" maxlength="6" style="max-width:220px;" inputmode="numeric">
+              <button class="btn btn-accent" id="verifyCodeBtn">✅ Verificar código</button>
+            </div>
+            <button type="button" class="btn btn-ghost btn-sm mt-2" id="changeEmailBtn">Usar otro correo</button>
+          </div>
+        </div>
       </div>
 
       <div id="panelLogin" class="hidden">
@@ -228,6 +239,10 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
   const sendCodeBtn = document.getElementById('sendCodeBtn');
   const verifyCodeBtn = document.getElementById('verifyCodeBtn');
   const codeHint = document.getElementById('codeHint');
+  const codeRequestStep = document.getElementById('codeRequestStep');
+  const codeVerifyStep = document.getElementById('codeVerifyStep');
+  const codeSentText = document.getElementById('codeSentText');
+  const changeEmailBtn = document.getElementById('changeEmailBtn');
 
   const loginIdentifier = document.getElementById('loginIdentifier');
   const loginPassword = document.getElementById('loginPassword');
@@ -252,6 +267,7 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
   const tipsSection = document.getElementById('tipsSection');
 
   let authState = null;
+  let pendingCodeEmail = '';
 
   function setTab(tab) {
     panelCode.classList.toggle('hidden', tab !== 'code');
@@ -284,6 +300,34 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
     return json.data;
   }
 
+  async function readJsonResponse(resp, fallbackMessage) {
+    const text = await resp.text();
+    let json;
+    try {
+      json = JSON.parse(text);
+    } catch (_) {
+      throw new Error(fallbackMessage || 'El servidor no devolvió una respuesta válida.');
+    }
+    if (!json.ok) throw new Error(json.error || fallbackMessage || 'No se pudo completar la acción');
+    return json.data;
+  }
+
+  function showCodeRequestStep() {
+    codeRequestStep?.classList.remove('hidden');
+    codeVerifyStep?.classList.add('hidden');
+    if (authCode) authCode.value = '';
+  }
+
+  function showCodeVerifyStep(email) {
+    pendingCodeEmail = email;
+    codeRequestStep?.classList.add('hidden');
+    codeVerifyStep?.classList.remove('hidden');
+    if (codeSentText) {
+      codeSentText.textContent = `Te enviamos un código temporal a ${email}. Ingresa los 6 dígitos para acceder a tus imágenes compradas.`;
+    }
+    setTimeout(() => authCode?.focus(), 80);
+  }
+
   async function loadCaptcha() {
     if (!regCaptchaQuestion) return;
     try {
@@ -297,10 +341,9 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
 
   async function loadMyTickets() {
     const resp = await fetch('api/tickets.php?my=1');
-    const json = await resp.json();
-    if (!json.ok) throw new Error(json.error || 'No se pudieron cargar los tickets');
+    const data = await readJsonResponse(resp, 'No se pudieron cargar tus imágenes compradas.');
 
-    const tickets = (json.data || []).map(t => ({
+    const tickets = (data || []).map(t => ({
       id: t.id,
       raffleId: t.raffle_id,
       ticketNumbers: Array.isArray(t.ticket_numbers) ? t.ticket_numbers : (() => { try { return JSON.parse(t.ticket_numbers || '[]'); } catch(e) { return []; } })(),
@@ -419,6 +462,10 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
   tabLogin?.addEventListener('click', () => setTab('login'));
   tabRegister?.addEventListener('click', () => setTab('register'));
   refreshCaptchaBtn?.addEventListener('click', loadCaptcha);
+  changeEmailBtn?.addEventListener('click', () => {
+    pendingCodeEmail = '';
+    showCodeRequestStep();
+  });
 
   sendCodeBtn?.addEventListener('click', async () => {
     const email = authEmail.value.trim();
@@ -434,6 +481,7 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
       codeHint.textContent = data.message || 'Código enviado. Revisa tu correo.';
       if (data.dev_code) codeHint.textContent += ` (DEV: ${data.dev_code})`;
       showToast(data.sent ? 'Código enviado' : (data.message || 'No se pudo enviar el correo'), data.sent ? 'success' : 'error');
+      if (data.sent || data.dev_code) showCodeVerifyStep(email);
     } catch (e) {
       showToast(e.message, 'error');
     } finally {
@@ -443,7 +491,7 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
   });
 
   verifyCodeBtn?.addEventListener('click', async () => {
-    const email = authEmail.value.trim();
+    const email = pendingCodeEmail || authEmail.value.trim();
     const code = authCode.value.trim();
     if (!email || !code) {
       showToast('Completa correo y código', 'warning');

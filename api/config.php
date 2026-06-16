@@ -12,6 +12,23 @@ error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED & ~E_STRICT);
 // Start output buffering so any stray output can be discarded before JSON.
 ob_start();
 
+if (isset($_SERVER['SCRIPT_NAME']) && strpos(str_replace('\\', '/', $_SERVER['SCRIPT_NAME']), '/api/') !== false) {
+    register_shutdown_function(function (): void {
+        $error = error_get_last();
+        if (!$error) return;
+        $fatalTypes = [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR];
+        if (!in_array((int)$error['type'], $fatalTypes, true)) return;
+        if (headers_sent()) return;
+        while (ob_get_level()) ob_end_clean();
+        http_response_code(500);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode([
+            'ok' => false,
+            'error' => 'Error interno del servidor. Revisa el log PHP para ver el detalle.',
+        ], JSON_UNESCAPED_UNICODE);
+    });
+}
+
 define('DB_HOST',   'localhost');
 define('DB_USER',   'root');
 define('DB_PASS',   '');
