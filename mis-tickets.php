@@ -105,6 +105,7 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
       </div>
 
       <div id="panelLogin" class="hidden">
+        <button type="button" class="btn btn-outline btn-block mb-3" id="googleLoginBtn">Continuar con Google</button>
         <div class="form-row">
           <div class="form-group"><label class="form-label">Usuario o correo *</label><input type="text" id="loginIdentifier" class="form-control" placeholder="usuario o correo"></div>
           <div class="form-group"><label class="form-label">Contraseña *</label><input type="password" id="loginPassword" class="form-control" placeholder="********"></div>
@@ -114,6 +115,7 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
 
       <div id="panelRegister" class="hidden">
         <div id="registerFormStep">
+          <button type="button" class="btn btn-outline btn-block mb-3" id="googleRegisterBtn">Registrarme con Google</button>
           <div class="form-row">
             <div class="form-group"><label class="form-label">Nombre completo *</label><input type="text" id="regFullName" class="form-control" placeholder="Juan Pérez"></div>
             <div class="form-group"><label class="form-label">Teléfono *</label><input type="tel" id="regPhone" class="form-control" placeholder="+56 9 1234 5678"></div>
@@ -134,7 +136,14 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
             </select>
           </div>
           <div class="form-group"><label class="form-label">RUT *</label><input type="text" id="regRut" class="form-control" placeholder="12.345.678-5" autocomplete="off"><p class="form-hint">🇨🇱 Ingresa tu RUT chileno válido.</p></div>
-          <div class="form-group"><label class="form-label">Correo electrónico *</label><input type="email" id="regEmail" class="form-control" placeholder="tu@correo.com"></div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Correo electrónico *</label><input type="email" id="regEmail" class="form-control" placeholder="tu@correo.com"></div>
+            <div class="form-group"><label class="form-label">Repetir correo electrónico *</label><input type="email" id="regEmail2" class="form-control" placeholder="tu@correo.com"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Clave *</label><input type="password" id="regPassword" class="form-control" placeholder="Mínimo 8 caracteres" autocomplete="new-password"></div>
+            <div class="form-group"><label class="form-label">Repetir clave *</label><input type="password" id="regPassword2" class="form-control" placeholder="Repite la clave" autocomplete="new-password"></div>
+          </div>
           <div class="form-group">
             <label class="form-label">Captcha *</label>
             <div style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;">
@@ -262,12 +271,17 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
   const loginIdentifier = document.getElementById('loginIdentifier');
   const loginPassword = document.getElementById('loginPassword');
   const loginBtn = document.getElementById('loginBtn');
+  const googleLoginBtn = document.getElementById('googleLoginBtn');
+  const googleRegisterBtn = document.getElementById('googleRegisterBtn');
 
   const regFullName = document.getElementById('regFullName');
   const regPhone = document.getElementById('regPhone');
   const regAddress = document.getElementById('regAddress');
   const regRut = document.getElementById('regRut');
   const regEmail = document.getElementById('regEmail');
+  const regEmail2 = document.getElementById('regEmail2');
+  const regPassword = document.getElementById('regPassword');
+  const regPassword2 = document.getElementById('regPassword2');
   const regCaptcha = document.getElementById('regCaptcha');
   const regCaptchaQuestion = document.getElementById('regCaptchaQuestion');
   const refreshCaptchaBtn = document.getElementById('refreshCaptchaBtn');
@@ -290,6 +304,39 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
   let authState = null;
   let pendingCodeEmail = '';
   let pendingRegisterEmail = '';
+
+  function cleanRut(value) {
+    return String(value || '').replace(/[^0-9kK]/g, '').toUpperCase();
+  }
+
+  function formatRut(value) {
+    const rut = cleanRut(value);
+    if (rut.length <= 1) return rut;
+    const body = rut.slice(0, -1);
+    const dv = rut.slice(-1);
+    return body.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + '-' + dv;
+  }
+
+  function isValidRut(value) {
+    const rut = cleanRut(value);
+    if (rut.length < 2) return false;
+    const body = rut.slice(0, -1);
+    const dv = rut.slice(-1);
+    if (!/^\d+$/.test(body)) return false;
+    let sum = 0;
+    let multiplier = 2;
+    for (let i = body.length - 1; i >= 0; i--) {
+      sum += Number(body[i]) * multiplier;
+      multiplier = multiplier === 7 ? 2 : multiplier + 1;
+    }
+    const expected = 11 - (sum % 11);
+    const expectedDv = expected === 11 ? '0' : expected === 10 ? 'K' : String(expected);
+    return dv === expectedDv;
+  }
+
+  function startGoogleAuth() {
+    window.location.href = 'api/google_auth.php?action=start';
+  }
 
   function setTab(tab) {
     panelCode.classList.toggle('hidden', tab !== 'code');
@@ -503,6 +550,11 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
   tabLogin?.addEventListener('click', () => setTab('login'));
   tabRegister?.addEventListener('click', () => setTab('register'));
   refreshCaptchaBtn?.addEventListener('click', loadCaptcha);
+  googleLoginBtn?.addEventListener('click', startGoogleAuth);
+  googleRegisterBtn?.addEventListener('click', startGoogleAuth);
+  regRut?.addEventListener('blur', () => {
+    regRut.value = formatRut(regRut.value);
+  });
   editRegisterBtn?.addEventListener('click', () => {
     pendingRegisterEmail = '';
     showRegisterFormStep();
@@ -574,11 +626,31 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
     const address = regAddress.value.trim();
     const rut = regRut.value.trim();
     const email = regEmail.value.trim();
+    const email2 = regEmail2.value.trim();
+    const password = regPassword.value;
+    const password2 = regPassword2.value;
     const captcha = regCaptcha.value.trim();
     const comuna = typeof selectedCommunePayload === 'function' ? selectedCommunePayload() : null;
 
-    if (!fullName || !phone || !address || !rut || !email || !captcha || !comuna?.id || !comuna?.name) {
+    if (!fullName || !phone || !address || !rut || !email || !email2 || !password || !password2 || !captcha || !comuna?.id || !comuna?.name) {
       showToast('Completa todos los campos del registro', 'warning');
+      return;
+    }
+    if (!isValidRut(rut)) {
+      showToast('Ingresa un RUT chileno válido', 'warning');
+      regRut.focus();
+      return;
+    }
+    if (email.toLowerCase() !== email2.toLowerCase()) {
+      showToast('Los correos no coinciden', 'warning');
+      return;
+    }
+    if (password.length < 8) {
+      showToast('La clave debe tener al menos 8 caracteres', 'warning');
+      return;
+    }
+    if (password !== password2) {
+      showToast('Las claves no coinciden', 'warning');
       return;
     }
     try {
@@ -588,6 +660,9 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
         address,
         rut,
         email,
+        emailConfirm: email2,
+        password,
+        passwordConfirm: password2,
         captcha,
         buyerComuna: comuna.name,
         buyerCommuneId: comuna.id,
@@ -649,6 +724,8 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
   }
   const urlEmail = new URLSearchParams(window.location.search).get('email');
   if (urlEmail && authEmail) authEmail.value = urlEmail;
+  const authError = new URLSearchParams(window.location.search).get('auth_error');
+  if (authError) showToast(authError, 'error');
   refreshSessionAndData();
 })();
 

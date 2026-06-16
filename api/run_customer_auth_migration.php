@@ -18,6 +18,8 @@ try {
       rut          VARCHAR(30) NULL,
       status       ENUM('pending','active','blocked') NOT NULL DEFAULT 'pending',
       email_verified_at DATETIME NULL,
+      google_id    VARCHAR(120) NULL,
+      auth_provider VARCHAR(30) NOT NULL DEFAULT 'email',
       password     VARCHAR(255) NOT NULL,
       created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
@@ -57,6 +59,8 @@ try {
         'rut' => "ALTER TABLE customer_users ADD COLUMN rut VARCHAR(30) NULL AFTER comuna",
         'status' => "ALTER TABLE customer_users ADD COLUMN status ENUM('pending','active','blocked') NOT NULL DEFAULT 'pending' AFTER rut",
         'email_verified_at' => "ALTER TABLE customer_users ADD COLUMN email_verified_at DATETIME NULL AFTER status",
+        'google_id' => "ALTER TABLE customer_users ADD COLUMN google_id VARCHAR(120) NULL AFTER email_verified_at",
+        'auth_provider' => "ALTER TABLE customer_users ADD COLUMN auth_provider VARCHAR(30) NOT NULL DEFAULT 'email' AFTER google_id",
     ];
     $addedStatus = false;
     foreach ($adds as $field => $sql) {
@@ -71,6 +75,16 @@ try {
     if ($addedStatus) {
         $pdo->exec("UPDATE customer_users SET status = 'active', email_verified_at = COALESCE(email_verified_at, created_at, NOW()) WHERE email_verified_at IS NULL");
         echo "OK: cuentas existentes marcadas como verificadas" . PHP_EOL;
+    }
+
+    $settings = [
+        'google_client_id' => '',
+        'google_client_secret' => '',
+        'google_redirect_uri' => '',
+    ];
+    $stmt = $pdo->prepare("INSERT INTO settings (`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `key` = `key`");
+    foreach ($settings as $key => $value) {
+        $stmt->execute([$key, $value]);
     }
 
     echo "OK: customer auth tables are ready." . PHP_EOL;

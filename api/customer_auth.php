@@ -30,6 +30,31 @@ function clear_client_auth(): void {
     session_destroy();
 }
 
+function normalize_chilean_rut(string $rut): string {
+    $rut = strtoupper(preg_replace('/[^0-9K]/i', '', $rut));
+    if (strlen($rut) < 2) return $rut;
+    $body = substr($rut, 0, -1);
+    $dv = substr($rut, -1);
+    return number_format((int)$body, 0, '', '.') . '-' . $dv;
+}
+
+function is_valid_chilean_rut(string $rut): bool {
+    $rut = strtoupper(preg_replace('/[^0-9K]/i', '', $rut));
+    if (strlen($rut) < 2) return false;
+    $body = substr($rut, 0, -1);
+    $dv = substr($rut, -1);
+    if (!ctype_digit($body)) return false;
+    $sum = 0;
+    $multiplier = 2;
+    for ($i = strlen($body) - 1; $i >= 0; $i--) {
+        $sum += ((int)$body[$i]) * $multiplier;
+        $multiplier = $multiplier === 7 ? 2 : $multiplier + 1;
+    }
+    $expected = 11 - ($sum % 11);
+    $expectedDv = $expected === 11 ? '0' : ($expected === 10 ? 'K' : (string)$expected);
+    return $dv === $expectedDv;
+}
+
 function ensure_customer_auth_schema(PDO $pdo): void {
     $pdo->exec("CREATE TABLE IF NOT EXISTS customer_users (
       id           INT AUTO_INCREMENT PRIMARY KEY,
@@ -74,6 +99,8 @@ function ensure_customer_auth_schema(PDO $pdo): void {
         'rut' => "ALTER TABLE customer_users ADD COLUMN rut VARCHAR(30) NULL AFTER comuna",
         'status' => "ALTER TABLE customer_users ADD COLUMN status ENUM('pending','active','blocked') NOT NULL DEFAULT 'pending' AFTER rut",
         'email_verified_at' => "ALTER TABLE customer_users ADD COLUMN email_verified_at DATETIME NULL AFTER status",
+        'google_id' => "ALTER TABLE customer_users ADD COLUMN google_id VARCHAR(120) NULL AFTER email_verified_at",
+        'auth_provider' => "ALTER TABLE customer_users ADD COLUMN auth_provider VARCHAR(30) NOT NULL DEFAULT 'email' AFTER google_id",
     ];
     $addedStatus = false;
     foreach ($adds as $field => $sql) {
@@ -251,12 +278,20 @@ if ($action === 'register') {
     $buyerCommuneId = $b['buyerCommuneId'] ?? null;
     $rut = trim((string)($b['rut'] ?? ''));
     $email = strtolower(trim((string)($b['email'] ?? '')));
+    $emailConfirm = strtolower(trim((string)($b['emailConfirm'] ?? '')));
+    $password = (string)($b['password'] ?? '');
+    $passwordConfirm = (string)($b['passwordConfirm'] ?? '');
     $captcha = trim((string)($b['captcha'] ?? ''));
 
     if ($fullName === '' || $phone === '' || $address === '' || $buyerComuna === '' || $rut === '') {
         json_error('Completa todos los datos obligatorios');
     }
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) json_error('Correo invalido');
+    if ($email !== $emailConfirm) json_error('Los correos no coinciden');
+    if (strlen($password) < 8) json_error('La clave debe tener al menos 8 caracteres');
+    if ($password !== $passwordConfirm) json_error('Las claves no coinciden');
+    if (!is_valid_chilean_rut($rut)) json_error('RUT chileno invalido');
+    $rut = normalize_chilean_rut($rut);
     if ($captcha === '' || (int)$captcha !== (int)($_SESSION['customer_register_captcha'] ?? -1)) {
         json_error('Captcha incorrecto');
     }
@@ -280,7 +315,7 @@ if ($action === 'register') {
         $username = substr($baseUsername, 0, 24) . $suffix++;
     }
 
-    $hash = password_hash(bin2hex(random_bytes(24)), PASSWORD_DEFAULT);
+    $hash = password_hash($password, PASSWORD_DEFAULT);
     $ins = $pdo->prepare(
         "INSERT INTO customer_users (username, email, full_name, phone, address, commune_id, comuna, rut, status, email_verified_at, password)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', NULL, ?)

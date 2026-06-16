@@ -213,6 +213,20 @@ $apiBase   = '../api';
             <div class="form-group"><label class="form-label">YouTube</label><input type="url" class="form-control" name="social_youtube"></div>
             <div class="form-group"><label class="form-label">Facebook</label><input type="url" class="form-control" name="social_facebook"></div>
           </div>
+          <h4 style="margin:1.25rem 0 .5rem; font-size:.95rem;">Google Login</h4>
+          <p class="form-hint mb-2">Configura OAuth de Google. Callback sugerido: https://www.surteados.cl/api/google_auth.php?action=callback</p>
+          <div class="form-group">
+            <label class="form-label">Google Client ID</label>
+            <input type="text" class="form-control" name="google_client_id" placeholder="xxxxxxxx.apps.googleusercontent.com">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Google Client Secret</label>
+            <input type="password" class="form-control" name="google_client_secret" autocomplete="new-password">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Google Redirect URI opcional</label>
+            <input type="url" class="form-control" name="google_redirect_uri" placeholder="https://www.surteados.cl/api/google_auth.php?action=callback">
+          </div>
           <button type="submit" class="btn btn-primary">Guardar cambios</button>
         </form>
       </div>

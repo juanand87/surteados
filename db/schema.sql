@@ -32,6 +32,8 @@ CREATE TABLE customer_users (
   rut          VARCHAR(30) NULL,
   status       ENUM('pending','active','blocked') NOT NULL DEFAULT 'pending',
   email_verified_at DATETIME NULL,
+  google_id    VARCHAR(120) NULL,
+  auth_provider VARCHAR(30) NOT NULL DEFAULT 'email',
   password     VARCHAR(255) NOT NULL,
   created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
@@ -251,6 +253,10 @@ INSERT INTO settings (`key`, `value`) VALUES
   ('smtp_from_name',     'Surteados'),
   ('smtp_from_email',    ''),
   ('smtp_encryption',    'tls'),
+  -- Google OAuth
+  ('google_client_id',     ''),
+  ('google_client_secret', ''),
+  ('google_redirect_uri',  ''),
   -- Flow.cl
   ('flow_api_key',       ''),
   ('flow_secret_key',    ''),
