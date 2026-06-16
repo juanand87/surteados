@@ -176,12 +176,35 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
         <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem;">
           <button class="btn btn-primary btn-sm account-tab-btn" data-account-tab="datos">Mis datos</button>
           <button class="btn btn-ghost btn-sm account-tab-btn" data-account-tab="imagenes">Mis imágenes</button>
-          <a href="sorteos.php" class="btn btn-ghost btn-sm">Sorteos</a>
+          <button class="btn btn-ghost btn-sm account-tab-btn" data-account-tab="sorteos">Sorteos</button>
         </div>
 
         <div id="accountDatosPanel">
-          <h3 class="text-white mb-2">Mis datos</h3>
+          <div class="flex-between mb-2">
+            <h3 class="text-white">Mis datos</h3>
+            <button class="btn btn-outline btn-sm" id="editProfileBtn">Editar datos</button>
+          </div>
+          <p class="form-hint mb-3 hidden" id="profileMissingHint">Completa tus datos para participar más rápido en próximos sorteos.</p>
           <div class="grid-2" id="accountProfileGrid"></div>
+
+          <form id="accountProfileForm" class="hidden" style="margin-top:1rem;">
+            <div class="form-row">
+              <div class="form-group"><label class="form-label">Nombre completo *</label><input type="text" id="accFullName" class="form-control"></div>
+              <div class="form-group"><label class="form-label">Teléfono *</label><input type="tel" id="accPhone" class="form-control"></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label class="form-label">Dirección *</label><input type="text" id="accAddress" class="form-control"></div>
+              <div class="form-group"><label class="form-label">RUT *</label><input type="text" id="accRut" class="form-control" placeholder="12.345.678-5"></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label class="form-label">Región *</label><select class="form-control" id="accRegion"><option value="">Selecciona tu región</option></select></div>
+              <div class="form-group"><label class="form-label">Comuna / ciudad *</label><select class="form-control" id="accComuna" disabled><option value="">Primero selecciona una región</option></select></div>
+            </div>
+            <div style="display:flex;gap:.6rem;flex-wrap:wrap;">
+              <button type="submit" class="btn btn-primary" id="saveProfileBtn">Guardar datos</button>
+              <button type="button" class="btn btn-ghost" id="cancelProfileBtn">Cancelar</button>
+            </div>
+          </form>
         </div>
       </div>
 
@@ -196,6 +219,17 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
 
       <!-- Grouped by raffle -->
       <div id="ticketsList"></div>
+      </div>
+
+      <div id="accountSorteosPanel" class="hidden">
+        <div class="flex-between mb-3">
+          <h3 class="text-white">Sorteos</h3>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+            <button class="btn btn-primary btn-sm raffle-filter-btn" data-filter="active">Vigentes</button>
+            <button class="btn btn-ghost btn-sm raffle-filter-btn" data-filter="all">Todos</button>
+          </div>
+        </div>
+        <div class="raffle-grid" id="accountRafflesGrid"></div>
       </div>
     </div>
 
@@ -319,12 +353,27 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
   const accountProfileGrid = document.getElementById('accountProfileGrid');
   const accountDatosPanel = document.getElementById('accountDatosPanel');
   const accountImagenesPanel = document.getElementById('accountImagenesPanel');
+  const accountSorteosPanel = document.getElementById('accountSorteosPanel');
   const accountTabButtons = Array.from(document.querySelectorAll('.account-tab-btn'));
+  const profileMissingHint = document.getElementById('profileMissingHint');
+  const editProfileBtn = document.getElementById('editProfileBtn');
+  const accountProfileForm = document.getElementById('accountProfileForm');
+  const cancelProfileBtn = document.getElementById('cancelProfileBtn');
+  const saveProfileBtn = document.getElementById('saveProfileBtn');
+  const accFullName = document.getElementById('accFullName');
+  const accPhone = document.getElementById('accPhone');
+  const accAddress = document.getElementById('accAddress');
+  const accRut = document.getElementById('accRut');
+  const accRegion = document.getElementById('accRegion');
+  const accComuna = document.getElementById('accComuna');
+  const accountRafflesGrid = document.getElementById('accountRafflesGrid');
+  const raffleFilterButtons = Array.from(document.querySelectorAll('.raffle-filter-btn'));
 
   let authState = null;
   let pendingCodeEmail = '';
   let pendingRegisterEmail = '';
   let lastTicketCount = 0;
+  let accountRaffleFilter = 'active';
 
   function cleanRut(value) {
     return String(value || '').replace(/[^0-9kK]/g, '').toUpperCase();
@@ -439,6 +488,8 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
 
   function renderAccountProfile(user) {
     if (!accountProfileGrid) return;
+    const missing = !user.fullName || !user.phone || !user.address || !user.rut || !user.comuna;
+    profileMissingHint?.classList.toggle('hidden', !missing);
     const rows = [
       ['Nombre', user.fullName || 'No informado'],
       ['Correo', user.email || 'No informado'],
@@ -457,23 +508,123 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
     `).join('');
   }
 
+  async function fillAccountLocationSelectors(user = {}) {
+    if (!accRegion || !accComuna) return;
+    const regions = await loadChileLocations();
+    accRegion.innerHTML = '<option value="">Selecciona tu región</option>' + regions.map(r =>
+      `<option value="${escHtml(r.id)}">${escHtml(r.name)}</option>`
+    ).join('');
+
+    let matchedRegion = '';
+    if (user.communeId) {
+      const found = regions.find(r => (r.communes || []).some(c => String(c.id) === String(user.communeId)));
+      if (found) matchedRegion = String(found.id);
+    } else if (user.comuna) {
+      const found = regions.find(r => (r.communes || []).some(c => c.name === user.comuna));
+      if (found) matchedRegion = String(found.id);
+    }
+    if (matchedRegion) {
+      accRegion.value = matchedRegion;
+      fillAccountCommuneSelect(matchedRegion, user.communeId, user.comuna);
+    } else {
+      accComuna.innerHTML = '<option value="">Primero selecciona una región</option>';
+      accComuna.disabled = true;
+    }
+  }
+
+  function fillAccountCommuneSelect(regionId, selectedId = '', selectedName = '') {
+    if (!accComuna) return;
+    const region = (_locationsCache || []).find(r => String(r.id) === String(regionId));
+    if (!region) {
+      accComuna.innerHTML = '<option value="">Primero selecciona una región</option>';
+      accComuna.disabled = true;
+      return;
+    }
+    accComuna.innerHTML = '<option value="">Selecciona tu comuna</option>' + region.communes.map(c =>
+      `<option value="${escHtml(c.id)}" data-name="${escHtml(c.name)}">${escHtml(c.name)}</option>`
+    ).join('');
+    accComuna.disabled = false;
+    if (selectedId) accComuna.value = selectedId;
+    if (!accComuna.value && selectedName) {
+      const opt = Array.from(accComuna.options).find(o => o.dataset.name === selectedName);
+      if (opt) accComuna.value = opt.value;
+    }
+  }
+
+  async function showProfileForm(force = false) {
+    if (!authState) return;
+    if (accFullName) accFullName.value = authState.fullName || '';
+    if (accPhone) accPhone.value = authState.phone || '';
+    if (accAddress) accAddress.value = authState.address || '';
+    if (accRut) accRut.value = authState.rut || '';
+    await fillAccountLocationSelectors(authState);
+    accountProfileForm?.classList.remove('hidden');
+    if (force) editProfileBtn?.classList.add('hidden');
+  }
+
+  function hideProfileForm() {
+    accountProfileForm?.classList.add('hidden');
+    editProfileBtn?.classList.remove('hidden');
+  }
+
+  function selectedAccountCommunePayload() {
+    const selected = accComuna?.selectedOptions?.[0];
+    return {
+      id: accComuna?.value?.trim() || '',
+      name: selected?.dataset?.name || selected?.textContent?.trim() || '',
+    };
+  }
+
   function setAccountTab(tab) {
-    const showDatos = tab === 'datos';
+    const normalized = ['datos', 'imagenes', 'sorteos'].includes(tab) ? tab : 'datos';
+    const showDatos = normalized === 'datos';
+    const showImagenes = normalized === 'imagenes';
+    const showSorteos = normalized === 'sorteos';
     accountDatosPanel?.classList.toggle('hidden', !showDatos);
-    accountImagenesPanel?.classList.toggle('hidden', showDatos);
+    accountImagenesPanel?.classList.toggle('hidden', !showImagenes);
+    accountSorteosPanel?.classList.toggle('hidden', !showSorteos);
     if (lastTicketCount === 0) {
-      notFoundSection?.classList.toggle('hidden', showDatos);
+      notFoundSection?.classList.toggle('hidden', !showImagenes);
     }
     accountTabButtons.forEach(btn => {
-      const active = btn.dataset.accountTab === tab;
+      const active = btn.dataset.accountTab === normalized;
       btn.classList.toggle('btn-primary', active);
       btn.classList.toggle('btn-ghost', !active);
     });
-    if (tab === 'datos') {
-      history.replaceState(null, '', '#datos');
-    } else if (tab === 'imagenes') {
-      history.replaceState(null, '', '#imagenes');
-    }
+    if (showSorteos) renderAccountRaffles();
+    history.replaceState(null, '', '#' + normalized);
+  }
+
+  function renderAccountRaffles() {
+    if (!accountRafflesGrid) return;
+    const raffles = (window.SURTEADOS_DATA?.raffles || []).slice().sort((a, b) => {
+      const rank = { active: 0, soon: 1, ended: 2 };
+      return (rank[a.status] ?? 9) - (rank[b.status] ?? 9);
+    });
+    const list = accountRaffleFilter === 'active' ? raffles.filter(r => r.status === 'active' || r.status === 'soon') : raffles;
+    accountRafflesGrid.innerHTML = list.map(r => {
+      const statusMap = { active: 'Vigente', soon: 'Próximamente', ended: 'Finalizado' };
+      const statusClass = r.status === 'active' ? 'active' : r.status === 'soon' ? 'soon' : 'ended';
+      const img = r.image || r.image_url || '';
+      const minPack = (r.packs || []).slice().sort((a, b) => Number(a.price || 0) - Number(b.price || 0))[0];
+      return `
+        <div class="raffle-card">
+          <div class="raffle-card-img">
+            ${img ? `<img src="${escHtml(img)}" alt="${escHtml(r.title)}">` : `<span style="font-size:3rem;">${escHtml(r.imageEmoji || '🎁')}</span>`}
+            <span class="raffle-card-status ${statusClass}">${statusMap[r.status] || 'Sorteo'}</span>
+          </div>
+          <div class="raffle-card-body">
+            <div class="raffle-card-cat">${escHtml(r.category || 'General')}</div>
+            <div class="raffle-card-title">${escHtml(r.title || 'Sorteo')}</div>
+            <div class="raffle-card-value">${minPack ? `Desde ${formatPrice(minPack.price)}` : ''}</div>
+            <div class="raffle-card-actions">
+              <a class="btn btn-ghost btn-sm raffle-card-action" href="ver-sorteo.php?id=${encodeURIComponent(r.id)}">Ver sorteo</a>
+              ${r.status === 'active' ? `<a class="btn btn-primary btn-sm raffle-card-action" href="ver-sorteo.php?id=${encodeURIComponent(r.id)}#comprar">Comprar imagen</a>` : ''}
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('') || '<div class="empty-state"><h3 class="text-white">No hay sorteos para mostrar</h3></div>';
   }
 
   async function loadCaptcha() {
@@ -601,7 +752,10 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
         renderAccountProfile(authState);
         await loadMyTickets();
         const hash = (window.location.hash || '').replace('#', '').toLowerCase();
-        setAccountTab(hash === 'imagenes' ? 'imagenes' : 'datos');
+        setAccountTab(hash === 'imagenes' || hash === 'sorteos' ? hash : 'datos');
+        if (!authState.fullName || !authState.phone || !authState.address || !authState.rut || !authState.comuna) {
+          await showProfileForm(true);
+        }
       } else {
         authCard?.classList.remove('hidden');
         resultsSection.classList.add('hidden');
@@ -617,6 +771,59 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
   tabLogin?.addEventListener('click', () => setTab('login'));
   tabRegister?.addEventListener('click', () => setTab('register'));
   accountTabButtons.forEach(btn => btn.addEventListener('click', () => setAccountTab(btn.dataset.accountTab || 'datos')));
+  raffleFilterButtons.forEach(btn => btn.addEventListener('click', () => {
+    accountRaffleFilter = btn.dataset.filter || 'active';
+    raffleFilterButtons.forEach(b => {
+      const active = b === btn;
+      b.classList.toggle('btn-primary', active);
+      b.classList.toggle('btn-ghost', !active);
+    });
+    renderAccountRaffles();
+  }));
+  editProfileBtn?.addEventListener('click', () => showProfileForm(false));
+  cancelProfileBtn?.addEventListener('click', hideProfileForm);
+  accRegion?.addEventListener('change', () => fillAccountCommuneSelect(accRegion.value));
+  accRut?.addEventListener('blur', () => { accRut.value = formatRut(accRut.value); });
+
+  accountProfileForm?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const fullName = accFullName.value.trim();
+    const phone = accPhone.value.trim();
+    const address = accAddress.value.trim();
+    const rut = accRut.value.trim();
+    const comuna = selectedAccountCommunePayload();
+    if (!fullName || !phone || !address || !rut || !comuna.id || !comuna.name) {
+      showToast('Completa todos tus datos', 'warning');
+      return;
+    }
+    if (!isValidRut(rut)) {
+      showToast('Ingresa un RUT chileno válido', 'warning');
+      return;
+    }
+    saveProfileBtn.disabled = true;
+    saveProfileBtn.textContent = 'Guardando...';
+    try {
+      const data = await authApi('update_profile', {
+        fullName,
+        phone,
+        address,
+        rut,
+        buyerComuna: comuna.name,
+        buyerCommuneId: comuna.id,
+      });
+      authState = { ...authState, ...data };
+      renderAccountProfile(authState);
+      const customerMenuName = document.querySelector('.customer-menu-name');
+      if (customerMenuName) customerMenuName.textContent = authState.fullName || authState.email || 'Mis datos';
+      hideProfileForm();
+      showToast('Datos actualizados', 'success');
+    } catch (e) {
+      showToast(e.message, 'error');
+    } finally {
+      saveProfileBtn.disabled = false;
+      saveProfileBtn.textContent = 'Guardar datos';
+    }
+  });
   refreshCaptchaBtn?.addEventListener('click', loadCaptcha);
   googleLoginBtn?.addEventListener('click', startGoogleAuth);
   googleRegisterBtn?.addEventListener('click', startGoogleAuth);

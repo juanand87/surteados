@@ -181,7 +181,7 @@ if ($method === 'GET' && $action === 'session') {
         try {
             $pdoSession = db();
             ensure_customer_auth_schema($pdoSession);
-            $stmt = $pdoSession->prepare('SELECT id, username, email, full_name, phone, address, comuna, rut, status, auth_provider, email_verified_at FROM customer_users WHERE email = ? LIMIT 1');
+            $stmt = $pdoSession->prepare('SELECT id, username, email, full_name, phone, address, commune_id, comuna, rut, status, auth_provider, email_verified_at FROM customer_users WHERE email = ? LIMIT 1');
             $stmt->execute([$email]);
             $user = $stmt->fetch();
         } catch (Throwable $e) {
@@ -195,6 +195,7 @@ if ($method === 'GET' && $action === 'session') {
             'fullName' => $user['full_name'] ?? '',
             'phone' => $user['phone'] ?? '',
             'address' => $user['address'] ?? '',
+            'communeId' => $user['commune_id'] ?? '',
             'comuna' => $user['comuna'] ?? '',
             'rut' => $user['rut'] ?? '',
             'status' => $user['status'] ?? '',
@@ -437,6 +438,46 @@ if ($action === 'login') {
 
     set_client_auth($user);
     json_ok(['authenticated' => true, 'email' => $user['email'], 'username' => $user['username']]);
+}
+
+if ($action === 'update_profile') {
+    start_client_auth_session();
+    $email = strtolower(trim((string)($_SESSION['client_auth_email'] ?? '')));
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        json_error('No autorizado', 401);
+    }
+
+    $fullName = trim((string)($b['fullName'] ?? ''));
+    $phone = trim((string)($b['phone'] ?? ''));
+    $address = trim((string)($b['address'] ?? ''));
+    $buyerComuna = trim((string)($b['buyerComuna'] ?? ''));
+    $buyerCommuneId = $b['buyerCommuneId'] ?? null;
+    $rut = trim((string)($b['rut'] ?? ''));
+
+    if ($fullName === '' || $phone === '' || $address === '' || $buyerComuna === '' || $rut === '') {
+        json_error('Completa todos los datos obligatorios');
+    }
+    if (!is_valid_chilean_rut($rut)) json_error('RUT chileno invalido');
+    $rut = normalize_chilean_rut($rut);
+    $commune = surteados_resolve_commune($pdo, $buyerCommuneId, $buyerComuna);
+
+    $stmt = $pdo->prepare(
+        'UPDATE customer_users
+            SET full_name = ?, phone = ?, address = ?, commune_id = ?, comuna = ?, rut = ?
+          WHERE email = ?'
+    );
+    $stmt->execute([$fullName, $phone, $address, $commune['id'], $commune['name'], $rut, $email]);
+
+    json_ok([
+        'updated' => true,
+        'email' => $email,
+        'fullName' => $fullName,
+        'phone' => $phone,
+        'address' => $address,
+        'communeId' => $commune['id'],
+        'comuna' => $commune['name'],
+        'rut' => $rut,
+    ]);
 }
 
 if ($action === 'logout') {
