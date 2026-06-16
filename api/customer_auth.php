@@ -176,10 +176,30 @@ if ($action === 'captcha') {
 if ($method === 'GET' && $action === 'session') {
     start_client_auth_session();
     if (!empty($_SESSION['client_auth_email'])) {
+        $email = strtolower(trim((string)$_SESSION['client_auth_email']));
+        $user = null;
+        try {
+            $pdoSession = db();
+            ensure_customer_auth_schema($pdoSession);
+            $stmt = $pdoSession->prepare('SELECT id, username, email, full_name, phone, address, comuna, rut, status, auth_provider, email_verified_at FROM customer_users WHERE email = ? LIMIT 1');
+            $stmt->execute([$email]);
+            $user = $stmt->fetch();
+        } catch (Throwable $e) {
+            $user = null;
+        }
         json_ok([
             'authenticated' => true,
-            'email' => $_SESSION['client_auth_email'],
-            'username' => $_SESSION['client_username'] ?? null,
+            'id' => $user['id'] ?? ($_SESSION['client_user_id'] ?? null),
+            'email' => $user['email'] ?? $email,
+            'username' => $user['username'] ?? ($_SESSION['client_username'] ?? null),
+            'fullName' => $user['full_name'] ?? '',
+            'phone' => $user['phone'] ?? '',
+            'address' => $user['address'] ?? '',
+            'comuna' => $user['comuna'] ?? '',
+            'rut' => $user['rut'] ?? '',
+            'status' => $user['status'] ?? '',
+            'authProvider' => $user['auth_provider'] ?? '',
+            'emailVerifiedAt' => $user['email_verified_at'] ?? '',
         ]);
     }
     json_ok(['authenticated' => false]);

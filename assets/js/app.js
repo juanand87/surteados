@@ -101,6 +101,56 @@ function selectedCommunePayload() {
   };
 }
 
+async function loadCustomerSession() {
+  try {
+    const resp = await fetch('api/customer_auth.php?action=session', { credentials: 'same-origin' });
+    const text = await resp.text();
+    const json = JSON.parse(text);
+    return json.ok ? json.data : { authenticated: false };
+  } catch (_) {
+    return { authenticated: false };
+  }
+}
+
+function setupCustomerNav() {
+  const actions = document.querySelector('.navbar-actions');
+  if (!actions || actions.dataset.customerNavReady === '1') return;
+  actions.dataset.customerNavReady = '1';
+
+  loadCustomerSession().then(session => {
+    if (!session?.authenticated) return;
+    actions.querySelectorAll('a[href*="mis-imagenes.php#login"], a[href*="mis-imagenes.php#register"]').forEach(el => el.remove());
+    if (actions.querySelector('.customer-menu')) return;
+
+    const label = session.fullName || session.username || session.email || 'Mis datos';
+    const wrap = document.createElement('div');
+    wrap.className = 'customer-menu';
+    wrap.innerHTML = `
+      <button type="button" class="btn btn-outline btn-sm customer-menu-btn" aria-expanded="false">&#128100; Mis datos</button>
+      <div class="customer-menu-panel" role="menu">
+        <div class="customer-menu-name">${escHtml(label)}</div>
+        <a href="mis-imagenes.php#datos" role="menuitem">Mis datos</a>
+        <a href="mis-imagenes.php#imagenes" role="menuitem">Mis im?genes</a>
+        <a href="sorteos.php" role="menuitem">Sorteos</a>
+      </div>
+    `;
+    actions.insertBefore(wrap, actions.firstChild);
+
+    const btn = wrap.querySelector('.customer-menu-btn');
+    btn?.addEventListener('click', (event) => {
+      event.stopPropagation();
+      wrap.classList.toggle('open');
+      btn.setAttribute('aria-expanded', wrap.classList.contains('open') ? 'true' : 'false');
+    });
+    document.addEventListener('click', () => {
+      wrap.classList.remove('open');
+      btn?.setAttribute('aria-expanded', 'false');
+    });
+  });
+}
+
+document.addEventListener('DOMContentLoaded', setupCustomerNav);
+
 // ─── Apply server theme & logo (before any render) ───────────────────────────
 (function() {
   const settings = window.SURTEADOS_DATA?.settings;

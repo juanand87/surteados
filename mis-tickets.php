@@ -70,7 +70,7 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
 
   <section class="section container" style="max-width:800px;">
     <!-- Auth form -->
-    <div class="card mb-4" style="padding:2rem;">
+    <div class="card mb-4" id="authCard" style="padding:2rem;">
       <h3 class="text-white mb-2">🔐 Acceder a mis <?= htmlspecialchars($ticketLabelP) ?></h3>
       <p class="mb-3">Elige tu método de acceso:</p>
 
@@ -172,6 +172,20 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
 
     <!-- Results -->
     <div id="resultsSection" class="hidden">
+      <div class="card mb-4" style="padding:1.25rem;">
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem;">
+          <button class="btn btn-primary btn-sm account-tab-btn" data-account-tab="datos">Mis datos</button>
+          <button class="btn btn-ghost btn-sm account-tab-btn" data-account-tab="imagenes">Mis imágenes</button>
+          <a href="sorteos.php" class="btn btn-ghost btn-sm">Sorteos</a>
+        </div>
+
+        <div id="accountDatosPanel">
+          <h3 class="text-white mb-2">Mis datos</h3>
+          <div class="grid-2" id="accountProfileGrid"></div>
+        </div>
+      </div>
+
+      <div id="accountImagenesPanel">
       <div class="flex-between mb-3">
         <h3 class="text-white" id="resultsTitle">Tus <?= htmlspecialchars($ticketLabelP) ?></h3>
         <div style="display:flex;gap:.55rem;align-items:center;flex-wrap:wrap;justify-content:flex-end;">
@@ -182,6 +196,7 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
 
       <!-- Grouped by raffle -->
       <div id="ticketsList"></div>
+      </div>
     </div>
 
     <!-- Not found -->
@@ -257,6 +272,7 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
   const panelCode = document.getElementById('panelCode');
   const panelLogin = document.getElementById('panelLogin');
   const panelRegister = document.getElementById('panelRegister');
+  const authCard = document.getElementById('authCard');
 
   const authEmail = document.getElementById('authEmail');
   const authCode = document.getElementById('authCode');
@@ -300,10 +316,15 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
   const resultsTitle = document.getElementById('resultsTitle');
   const resultsCount = document.getElementById('resultsCount');
   const tipsSection = document.getElementById('tipsSection');
+  const accountProfileGrid = document.getElementById('accountProfileGrid');
+  const accountDatosPanel = document.getElementById('accountDatosPanel');
+  const accountImagenesPanel = document.getElementById('accountImagenesPanel');
+  const accountTabButtons = Array.from(document.querySelectorAll('.account-tab-btn'));
 
   let authState = null;
   let pendingCodeEmail = '';
   let pendingRegisterEmail = '';
+  let lastTicketCount = 0;
 
   function cleanRut(value) {
     return String(value || '').replace(/[^0-9kK]/g, '').toUpperCase();
@@ -416,6 +437,45 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
     setTimeout(() => registerCode?.focus(), 80);
   }
 
+  function renderAccountProfile(user) {
+    if (!accountProfileGrid) return;
+    const rows = [
+      ['Nombre', user.fullName || 'No informado'],
+      ['Correo', user.email || 'No informado'],
+      ['RUT', user.rut || 'No informado'],
+      ['Teléfono', user.phone || 'No informado'],
+      ['Dirección', user.address || 'No informada'],
+      ['Comuna', user.comuna || 'No informada'],
+      ['Ingreso', user.authProvider === 'google' ? 'Google' : 'Correo y clave'],
+      ['Verificación', user.emailVerifiedAt ? 'Correo verificado' : 'Pendiente'],
+    ];
+    accountProfileGrid.innerHTML = rows.map(([label, value]) => `
+      <div class="card" style="padding:1rem;background:rgba(255,255,255,.04);">
+        <div class="text-sm" style="color:var(--text-muted);font-weight:700;">${escHtml(label)}</div>
+        <div style="color:var(--text-inv);font-weight:800;margin-top:.25rem;word-break:break-word;">${escHtml(value)}</div>
+      </div>
+    `).join('');
+  }
+
+  function setAccountTab(tab) {
+    const showDatos = tab === 'datos';
+    accountDatosPanel?.classList.toggle('hidden', !showDatos);
+    accountImagenesPanel?.classList.toggle('hidden', showDatos);
+    if (lastTicketCount === 0) {
+      notFoundSection?.classList.toggle('hidden', showDatos);
+    }
+    accountTabButtons.forEach(btn => {
+      const active = btn.dataset.accountTab === tab;
+      btn.classList.toggle('btn-primary', active);
+      btn.classList.toggle('btn-ghost', !active);
+    });
+    if (tab === 'datos') {
+      history.replaceState(null, '', '#datos');
+    } else if (tab === 'imagenes') {
+      history.replaceState(null, '', '#imagenes');
+    }
+  }
+
   async function loadCaptcha() {
     if (!regCaptchaQuestion) return;
     try {
@@ -444,11 +504,13 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
   }
 
   function renderTickets(tickets, email) {
+    lastTicketCount = tickets.length;
     resultsSection.classList.add('hidden');
     notFoundSection.classList.add('hidden');
     tipsSection.classList.add('hidden');
 
     if (tickets.length === 0) {
+      resultsSection.classList.remove('hidden');
       notFoundSection.classList.remove('hidden');
       return;
     }
@@ -535,8 +597,13 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
       const s = await authApi('session', {}, 'GET');
       authState = s.authenticated ? s : null;
       if (authState) {
+        authCard?.classList.add('hidden');
+        renderAccountProfile(authState);
         await loadMyTickets();
+        const hash = (window.location.hash || '').replace('#', '').toLowerCase();
+        setAccountTab(hash === 'imagenes' ? 'imagenes' : 'datos');
       } else {
+        authCard?.classList.remove('hidden');
         resultsSection.classList.add('hidden');
         notFoundSection.classList.add('hidden');
         tipsSection.classList.remove('hidden');
@@ -549,6 +616,7 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
   tabCode?.addEventListener('click', () => setTab('code'));
   tabLogin?.addEventListener('click', () => setTab('login'));
   tabRegister?.addEventListener('click', () => setTab('register'));
+  accountTabButtons.forEach(btn => btn.addEventListener('click', () => setAccountTab(btn.dataset.accountTab || 'datos')));
   refreshCaptchaBtn?.addEventListener('click', loadCaptcha);
   googleLoginBtn?.addEventListener('click', startGoogleAuth);
   googleRegisterBtn?.addEventListener('click', startGoogleAuth);
@@ -708,6 +776,8 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
       authState = null;
       ticketsList.innerHTML = '';
       showToast('Sesión cerrada', 'success');
+      authCard?.classList.remove('hidden');
+      document.querySelector('.customer-menu')?.remove();
       resultsSection.classList.add('hidden');
       notFoundSection.classList.add('hidden');
       tipsSection.classList.remove('hidden');
