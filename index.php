@@ -351,11 +351,11 @@ if (!empty($cfg['heroSliderEnabled']) && !empty($cfg['heroSlides']) && is_array(
       <a href="sorteos.php">Sorteos</a>
       <a href="como-participar.php">¿Cómo participar?</a>
       <a href="ganadores.php">Ganadores</a>
-        <a href="mis-tickets.php">Mis <?= htmlspecialchars(ucfirst($ticketLabelP)) ?></a>
+        <a href="mis-imagenes.php">Mis im&aacute;genes</a>
     </nav>
     <div class="navbar-actions">
-      <a href="mis-tickets.php#login" class="btn btn-outline btn-sm">Iniciar sesión</a>
-      <a href="mis-tickets.php#register" class="btn btn-primary btn-sm">Registrarse</a>
+      <a href="mis-imagenes.php#login" class="btn btn-outline btn-sm">Iniciar sesión</a>
+      <a href="mis-imagenes.php#register" class="btn btn-primary btn-sm">Registrarse</a>
       <button class="cart-chip-btn" id="cartOpenBtn" onclick="openCartDrawer()">🛒 Carro <span class="cart-chip-count" id="cartCountNav">0</span></button>
     </div>
     <button class="navbar-mobile-toggle" id="mobileToggle" aria-label="Menú">
@@ -367,7 +367,7 @@ if (!empty($cfg['heroSliderEnabled']) && !empty($cfg['heroSlides']) && is_array(
     <a href="sorteos.php">🎟️ Sorteos</a>
     <a href="como-participar.php">🧭 ¿Cómo participar?</a>
     <a href="ganadores.php">🏆 Ganadores</a>
-      <a href="mis-tickets.php">🎫 Mis <?= htmlspecialchars(ucfirst($ticketLabelP)) ?></a>
+      <a href="mis-imagenes.php">🎫 Mis im&aacute;genes</a>
     <a href="panel/">⚙️ Admin</a>
   </div>
 </nav>
@@ -592,7 +592,7 @@ if (!empty($cfg['heroSliderEnabled']) && !empty($cfg['heroSlides']) && is_array(
         <a href="sorteos.php">Sorteos activos</a>
         <a href="sorteos.php?filter=soon">Próximamente</a>
         <a href="ganadores.php">Ganadores</a>
-        <a href="mis-tickets.php">Recuperar <?= htmlspecialchars($ticketLabelP) ?></a>
+        <a href="mis-imagenes.php">Recuperar <?= htmlspecialchars($ticketLabelP) ?></a>
       </div>
       <div class="footer-col">
         <h5>Información</h5>

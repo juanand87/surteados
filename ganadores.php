@@ -43,11 +43,11 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'tickets';
       <a href="sorteos.php">Sorteos</a>
       <a href="como-participar.php">¿Cómo participar?</a>
       <a href="ganadores.php" class="active">Ganadores</a>
-        <a href="mis-tickets.php">Mis <?= htmlspecialchars(ucfirst($ticketLabelP)) ?></a>
+        <a href="mis-imagenes.php">Mis im&aacute;genes</a>
     </nav>
     <div class="navbar-actions">
-      <a href="mis-tickets.php#login" class="btn btn-outline btn-sm">Iniciar sesión</a>
-      <a href="mis-tickets.php#register" class="btn btn-primary btn-sm">Registrarse</a>
+      <a href="mis-imagenes.php#login" class="btn btn-outline btn-sm">Iniciar sesión</a>
+      <a href="mis-imagenes.php#register" class="btn btn-primary btn-sm">Registrarse</a>
     </div>
     <button class="navbar-mobile-toggle" id="mobileToggle"><span></span><span></span><span></span></button>
   </div>
@@ -56,7 +56,7 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'tickets';
     <a href="sorteos.php">🎟️ Sorteos</a>
     <a href="como-participar.php">🧭 ¿Cómo participar?</a>
     <a href="ganadores.php">🏆 Ganadores</a>
-      <a href="mis-tickets.php">🎫 Mis <?= htmlspecialchars(ucfirst($ticketLabelP)) ?></a>
+      <a href="mis-imagenes.php">🎫 Mis im&aacute;genes</a>
   </div>
 </nav>
 

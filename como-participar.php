@@ -52,11 +52,11 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'tickets';
       <a href="sorteos.php">Sorteos</a>
       <a href="como-participar.php" class="active">¿Cómo participar?</a>
       <a href="ganadores.php">Ganadores</a>
-        <a href="mis-tickets.php">Mis <?= htmlspecialchars(ucfirst($ticketLabelP)) ?></a>
+        <a href="mis-imagenes.php">Mis im&aacute;genes</a>
     </nav>
     <div class="navbar-actions">
-      <a href="mis-tickets.php#login" class="btn btn-outline btn-sm">Iniciar sesión</a>
-      <a href="mis-tickets.php#register" class="btn btn-primary btn-sm">Registrarse</a>
+      <a href="mis-imagenes.php#login" class="btn btn-outline btn-sm">Iniciar sesión</a>
+      <a href="mis-imagenes.php#register" class="btn btn-primary btn-sm">Registrarse</a>
       <button class="cart-chip-btn" id="cartOpenBtn" onclick="openCartDrawer()">🛒 Carro <span class="cart-chip-count" id="cartCountNav">0</span></button>
     </div>
     <button class="navbar-mobile-toggle" id="mobileToggle" aria-label="Menú">
@@ -68,7 +68,7 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'tickets';
     <a href="sorteos.php">🎟️ Sorteos</a>
     <a href="como-participar.php" class="active">🧭 ¿Cómo participar?</a>
     <a href="ganadores.php">🏆 Ganadores</a>
-      <a href="mis-tickets.php">🎫 Mis <?= htmlspecialchars(ucfirst($ticketLabelP)) ?></a>
+      <a href="mis-imagenes.php">🎫 Mis im&aacute;genes</a>
     <a href="panel/">⚙️ Admin</a>
   </div>
 </nav>
@@ -171,7 +171,7 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'tickets';
           </ul>
           <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-top:.75rem;">
             <a href="sorteos.php" class="btn btn-accent btn-sm">Comprar ahora 🎟️</a>
-            <a href="mis-tickets.php" class="btn btn-outline btn-sm">Ver mis <?= htmlspecialchars($ticketLabelP) ?></a>
+            <a href="mis-imagenes.php" class="btn btn-outline btn-sm">Ver mis <?= htmlspecialchars($ticketLabelP) ?></a>
           </div>
         </div>
       </div>
@@ -201,12 +201,12 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'tickets';
 
         <details class="faq-item">
           <summary>¿Necesito crear una cuenta para participar?</summary>
-          <p>No es obligatorio. Puedes comprar solo con tus datos de contacto. Para revisar tus <?= htmlspecialchars($ticketLabelP) ?>, puedes ingresar en <a href="mis-tickets.php">Mis <?= htmlspecialchars(ucfirst($ticketLabelP)) ?></a> con un código enviado a tu correo o crear una cuenta con usuario y contraseña.</p>
+          <p>No es obligatorio. Puedes comprar solo con tus datos de contacto. Para revisar tus <?= htmlspecialchars($ticketLabelP) ?>, puedes ingresar en <a href="mis-imagenes.php">Mis im&aacute;genes</a> con un código enviado a tu correo o registrar tus datos.</p>
         </details>
 
         <details class="faq-item">
           <summary>¿Qué pasa si no recibo el correo con mis <?= htmlspecialchars($ticketLabelP) ?>?</summary>
-          <p>Primero revisa la carpeta de spam o correo no deseado. Si tampoco está ahí, entra en <a href="mis-tickets.php">Mis <?= htmlspecialchars(ucfirst($ticketLabelP)) ?></a>, solicita un código de acceso a tu correo o inicia sesión con tu cuenta. Si el problema persiste, escríbenos a <a href="mailto:contacto@surteados.cl">contacto@surteados.cl</a>.</p>
+          <p>Primero revisa la carpeta de spam o correo no deseado. Si tampoco está ahí, entra en <a href="mis-imagenes.php">Mis im&aacute;genes</a>, solicita un código de acceso a tu correo o inicia sesión con tu cuenta. Si el problema persiste, escríbenos a <a href="mailto:contacto@surteados.cl">contacto@surteados.cl</a>.</p>
         </details>
 
         <details class="faq-item">

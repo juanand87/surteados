@@ -11,14 +11,14 @@ $initData = json_encode($allData, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_H
 $cfg      = $allData['settings'] ?? [];
 $theme    = $cfg['theme'] ?? [];
 $siteLogo = $cfg['logo'] ?? null;
-$ticketLabel  = $cfg['ticketLabel']       ?? 'ticket';
-$ticketLabelP = $cfg['ticketLabelPlural'] ?? 'tickets';
+$ticketLabel  = $cfg['ticketLabel']       ?? 'imagen';
+$ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
 ?><!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mis <?= htmlspecialchars(ucfirst($ticketLabelP)) ?> — Surteados</title>
+  <title>Mis imágenes — Surteados</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/styles.css">
@@ -43,7 +43,7 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'tickets';
       <a href="sorteos.php">Sorteos</a>
       <a href="como-participar.php">¿Cómo participar?</a>
       <a href="ganadores.php">Ganadores</a>
-      <a href="mis-tickets.php" class="active">Mis <?= htmlspecialchars(ucfirst($ticketLabelP)) ?></a>
+      <a href="mis-imagenes.php" class="active">Mis imágenes</a>
     </nav>
     <div class="navbar-actions">
       <a href="sorteos.php" class="btn btn-primary btn-sm">Participar 🎟️</a>
@@ -55,16 +55,16 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'tickets';
     <a href="sorteos.php">🎟️ Sorteos</a>
     <a href="como-participar.php">🧭 ¿Cómo participar?</a>
     <a href="ganadores.php">🏆 Ganadores</a>
-    <a href="mis-tickets.php">🎫 Mis <?= htmlspecialchars(ucfirst($ticketLabelP)) ?></a>
+    <a href="mis-imagenes.php">🎫 Mis imágenes</a>
   </div>
 </nav>
 
 <div style="padding-top:68px;">
   <div class="page-header">
     <div class="container text-center">
-      <div class="badge" style="margin:0 auto 1rem; display:inline-flex;">🎫 Mis <?= htmlspecialchars(ucfirst($ticketLabelP)) ?></div>
-      <h1>Consultar <span class="text-gradient">Mis <?= htmlspecialchars(ucfirst($ticketLabelP)) ?></span></h1>
-      <p style="max-width:640px; margin:.75rem auto 0;">Para proteger tu información, accede con un código enviado a tu correo o con tu cuenta de usuario y contraseña.</p>
+      <div class="badge" style="margin:0 auto 1rem; display:inline-flex;">🎫 Mis imágenes</div>
+      <h1>Consultar <span class="text-gradient">Mis imágenes</span></h1>
+      <p style="max-width:640px; margin:.75rem auto 0;">Para proteger tu información, accede con un código enviado a tu correo o con tu cuenta existente.</p>
     </div>
   </div>
 
@@ -103,12 +103,33 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'tickets';
 
       <div id="panelRegister" class="hidden">
         <div class="form-row">
-          <div class="form-group"><label class="form-label">Usuario *</label><input type="text" id="regUsername" class="form-control" placeholder="usuario_123"></div>
-          <div class="form-group"><label class="form-label">Correo electrónico *</label><input type="email" id="regEmail" class="form-control" placeholder="tu@correo.com"></div>
+          <div class="form-group"><label class="form-label">Nombre completo *</label><input type="text" id="regFullName" class="form-control" placeholder="Juan Pérez"></div>
+          <div class="form-group"><label class="form-label">Teléfono *</label><input type="tel" id="regPhone" class="form-control" placeholder="+56 9 1234 5678"></div>
         </div>
         <div class="form-row">
-          <div class="form-group"><label class="form-label">Contraseña *</label><input type="password" id="regPassword" class="form-control" placeholder="Mínimo 8 caracteres"></div>
-          <div class="form-group"><label class="form-label">Confirmar contraseña *</label><input type="password" id="regPassword2" class="form-control" placeholder="Repite la contraseña"></div>
+          <div class="form-group"><label class="form-label">Dirección *</label><input type="text" id="regAddress" class="form-control" placeholder="Av. Siempre Viva 123"></div>
+          <div class="form-group">
+            <label class="form-label">Región *</label>
+            <select class="form-control" id="buyerRegion" required>
+              <option value="">Selecciona tu región</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Comuna / ciudad *</label>
+          <select class="form-control" id="buyerComuna" required disabled>
+            <option value="">Primero selecciona una región</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">RUT *</label><input type="text" id="regRut" class="form-control" placeholder="12.345.678-5" autocomplete="off"><p class="form-hint">🇨🇱 Ingresa tu RUT chileno válido.</p></div>
+        <div class="form-group"><label class="form-label">Correo electrónico *</label><input type="email" id="regEmail" class="form-control" placeholder="tu@correo.com"></div>
+        <div class="form-group">
+          <label class="form-label">Captcha *</label>
+          <div style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;">
+            <span class="pill pill-purple" id="regCaptchaQuestion">Cargando...</span>
+            <input type="number" id="regCaptcha" class="form-control" placeholder="Respuesta" style="max-width:160px;">
+            <button type="button" class="btn btn-ghost btn-sm" id="refreshCaptchaBtn">Cambiar</button>
+          </div>
         </div>
         <button class="btn btn-primary" id="registerBtn">Crear cuenta</button>
       </div>
@@ -212,10 +233,14 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'tickets';
   const loginPassword = document.getElementById('loginPassword');
   const loginBtn = document.getElementById('loginBtn');
 
-  const regUsername = document.getElementById('regUsername');
+  const regFullName = document.getElementById('regFullName');
+  const regPhone = document.getElementById('regPhone');
+  const regAddress = document.getElementById('regAddress');
+  const regRut = document.getElementById('regRut');
   const regEmail = document.getElementById('regEmail');
-  const regPassword = document.getElementById('regPassword');
-  const regPassword2 = document.getElementById('regPassword2');
+  const regCaptcha = document.getElementById('regCaptcha');
+  const regCaptchaQuestion = document.getElementById('regCaptchaQuestion');
+  const refreshCaptchaBtn = document.getElementById('refreshCaptchaBtn');
   const registerBtn = document.getElementById('registerBtn');
 
   const logoutBtn = document.getElementById('logoutBtn');
@@ -239,21 +264,39 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'tickets';
     tabLogin.classList.toggle('btn-ghost', tab !== 'login');
     tabRegister.classList.toggle('btn-primary', tab === 'register');
     tabRegister.classList.toggle('btn-ghost', tab !== 'register');
+    if (tab === 'register') loadCaptcha();
   }
 
   async function authApi(action, payload = {}, method = 'POST') {
-    const resp = await fetch('/surteados/api/customer_auth.php?action=' + encodeURIComponent(action), {
+    const resp = await fetch('api/customer_auth.php?action=' + encodeURIComponent(action), {
       method,
       headers: { 'Content-Type': 'application/json' },
       body: method === 'POST' ? JSON.stringify(payload) : undefined,
     });
-    const json = await resp.json();
+    const text = await resp.text();
+    let json;
+    try {
+      json = JSON.parse(text);
+    } catch (_) {
+      throw new Error('El servidor no devolvió JSON válido. Revisa la ruta o el error PHP del servidor.');
+    }
     if (!json.ok) throw new Error(json.error || 'Error de autenticación');
     return json.data;
   }
 
+  async function loadCaptcha() {
+    if (!regCaptchaQuestion) return;
+    try {
+      const data = await authApi('captcha', {}, 'GET');
+      regCaptchaQuestion.textContent = data.question || 'Captcha';
+      if (regCaptcha) regCaptcha.value = '';
+    } catch (e) {
+      regCaptchaQuestion.textContent = 'No disponible';
+    }
+  }
+
   async function loadMyTickets() {
-    const resp = await fetch('/surteados/api/tickets.php?my=1');
+    const resp = await fetch('api/tickets.php?my=1');
     const json = await resp.json();
     if (!json.ok) throw new Error(json.error || 'No se pudieron cargar los tickets');
 
@@ -375,6 +418,7 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'tickets';
   tabCode?.addEventListener('click', () => setTab('code'));
   tabLogin?.addEventListener('click', () => setTab('login'));
   tabRegister?.addEventListener('click', () => setTab('register'));
+  refreshCaptchaBtn?.addEventListener('click', loadCaptcha);
 
   sendCodeBtn?.addEventListener('click', async () => {
     const email = authEmail.value.trim();
@@ -389,7 +433,7 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'tickets';
       const data = await authApi('request_code', { email });
       codeHint.textContent = data.message || 'Código enviado. Revisa tu correo.';
       if (data.dev_code) codeHint.textContent += ` (DEV: ${data.dev_code})`;
-      showToast('Código enviado', 'success');
+      showToast(data.sent ? 'Código enviado' : (data.message || 'No se pudo enviar el correo'), data.sent ? 'success' : 'error');
     } catch (e) {
       showToast(e.message, 'error');
     } finally {
@@ -431,25 +475,34 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'tickets';
   });
 
   registerBtn?.addEventListener('click', async () => {
-    const username = regUsername.value.trim();
+    const fullName = regFullName.value.trim();
+    const phone = regPhone.value.trim();
+    const address = regAddress.value.trim();
+    const rut = regRut.value.trim();
     const email = regEmail.value.trim();
-    const password = regPassword.value;
-    const password2 = regPassword2.value;
+    const captcha = regCaptcha.value.trim();
+    const comuna = typeof selectedCommunePayload === 'function' ? selectedCommunePayload() : null;
 
-    if (!username || !email || !password || !password2) {
+    if (!fullName || !phone || !address || !rut || !email || !captcha || !comuna?.id || !comuna?.name) {
       showToast('Completa todos los campos del registro', 'warning');
       return;
     }
-    if (password !== password2) {
-      showToast('Las contraseñas no coinciden', 'warning');
-      return;
-    }
     try {
-      await authApi('register', { username, email, password });
+      await authApi('register', {
+        fullName,
+        phone,
+        address,
+        rut,
+        email,
+        captcha,
+        buyerComuna: comuna.name,
+        buyerCommuneId: comuna.id,
+      });
       showToast('Cuenta creada y sesión iniciada', 'success');
       await refreshSessionAndData();
     } catch (e) {
       showToast(e.message, 'error');
+      await loadCaptcha();
     }
   });
 

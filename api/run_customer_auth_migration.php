@@ -10,6 +10,12 @@ try {
       id           INT AUTO_INCREMENT PRIMARY KEY,
       username     VARCHAR(50)  NOT NULL UNIQUE,
       email        VARCHAR(150) NOT NULL UNIQUE,
+      full_name    VARCHAR(180) NULL,
+      phone        VARCHAR(40) NULL,
+      address      VARCHAR(255) NULL,
+      commune_id   INT NULL,
+      comuna       VARCHAR(120) NULL,
+      rut          VARCHAR(30) NULL,
       password     VARCHAR(255) NOT NULL,
       created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
@@ -25,6 +31,23 @@ try {
       INDEX idx_email_exp (email, expires_at),
       INDEX idx_used_at (used_at)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+    $cols = $pdo->query("SHOW COLUMNS FROM customer_users")->fetchAll();
+    $existing = array_column($cols, 'Field');
+    $adds = [
+        'full_name' => "ALTER TABLE customer_users ADD COLUMN full_name VARCHAR(180) NULL AFTER email",
+        'phone' => "ALTER TABLE customer_users ADD COLUMN phone VARCHAR(40) NULL AFTER full_name",
+        'address' => "ALTER TABLE customer_users ADD COLUMN address VARCHAR(255) NULL AFTER phone",
+        'commune_id' => "ALTER TABLE customer_users ADD COLUMN commune_id INT NULL AFTER address",
+        'comuna' => "ALTER TABLE customer_users ADD COLUMN comuna VARCHAR(120) NULL AFTER commune_id",
+        'rut' => "ALTER TABLE customer_users ADD COLUMN rut VARCHAR(30) NULL AFTER comuna",
+    ];
+    foreach ($adds as $field => $sql) {
+        if (!in_array($field, $existing, true)) {
+            $pdo->exec($sql);
+            echo "OK: {$field} agregado" . PHP_EOL;
+        }
+    }
 
     echo "OK: customer_users and ticket_access_codes are ready." . PHP_EOL;
 } catch (Throwable $e) {
