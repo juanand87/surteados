@@ -86,6 +86,7 @@ DROP TABLE IF EXISTS ticket_number_sequence;
 
 CREATE TABLE raffles (
   id                  VARCHAR(25)  PRIMARY KEY,
+  raffle_number       INT UNSIGNED DEFAULT NULL,
   title               VARCHAR(200) NOT NULL,
   category            VARCHAR(100) DEFAULT 'General',
   description         TEXT,
@@ -106,6 +107,7 @@ CREATE TABLE raffles (
   meet_link           VARCHAR(500),
   created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_raffle_number (raffle_number),
   INDEX idx_status (status),
   INDEX idx_featured (featured)
 ) ENGINE=InnoDB;

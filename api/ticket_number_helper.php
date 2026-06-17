@@ -1,7 +1,7 @@
 <?php
 /**
- * Central sequential image/ticket number allocator.
- * Numbers are unique globally across all raffles and all payment methods.
+ * Central image/ticket number allocator.
+ * New numbers use raffleNumber-random8digits and stay unique globally.
  */
 
 function surteados_ensure_ticket_number_tables(PDO $pdo): void
@@ -25,16 +25,87 @@ function surteados_ensure_ticket_number_tables(PDO $pdo): void
         INDEX idx_raffle_id (raffle_id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
+    surteados_ensure_raffle_number_column($pdo);
     surteados_seed_existing_ticket_numbers($pdo);
 
-    $max = (int)$pdo->query('SELECT COALESCE(MAX(CAST(number AS UNSIGNED)), 0) FROM ticket_number_registry')->fetchColumn();
-    $next = max(1, $max + 1);
     $stmt = $pdo->prepare(
-        "INSERT INTO ticket_number_sequence (id, next_number) VALUES (1, ?)
-         ON DUPLICATE KEY UPDATE next_number = GREATEST(next_number, VALUES(next_number))"
+        "INSERT INTO ticket_number_sequence (id, next_number) VALUES (1, 1)
+         ON DUPLICATE KEY UPDATE next_number = next_number"
     );
-    $stmt->execute([$next]);
+    $stmt->execute();
     $ensured = true;
+}
+
+function surteados_ensure_raffle_number_column(PDO $pdo): void
+{
+    $column = $pdo->query("SHOW COLUMNS FROM raffles LIKE 'raffle_number'")->fetch();
+    if (!$column) {
+        $pdo->exec("ALTER TABLE raffles ADD COLUMN raffle_number INT UNSIGNED NULL AFTER id");
+        surteados_backfill_raffle_numbers($pdo);
+    }
+
+    $index = $pdo->query("SHOW INDEX FROM raffles WHERE Key_name = 'uq_raffle_number'")->fetch();
+    if (!$index) {
+        surteados_backfill_raffle_numbers($pdo);
+        $pdo->exec("ALTER TABLE raffles ADD UNIQUE KEY uq_raffle_number (raffle_number)");
+    }
+}
+
+function surteados_backfill_raffle_numbers(PDO $pdo): void
+{
+    $next = (int)$pdo->query('SELECT COALESCE(MAX(raffle_number), 0) + 1 FROM raffles')->fetchColumn();
+    $rows = $pdo->query(
+        "SELECT id
+           FROM raffles
+          WHERE raffle_number IS NULL
+          ORDER BY created_at ASC, id ASC"
+    )->fetchAll();
+    if (!$rows) return;
+
+    $upd = $pdo->prepare('UPDATE raffles SET raffle_number = ? WHERE id = ? AND raffle_number IS NULL');
+    foreach ($rows as $row) {
+        $upd->execute([$next, $row['id']]);
+        $next++;
+    }
+}
+
+function surteados_get_raffle_number(PDO $pdo, string $raffleId): int
+{
+    surteados_ensure_raffle_number_column($pdo);
+
+    $stmt = $pdo->prepare('SELECT raffle_number FROM raffles WHERE id = ? FOR UPDATE');
+    $stmt->execute([$raffleId]);
+    $current = $stmt->fetchColumn();
+    if ($current !== false && (int)$current > 0) {
+        return (int)$current;
+    }
+
+    $exists = $pdo->prepare('SELECT COUNT(*) FROM raffles WHERE id = ?');
+    $exists->execute([$raffleId]);
+    if ((int)$exists->fetchColumn() < 1) {
+        throw new RuntimeException('Sorteo no encontrado para asignar numero de imagen.');
+    }
+
+    $upd = $pdo->prepare('UPDATE raffles SET raffle_number = ? WHERE id = ? AND raffle_number IS NULL');
+    for ($attempt = 0; $attempt < 10; $attempt++) {
+        $next = (int)$pdo->query('SELECT COALESCE(MAX(raffle_number), 0) + 1 FROM raffles')->fetchColumn();
+        try {
+            $upd->execute([$next, $raffleId]);
+            if ($upd->rowCount() > 0) {
+                return $next;
+            }
+        } catch (Throwable $e) {
+            // Another request may have taken the same raffle number. Retry with the next max.
+        }
+
+        $stmt->execute([$raffleId]);
+        $current = $stmt->fetchColumn();
+        if ($current !== false && (int)$current > 0) {
+            return (int)$current;
+        }
+    }
+
+    throw new RuntimeException('No se pudo asignar un numero unico al sorteo.');
 }
 
 function surteados_seed_existing_ticket_numbers(PDO $pdo): void
@@ -68,26 +139,29 @@ function surteados_allocate_ticket_numbers(PDO $pdo, string $ticketId, string $r
     if ($qty < 1) return [];
     surteados_ensure_ticket_number_tables($pdo);
 
-    $seq = $pdo->query('SELECT next_number FROM ticket_number_sequence WHERE id = 1 FOR UPDATE')->fetch();
-    $next = max(1, (int)($seq['next_number'] ?? 1));
+    $raffleNumber = surteados_get_raffle_number($pdo, $raffleId);
     $numbers = [];
     $insert = $pdo->prepare(
         "INSERT INTO ticket_number_registry (number, ticket_id, raffle_id)
          VALUES (?, ?, ?)"
     );
 
+    $attempts = 0;
+    $maxAttempts = max(100, $qty * 50);
     while (count($numbers) < $qty) {
-        $number = str_pad((string)$next, 6, '0', STR_PAD_LEFT);
-        $next++;
+        if ($attempts++ > $maxAttempts) {
+            throw new RuntimeException('No se pudo generar un numero unico de imagen. Intenta nuevamente.');
+        }
+
+        $series = str_pad((string)random_int(0, 99999999), 8, '0', STR_PAD_LEFT);
+        $number = $raffleNumber . '-' . $series;
         try {
             $insert->execute([$number, $ticketId, $raffleId]);
             $numbers[] = $number;
         } catch (Throwable $e) {
-            // In case legacy data already used this number, skip and keep moving.
+            // If the random series already exists, try another one.
         }
     }
 
-    $upd = $pdo->prepare('UPDATE ticket_number_sequence SET next_number = ? WHERE id = 1');
-    $upd->execute([$next]);
     return $numbers;
 }

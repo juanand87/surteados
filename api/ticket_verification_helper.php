@@ -104,6 +104,11 @@ function surteados_verify_ticket_token(PDO $pdo, string $token): array
 
 function surteados_ticket_number_label(string $number): string
 {
+    $trimmed = trim($number);
+    if (preg_match('/^\d+-\d{8}$/', $trimmed)) {
+        return $trimmed;
+    }
+
     $clean = preg_replace('/\D+/', '', $number);
     if ($clean === '') return '#' . $number;
     $clean = str_pad($clean, 6, '0', STR_PAD_LEFT);
