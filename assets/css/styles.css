@@ -441,9 +441,9 @@ p  { color: var(--text-secondary); }
   font-size: .78rem;
 }
 .account-page-container #accountSorteosPanel .raffle-card-action {
-  font-size: .72rem;
-  min-height: 36px;
-  padding: .45rem .7rem;
+  font-size: .86rem;
+  min-height: 40px;
+  padding: .55rem .85rem;
 }
 .navbar-actions .btn {
   background: #ffffff;

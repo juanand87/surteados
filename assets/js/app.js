@@ -719,6 +719,51 @@ function goToCheckoutFromCart() {
 
 // ─── Purchase Modal ───────────────────────────────────────────────────────────
 let _purchaseState = { raffleId: null, pack: null, currentStep: 1 };
+let _customerSessionCache = null;
+
+async function getCustomerSessionCached() {
+  if (_customerSessionCache) return _customerSessionCache;
+  _customerSessionCache = await loadCustomerSession();
+  return _customerSessionCache;
+}
+
+function fillBuyerValue(id, value) {
+  const el = document.getElementById(id);
+  if (!el || !value || el.value.trim()) return;
+  el.value = value;
+}
+
+async function prefillBuyerDataFromSession() {
+  const session = await getCustomerSessionCached();
+  if (!session?.authenticated) return;
+
+  fillBuyerValue('buyerName', session.fullName || session.username || '');
+  fillBuyerValue('buyerPhone', session.phone || '');
+  fillBuyerValue('buyerAddress', session.address || '');
+  fillBuyerValue('buyerRut', formatChileanRut(session.rut || ''));
+  fillBuyerValue('buyerEmail', session.email || '');
+  fillBuyerValue('buyerEmailConfirm', session.email || '');
+
+  if (!session.communeId && !session.comuna) return;
+  const regionEl = document.getElementById('buyerRegion');
+  const communeEl = document.getElementById('buyerComuna');
+  if (!regionEl || !communeEl || communeEl.value) return;
+
+  try {
+    const regions = await loadChileLocations();
+    fillRegionSelect(regions);
+    const matchedRegion = regions.find(r => (r.communes || []).some(c =>
+      String(c.id) === String(session.communeId || '') || c.name === session.comuna
+    ));
+    if (!matchedRegion) return;
+    regionEl.value = matchedRegion.id;
+    fillCommuneSelect(matchedRegion.id);
+    const matchedCommune = (matchedRegion.communes || []).find(c =>
+      String(c.id) === String(session.communeId || '') || c.name === session.comuna
+    );
+    if (matchedCommune) communeEl.value = matchedCommune.id;
+  } catch (_) {}
+}
 
 function openPurchaseModal(raffleId, initialPackId = null) {
   const raffle = db.getRaffle(raffleId);
@@ -814,6 +859,10 @@ function updatePurchaseStep(step) {
     if (s < numericStep) el.querySelector('.ps-num').textContent = '✓';
     else el.querySelector('.ps-num').textContent = s;
   });
+
+  if (step === 2) {
+    prefillBuyerDataFromSession();
+  }
 }
 
 /** Render the "more raffles" grid in step1b */
