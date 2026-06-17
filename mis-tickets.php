@@ -68,7 +68,7 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
     </div>
   </div>
 
-  <section class="section container" style="max-width:800px;">
+  <section class="section container account-page-container">
     <!-- Auth form -->
     <div class="card mb-4" id="authCard" style="padding:2rem;">
       <h3 class="text-white mb-2">🔐 Acceder a mis <?= htmlspecialchars($ticketLabelP) ?></h3>
