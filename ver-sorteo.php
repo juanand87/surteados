@@ -2,6 +2,8 @@
 require_once __DIR__ . '/api/config.php';
 require_once __DIR__ . '/api/data_helper.php';
 
+header('Content-Type: text/html; charset=UTF-8');
+
 $id = trim($_GET['id'] ?? '');
 if (!preg_match('/^[a-z0-9_-]{1,60}$/i', $id)) {
     header('Location: sorteos.php');
@@ -63,7 +65,7 @@ $meetLink    = $raffle['meetLink'] ?? '';
 $hasLimit    = !empty($raffle['totalTickets']) && (int)$raffle['totalTickets'] > 0;
 $drawTsForTransmission = $drawDate ? strtotime($drawDate) : false;
 $transmissionEnabled = $status === 'ended' || ($drawTsForTransmission && time() >= ($drawTsForTransmission - 3600));
-$transmissionTooltip = 'El botón Ver Transmisión estará activo 1 hora antes del inicio del sorteo.';
+$transmissionTooltip = 'El boton Ver Transmision estara activo 1 hora antes del inicio del sorteo.';
 
 $pct = $hasLimit
     ? min(100, (int)round($raffle['soldTickets'] / $raffle['totalTickets'] * 100))
@@ -95,7 +97,7 @@ usort($sortedPacks, fn($a, $b) => ((int)$a['qty'] <=> (int)$b['qty']) ?: ((int)$
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><?= htmlspecialchars($raffle['title']) ?> â€” <?= htmlspecialchars($siteName) ?></title>
+  <title><?= htmlspecialchars($raffle['title']) ?> — <?= htmlspecialchars($siteName) ?></title>
   <meta name="description" content="<?= htmlspecialchars(mb_substr($raffle['description'] ?? '', 0, 160)) ?>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -249,7 +251,7 @@ usort($sortedPacks, fn($a, $b) => ((int)$a['qty'] <=> (int)$b['qty']) ?: ((int)$
         <?php if ($raffle['image']): ?>
           <img src="<?= htmlspecialchars($raffle['image']) ?>" alt="<?= htmlspecialchars($raffle['title']) ?>" style="width:100%;height:100%;object-fit:cover;">
         <?php else: ?>
-          <div style="font-size:4.5rem;"><?= htmlspecialchars($raffle['imageEmoji'] ?? 'ðŸŽ') ?></div>
+          <div style="font-size:4.5rem;"><?= htmlspecialchars($raffle['imageEmoji'] ?? '🎁') ?></div>
         <?php endif; ?>
       </div>
 
@@ -258,7 +260,7 @@ usort($sortedPacks, fn($a, $b) => ((int)$a['qty'] <=> (int)$b['qty']) ?: ((int)$
         <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.65rem;">
           <span class="badge"><?= htmlspecialchars($raffle['category']) ?></span>
           <span class="pill <?= $status === 'active' ? 'pill-green' : ($status === 'soon' ? 'pill-amber' : 'pill-gray') ?>">
-            <?= $statusEmoji[$status] ?? 'âšª' ?> <?= htmlspecialchars($statusLabels[$status] ?? $status) ?>
+            <?= $statusEmoji[$status] ?? '&#9898;' ?> <?= htmlspecialchars($statusLabels[$status] ?? $status) ?>
           </span>
         </div>
 
@@ -266,13 +268,13 @@ usort($sortedPacks, fn($a, $b) => ((int)$a['qty'] <=> (int)$b['qty']) ?: ((int)$
 
         <?php if (!empty($raffle['prizes'][0])): $p1 = $raffle['prizes'][0]; ?>
         <div style="font-size:.95rem;font-weight:700;color:var(--color-accent);margin-bottom:.75rem;">
-          ðŸ† <?= htmlspecialchars($p1['name'] ?? '') ?>
+          &#127942; <?= htmlspecialchars($p1['name'] ?? '') ?>
         </div>
         <?php endif; ?>
 
         <?php if ($drawDateHuman): ?>
         <div style="display:flex;align-items:center;gap:.4rem;font-size:.875rem;color:var(--text-muted);">
-          <span><?= $status === 'ended' ? 'ðŸ“… Sorteo realizado:' : 'ðŸ“… Fecha del sorteo:' ?></span>
+          <span><?= $status === 'ended' ? '&#128197; Sorteo realizado:' : '&#128197; Fecha del sorteo:' ?></span>
           <strong style="color:var(--text-inv);"><?= htmlspecialchars($drawDateHuman) ?></strong>
         </div>
         <?php endif; ?>
@@ -283,7 +285,7 @@ usort($sortedPacks, fn($a, $b) => ((int)$a['qty'] <=> (int)$b['qty']) ?: ((int)$
       <div class="vs-countdown-box">
         <div style="font-size:.68rem;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:.65rem;">Tiempo restante</div>
         <div class="countdown-row">
-          <div class="countdown-item"><div class="count-num" id="vs-cd-days">--</div><div class="count-label">DÃ­as</div></div>
+          <div class="countdown-item"><div class="count-num" id="vs-cd-days">--</div><div class="count-label">Días</div></div>
           <div class="countdown-item"><div class="count-num" id="vs-cd-hours">--</div><div class="count-label">Horas</div></div>
           <div class="countdown-item"><div class="count-num" id="vs-cd-mins">--</div><div class="count-label">Min</div></div>
           <div class="countdown-item"><div class="count-num" id="vs-cd-secs">--</div><div class="count-label">Seg</div></div>
@@ -305,17 +307,17 @@ usort($sortedPacks, fn($a, $b) => ((int)$a['qty'] <=> (int)$b['qty']) ?: ((int)$
         <?php if ($meetLink): ?>
         <?php if ($transmissionEnabled): ?>
         <a href="<?= htmlspecialchars($meetLink) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-ghost" style="display:inline-flex;align-items:center;gap:.35rem;">
-          📹 <?= $status === 'ended' ? 'Ver grabación' : 'Ver transmisión' ?>
+          &#128249; <?= $status === 'ended' ? 'Ver grabaci&oacute;n' : 'Ver transmisi&oacute;n' ?>
         </a>
         <?php else: ?>
         <span class="btn btn-ghost vs-transmission-disabled" title="<?= htmlspecialchars($transmissionTooltip) ?>" aria-disabled="true" style="display:inline-flex;align-items:center;gap:.35rem;">
-          📹 Ver transmisión
+          &#128249; Ver transmisi&oacute;n
         </span>
         <?php endif; ?>
         <?php endif; ?>
         <?php if ($status === 'active' && !$salesClosed): ?>
         <button class="btn btn-primary" onclick="openPurchaseModal('<?= htmlspecialchars($raffle['id']) ?>')" style="font-weight:800;">
-          🖼️ Comprar <?= htmlspecialchars($ticketLabel) ?><?= $minPrice > 0 ? ' desde $' . number_format($minPrice, 0, ',', '.') : '' ?>
+          &#128444;&#65039; Comprar <?= htmlspecialchars($ticketLabel) ?><?= $minPrice > 0 ? ' desde $' . number_format($minPrice, 0, ',', '.') : '' ?>
         </button>
         <?php elseif ($status === 'active' && $salesClosed): ?>
         <span class="pill pill-amber" style="font-size:.78rem;">Compra cerrada</span>
@@ -353,7 +355,7 @@ usort($sortedPacks, fn($a, $b) => ((int)$a['qty'] <=> (int)$b['qty']) ?: ((int)$
         </div>
         <div style="text-align:center;margin-top:1.25rem;">
           <button class="btn btn-primary btn-lg" onclick="openPurchaseModal('<?= htmlspecialchars($raffle['id']) ?>')" style="font-weight:800;">
-            🖼️ Comprar <?= htmlspecialchars(ucfirst($ticketLabel)) ?> ahora
+            &#128444;&#65039; Comprar <?= htmlspecialchars(ucfirst($ticketLabel)) ?> ahora
           </button>
         </div>
       </div>
@@ -362,7 +364,7 @@ usort($sortedPacks, fn($a, $b) => ((int)$a['qty'] <=> (int)$b['qty']) ?: ((int)$
       <!-- Description -->
       <?php if (!empty($raffle['description'])): ?>
       <div class="card mb-4" style="padding:1.6rem;">
-        <h3 class="text-white mb-2">ðŸ“ DescripciÃ³n</h3>
+        <h3 class="text-white mb-2">&#128221; Descripci&oacute;n</h3>
         <p style="line-height:1.75;white-space:pre-wrap;color:var(--text-muted);"><?= htmlspecialchars($raffle['description']) ?></p>
       </div>
       <?php endif; ?>
@@ -370,17 +372,17 @@ usort($sortedPacks, fn($a, $b) => ((int)$a['qty'] <=> (int)$b['qty']) ?: ((int)$
       <!-- Prizes -->
       <?php if (!empty($raffle['prizes'])): ?>
       <div class="card mb-4" style="padding:1.6rem;">
-        <h3 class="text-white mb-3">ðŸ† Premios</h3>
+        <h3 class="text-white mb-3">&#127942; Premios</h3>
         <div style="display:flex;flex-direction:column;gap:.7rem;">
           <?php foreach ($raffle['prizes'] as $prize): ?>
           <div style="display:flex;align-items:center;gap:.9rem;padding:.75rem;background:rgba(124,58,237,.1);border-radius:.75rem;border:1px solid rgba(124,58,237,.2);">
             <?php if (!empty($prize['image'])): ?>
               <img src="<?= htmlspecialchars($prize['image']) ?>" alt="" style="width:52px;height:52px;border-radius:.5rem;object-fit:cover;flex-shrink:0;">
             <?php else: ?>
-              <div style="width:52px;height:52px;border-radius:.5rem;background:var(--bg-card2);display:flex;align-items:center;justify-content:center;font-size:1.8rem;flex-shrink:0;"><?= htmlspecialchars($prize['emoji'] ?? 'ðŸ†') ?></div>
+              <div style="width:52px;height:52px;border-radius:.5rem;background:var(--bg-card2);display:flex;align-items:center;justify-content:center;font-size:1.8rem;flex-shrink:0;"><?= htmlspecialchars($prize['emoji'] ?? '🏆') ?></div>
             <?php endif; ?>
             <div style="flex:1;">
-              <div style="font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;color:var(--color-primary-light);">Lugar NÂ°<?= (int)$prize['place'] ?></div>
+              <div style="font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;color:var(--color-primary-light);">Lugar N&deg;<?= (int)$prize['place'] ?></div>
               <div style="font-weight:700;color:var(--text-inv);font-size:.97rem;"><?= htmlspecialchars($prize['name'] ?? '') ?></div>
             </div>
           </div>
@@ -392,25 +394,25 @@ usort($sortedPacks, fn($a, $b) => ((int)$a['qty'] <=> (int)$b['qty']) ?: ((int)$
       <!-- Meet Link -->
       <?php if ($meetLink): ?>
       <div class="card mb-4" style="padding:1.6rem;background:linear-gradient(135deg,rgba(34,197,94,.07),rgba(16,185,129,.05));border-color:rgba(34,197,94,.25);">
-        <h3 class="text-white mb-1">ðŸ“¹ <?= $status === 'ended' ? 'GrabaciÃ³n del sorteo' : 'TransmisiÃ³n en vivo' ?></h3>
+        <h3 class="text-white mb-1">&#128249; <?= $status === 'ended' ? 'Grabaci&oacute;n del sorteo' : 'Transmisi&oacute;n en vivo' ?></h3>
         <p style="font-size:.88rem;color:var(--text-muted);margin-bottom:1.1rem;">
           <?php if ($status === 'ended'): ?>
-            El sorteo ya se realizÃ³. Puedes ver la grabaciÃ³n haciendo clic en el botÃ³n.
+            El sorteo ya se realiz&oacute;. Puedes ver la grabaci&oacute;n haciendo clic en el bot&oacute;n.
           <?php elseif ($status === 'active' && $transmissionEnabled): ?>
             El sorteo se transmite en vivo. Haz clic para unirte y seguir todo en tiempo real.
           <?php elseif ($status === 'active'): ?>
-            La transmisión estará disponible 1 hora antes del inicio del sorteo.
+            La transmisi&oacute;n estar&aacute; disponible 1 hora antes del inicio del sorteo.
           <?php else: ?>
-            Cuando comience el sorteo, podrÃ¡s verlo en vivo en este enlace.
+            Cuando comience el sorteo, podr&aacute;s verlo en vivo en este enlace.
           <?php endif; ?>
         </p>
         <?php if ($transmissionEnabled): ?>
         <a href="<?= htmlspecialchars($meetLink) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="display:inline-flex;align-items:center;gap:.4rem;font-weight:700;">
-          <?= $status === 'ended' ? 'Ver grabación' : 'Unirse a la transmisión' ?>
+          <?= $status === 'ended' ? 'Ver grabaci&oacute;n' : 'Unirse a la transmisi&oacute;n' ?>
         </a>
         <?php else: ?>
         <span class="btn btn-primary vs-transmission-disabled" title="<?= htmlspecialchars($transmissionTooltip) ?>" aria-disabled="true" style="display:inline-flex;align-items:center;gap:.4rem;font-weight:700;">
-          Unirse a la transmisión
+          Unirse a la transmisi&oacute;n
         </span>
         <?php endif; ?>
         <p style="font-size:.7rem;color:var(--text-muted);margin-top:.55rem;word-break:break-all;opacity:.7;"><?= htmlspecialchars($meetLink) ?></p>
@@ -420,7 +422,7 @@ usort($sortedPacks, fn($a, $b) => ((int)$a['qty'] <=> (int)$b['qty']) ?: ((int)$
       <!-- Legal Section -->
       <?php if ($legalText || $legalUrl || $legalRut || $legalNotary || $legalCert || $legalPeriod): ?>
       <div class="card mb-4" style="padding:1.6rem;">
-        <h3 class="text-white mb-1">ðŸ“œ InformaciÃ³n Legal</h3>
+        <h3 class="text-white mb-1">&#128220; Información Legal</h3>
         <p style="font-size:.81rem;color:var(--text-muted);margin-bottom:1.1rem;">Aspectos legales y bases de este sorteo.</p>
 
         <?php if ($legalRut || $legalNotary || $legalCert || $legalPeriod): ?>
@@ -445,7 +447,7 @@ usort($sortedPacks, fn($a, $b) => ((int)$a['qty'] <=> (int)$b['qty']) ?: ((int)$
           <?php endif; ?>
           <?php if ($legalPeriod): ?>
           <div style="background:rgba(0,0,0,.22);border-radius:.55rem;padding:.75rem;">
-            <div style="font-size:.68rem;text-transform:uppercase;letter-spacing:.05em;opacity:.55;margin-bottom:.2rem;">PerÃ­odo de ventas</div>
+            <div style="font-size:.68rem;text-transform:uppercase;letter-spacing:.05em;opacity:.55;margin-bottom:.2rem;">Período de ventas</div>
             <div style="font-weight:600;color:var(--text-inv);font-size:.9rem;"><?= htmlspecialchars($legalPeriod) ?></div>
           </div>
           <?php endif; ?>
@@ -461,7 +463,7 @@ usort($sortedPacks, fn($a, $b) => ((int)$a['qty'] <=> (int)$b['qty']) ?: ((int)$
         <?php if ($legalText): ?>
         <details>
           <summary style="cursor:pointer;font-size:.88rem;font-weight:600;color:var(--color-primary-light);user-select:none;padding:.4rem 0;list-style:none;display:flex;align-items:center;gap:.4rem;">
-            <span style="font-size:.8em;">â–¶</span> Ver bases completas del sorteo
+            <span style="font-size:.8em;">▶</span> Ver bases completas del sorteo
           </summary>
           <div style="margin-top:.85rem;padding:1.1rem;background:rgba(0,0,0,.28);border-radius:.65rem;white-space:pre-wrap;font-size:.83rem;line-height:1.75;color:var(--text-muted);border:1px solid var(--border);">
             <?= htmlspecialchars($legalText) ?>
@@ -473,7 +475,7 @@ usort($sortedPacks, fn($a, $b) => ((int)$a['qty'] <=> (int)$b['qty']) ?: ((int)$
 
       <!-- Back -->
       <div style="text-align:center;padding:1.5rem 0 2.5rem;">
-        <a href="sorteos.php" class="btn btn-ghost">â† Ver todos los sorteos</a>
+        <a href="sorteos.php" class="btn btn-ghost">← Ver todos los sorteos</a>
       </div>
 
     </div>
@@ -487,14 +489,14 @@ usort($sortedPacks, fn($a, $b) => ((int)$a['qty'] <=> (int)$b['qty']) ?: ((int)$
     <div class="modal-top-bar"></div>
     <div class="modal-header">
       <span class="modal-title" id="modalTitle">Comprar <?= htmlspecialchars(ucfirst($ticketLabelP)) ?></span>
-      <button class="modal-close" id="modalClose">âœ•</button>
+      <button class="modal-close" id="modalClose">×</button>
     </div>
     <div class="modal-body">
       <div class="purchase-steps mb-3">
         <div class="purchase-step active" data-step="1"><div class="ps-num">1</div><div class="ps-label">Pack</div></div>
         <div class="purchase-step" data-step="2"><div class="ps-num">2</div><div class="ps-label">Datos</div></div>
         <div class="purchase-step" data-step="3"><div class="ps-num">3</div><div class="ps-label">Pago</div></div>
-        <div class="purchase-step" data-step="4"><div class="ps-num">4</div><div class="ps-label">Â¡Listo!</div></div>
+        <div class="purchase-step" data-step="4"><div class="ps-num">4</div><div class="ps-label">¡Listo!</div></div>
       </div>
       <div class="step-panel active" id="step1">
         <h4 class="text-white mb-2">Elige tu pack</h4>
@@ -505,48 +507,48 @@ usort($sortedPacks, fn($a, $b) => ((int)$a['qty'] <=> (int)$b['qty']) ?: ((int)$
           <span class="text-sm font-bold text-white" id="selectedPackLabel">Ninguno</span>
         </div>
         <div style="display:flex;flex-direction:column;gap:.6rem;">
-          <button class="btn btn-primary" id="step1Next" disabled>Continuar con el pago â†’</button>
-          <button class="btn btn-ghost" id="step1AddMore" disabled title="Agregar al carro y ver mÃ¡s sorteos">ðŸ›’ Seleccionar y ver mÃ¡s sorteos</button>
+          <button class="btn btn-primary" id="step1Next" disabled>Continuar con el pago →</button>
+          <button class="btn btn-ghost" id="step1AddMore" disabled title="Agregar al carro y ver más sorteos">&#128722; Seleccionar y ver más sorteos</button>
           <button class="btn btn-cancel" id="step1Cancel">Cancelar</button>
         </div>
       </div>
       <div class="step-panel" id="step1b">
         <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1rem;">
-          <button class="btn btn-ghost btn-sm" id="step1bBack">â† Volver</button>
-          <h4 class="text-white" style="margin:0;">Agregar mÃ¡s sorteos</h4>
+          <button class="btn btn-ghost btn-sm" id="step1bBack">← Volver</button>
+          <h4 class="text-white" style="margin:0;">Agregar más sorteos</h4>
         </div>
         <div id="cartBar" style="background:rgba(124,58,237,.18);border:1px solid rgba(124,58,237,.35);border-radius:.7rem;padding:.6rem 1rem;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;gap:.5rem;">
-          <div style="font-size:.82rem;color:var(--text-inv);"><span id="cartCount">0</span> sorteo(s) Â· <strong id="cartTotal" style="color:var(--color-accent);">$0</strong></div>
-          <button class="btn btn-accent btn-sm" id="cartPayBtn" style="font-weight:800;">ðŸ”’ Pagar ahora</button>
+          <div style="font-size:.82rem;color:var(--text-inv);"><span id="cartCount">0</span> sorteo(s) · <strong id="cartTotal" style="color:var(--color-accent);">$0</strong></div>
+          <button class="btn btn-accent btn-sm" id="cartPayBtn" style="font-weight:800;">&#128274; Pagar ahora</button>
         </div>
         <div id="moreRafflesGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:.65rem;max-height:340px;overflow-y:auto;"></div>
       </div>
       <div class="step-panel" id="step2">
         <h4 class="text-white mb-2">Tus datos</h4>
         <div class="form-row">
-          <div class="form-group"><label class="form-label">Nombre completo *</label><input type="text" class="form-control" id="buyerName" placeholder="Juan PÃ©rez"></div>
-          <div class="form-group"><label class="form-label">TelÃ©fono</label><input type="tel" class="form-control" id="buyerPhone" placeholder="+56 9 1234 5678"></div>
+          <div class="form-group"><label class="form-label">Nombre completo *</label><input type="text" class="form-control" id="buyerName" placeholder="Juan Pérez"></div>
+          <div class="form-group"><label class="form-label">Teléfono</label><input type="tel" class="form-control" id="buyerPhone" placeholder="+56 9 1234 5678"></div>
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label">DirecciÃ³n *</label>
+            <label class="form-label">Dirección *</label>
             <input type="text" class="form-control" id="buyerAddress" placeholder="Av. Siempre Viva 123" required>
           </div>
           <div class="form-group">
-            <label class="form-label">RegiÃ³n *</label>
+            <label class="form-label">Región *</label>
             <select class="form-control" id="buyerRegion" required>
-              <option value="">Selecciona tu regiÃ³n</option>
+              <option value="">Selecciona tu región</option>
             </select>
           </div>
         </div>
         <div class="form-group">
           <label class="form-label">Comuna / ciudad *</label>
           <select class="form-control" id="buyerComuna" required disabled>
-            <option value="">Primero selecciona una regiÃ³n</option>
+            <option value="">Primero selecciona una región</option>
           </select>
         </div>
-        <div class="form-group"><label class="form-label">RUT *</label><input type="text" class="form-control" id="buyerRut" placeholder="12.345.678-5" autocomplete="off"><p class="form-hint">ðŸ‡¨ðŸ‡± Ingresa tu RUT chileno vÃ¡lido.</p></div>
-        <div class="form-group"><label class="form-label">Correo electrÃ³nico *</label><input type="email" class="form-control" id="buyerEmail" placeholder="tu@correo.com"><p class="form-hint">ðŸ“§ AquÃ­ recibirÃ¡s tus <?= htmlspecialchars($ticketLabelP) ?> digitales</p></div>
+        <div class="form-group"><label class="form-label">RUT *</label><input type="text" class="form-control" id="buyerRut" placeholder="12.345.678-5" autocomplete="off"><p class="form-hint">&#127464;&#127473; Ingresa tu RUT chileno válido.</p></div>
+        <div class="form-group"><label class="form-label">Correo electrónico *</label><input type="email" class="form-control" id="buyerEmail" placeholder="tu@correo.com"><p class="form-hint">&#128231; Aquí recibirás tus <?= htmlspecialchars($ticketLabelP) ?> digitales</p></div>
         <div class="form-group"><label class="form-label">Confirmar correo *</label><input type="email" class="form-control" id="buyerEmailConfirm" placeholder="tu@correo.com"></div>
         <div class="form-group" id="buyerTermsWrap">
           <label class="form-label" style="display:flex;gap:.55rem;align-items:flex-start;line-height:1.4;">
@@ -560,13 +562,13 @@ usort($sortedPacks, fn($a, $b) => ((int)$a['qty'] <=> (int)$b['qty']) ?: ((int)$
         <div class="card" id="buyerPoliciesPanel" style="display:none;padding:.85rem 1rem;margin-bottom:.75rem;max-height:340px;overflow:auto;">
           <?php include __DIR__ . '/partials/purchase_policies.php'; ?>
           <div style="position:sticky;bottom:0;padding-top:.5rem;margin-top:.35rem;background:var(--bg-card);border-top:1px solid rgba(255,255,255,.14);">
-            <button type="button" class="btn btn-sm" id="buyerPoliciesBackBtn" style="width:100%;font-weight:800;border:1px solid var(--color-primary);background:rgba(124,58,237,.2);color:var(--text-inv);">â† Volver al pago</button>
+            <button type="button" class="btn btn-sm" id="buyerPoliciesBackBtn" style="width:100%;font-weight:800;border:1px solid var(--color-primary);background:rgba(124,58,237,.2);color:var(--text-inv);">← Volver al pago</button>
           </div>
         </div>
         <div class="separator"></div>
         <div class="flex gap-2">
-          <button class="btn btn-ghost" id="step2Back">â† Volver</button>
-          <button class="btn btn-primary" style="flex:1" id="step2Next">Continuar â†’</button>
+          <button class="btn btn-ghost" id="step2Back">← Volver</button>
+          <button class="btn btn-primary" style="flex:1" id="step2Next">Continuar →</button>
         </div>
       </div>
       <div class="step-panel" id="step3">
@@ -575,38 +577,38 @@ usort($sortedPacks, fn($a, $b) => ((int)$a['qty'] <=> (int)$b['qty']) ?: ((int)$
         <div class="card mb-3" style="padding:.75rem 1rem;">
           <div class="flex-between">
             <span class="font-bold text-white">Total a pagar:</span>
-            <span class="font-bold text-accent" id="summaryTotal" style="font-size:1.2rem;">â€”</span>
+            <span class="font-bold text-accent" id="summaryTotal" style="font-size:1.2rem;">—</span>
           </div>
           <div class="flex-between mt-1">
-            <span class="text-sm text-muted">ðŸ“§ Enviado a:</span>
-            <span class="text-sm" id="summaryEmail">â€”</span>
+            <span class="text-sm text-muted">&#128231; Enviado a:</span>
+            <span class="text-sm" id="summaryEmail">—</span>
           </div>
         </div>
-        <h4 class="text-white mb-2">MÃ©todo de pago</h4>
+        <h4 class="text-white mb-2">Método de pago</h4>
         <div style="margin-bottom:1.25rem;" id="paymentMethods">
-          <label class="card" style="cursor:pointer;padding:.875rem;display:flex;align-items:center;gap:.75rem;border-color:var(--color-primary);"><input type="radio" name="payMethod" value="flow" checked style="accent-color:var(--color-primary);"><div><div style="font-weight:700;color:var(--text-inv);font-size:.875rem;">Flow</div><div style="font-size:.75rem;color:var(--text-muted);">Tarjetas de crÃ©dito o dÃ©bito, transferencias bancarias y otras billeteras digitales</div></div></label>
+          <label class="card" style="cursor:pointer;padding:.875rem;display:flex;align-items:center;gap:.75rem;border-color:var(--color-primary);"><input type="radio" name="payMethod" value="flow" checked style="accent-color:var(--color-primary);"><div><div style="font-weight:700;color:var(--text-inv);font-size:.875rem;">Flow</div><div style="font-size:.75rem;color:var(--text-muted);">Tarjetas de crédito o débito, transferencias bancarias y otras billeteras digitales</div></div></label>
         </div>
         <div class="separator"></div>
         <div class="flex gap-2">
-          <button class="btn btn-ghost" id="step3Back">â† Volver</button>
-          <button class="btn btn-accent" style="flex:1;font-weight:800;font-size:1rem;" id="step3Pay">ðŸ”’ Pagar Ahora</button>
+          <button class="btn btn-ghost" id="step3Back">← Volver</button>
+          <button class="btn btn-accent" style="flex:1;font-weight:800;font-size:1rem;" id="step3Pay">&#128274; Pagar Ahora</button>
         </div>
         <button id="step3SimulateBtn" style="width:100%;margin-top:.55rem;padding:.5rem;background:rgba(255,200,0,.1);border:1px dashed rgba(255,200,0,.4);border-radius:.6rem;color:#f5c842;font-size:.78rem;cursor:pointer;">
-          âš¡ Simular pago exitoso (sÃ³lo demo)
+          &#9889; Simular pago exitoso (sólo demo)
         </button>
-        <p class="text-xs text-muted text-center mt-1">TransacciÃ³n segura y encriptada</p>
+        <p class="text-xs text-muted text-center mt-1">Transacción segura y encriptada</p>
       </div>
       <div class="step-panel" id="step4">
         <div class="text-center" style="padding:1rem 0;">
           <img class="purchase-success-logo" src="https://www.surteados.cl/assets/uploads/logo_79fc52eace063168.png" alt="Surteados">
-          <h3 class="text-white mb-2">Â¡Compra exitosa!</h3>
+          <h3 class="text-white mb-2">¡Compra exitosa!</h3>
           <p id="step4Subtitle" class="mb-3">Tus <?= htmlspecialchars($ticketLabelP) ?> han sido asignados. Revisa tu correo.</p>
           <div id="purchasedTickets" style="display:none;"></div>
           <div class="card" style="padding:1rem;text-align:left;margin-bottom:1.5rem;">
-            <div class="flex-between mb-1"><span class="text-sm text-muted">ðŸ“§ Enviado a:</span><span class="text-sm text-white font-bold" id="confirmEmail">â€”</span></div>
-            <div class="flex-between"><span class="text-sm text-muted">ðŸ’° Total pagado:</span><span class="text-sm text-accent font-bold" id="confirmAmount">â€”</span></div>
+            <div class="flex-between mb-1"><span class="text-sm text-muted">&#128231; Enviado a:</span><span class="text-sm text-white font-bold" id="confirmEmail">—</span></div>
+            <div class="flex-between"><span class="text-sm text-muted">&#128176; Total pagado:</span><span class="text-sm text-accent font-bold" id="confirmAmount">—</span></div>
           </div>
-          <a href="#" id="verMisTicketsLink" class="btn btn-primary btn-block mb-2" target="_blank" rel="noopener">ðŸ“„ Ver mis imÃ¡genes compradas</a>
+          <a href="#" id="verMisTicketsLink" class="btn btn-primary btn-block mb-2" target="_blank" rel="noopener">&#128196; Ver mis imágenes compradas</a>
           <button class="btn btn-ghost btn-block" id="closeAfterPurchase">Cerrar</button>
         </div>
       </div>
@@ -618,11 +620,11 @@ usort($sortedPacks, fn($a, $b) => ((int)$a['qty'] <=> (int)$b['qty']) ?: ((int)$
 <div class="cart-overlay" id="cartOverlay" onclick="closeCartDrawer()" style="display:none;position:fixed;inset:0;background:rgba(10,10,15,.55);z-index:1000;"></div>
 <aside class="cart-drawer" id="cartDrawer" style="position:fixed;top:0;right:0;width:min(380px,94vw);height:100vh;z-index:1001;background:var(--bg-card);border-left:1px solid var(--border-strong);box-shadow:var(--shadow-lg);transform:translateX(110%);transition:transform .22s ease;display:flex;flex-direction:column;">
   <div class="cart-drawer-head">
-    <strong>ðŸ›’ Tu carro</strong>
+    <strong>&#128722; Tu carro</strong>
     <button class="btn btn-ghost btn-sm" onclick="closeCartDrawer()">Cerrar</button>
   </div>
   <div class="cart-drawer-body" id="cartDrawerBody">
-    <p class="text-sm text-muted">Tu carro estÃ¡ vacÃ­o.</p>
+    <p class="text-sm text-muted">Tu carro está vacío.</p>
   </div>
   <div class="cart-drawer-foot">
     <div class="flex-between mb-2">
@@ -635,9 +637,9 @@ usort($sortedPacks, fn($a, $b) => ((int)$a['qty'] <=> (int)$b['qty']) ?: ((int)$
 
 <!-- â”€â”€â”€ Theme Picker â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
 <div class="theme-picker" id="themePicker">
-  <div class="theme-toggle" id="themeToggle" title="Personalizar colores">ðŸŽ¨</div>
+  <div class="theme-toggle" id="themeToggle" title="Personalizar colores">&#127912;</div>
   <div class="theme-panel" id="themePanel">
-    <h4>ðŸŽ¨ Personalizar Tema</h4>
+    <h4>&#127912; Personalizar Tema</h4>
     <p class="text-xs text-muted mb-2">Presets:</p>
     <div class="theme-presets" id="themePresets">
       <button class="preset-btn active" data-preset="purple" style="background:linear-gradient(135deg,#7c3aed,#f59e0b);"></button>
