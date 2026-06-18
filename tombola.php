@@ -27,32 +27,32 @@ $siteLogo = $settings['site_logo'] ?? null;
         radial-gradient(800px 380px at 15% 10%, rgba(245,158,11,.12), transparent 55%),
         #090812;
     }
-    .tb-wrap { max-width: 1240px; margin: 0 auto; padding: 92px 16px 32px; }
+    .tb-wrap { max-width: 1240px; margin: 0 auto; padding: 76px 16px 28px; }
     .tb-card {
       background: linear-gradient(170deg, rgba(24,20,44,.92), rgba(14,12,29,.95));
       border: 1px solid rgba(170,147,255,.22);
       border-radius: 14px;
-      padding: 1rem;
+      padding: .8rem;
       box-shadow: 0 24px 46px rgba(0,0,0,.32);
     }
     .tb-meta { font-size:.82rem; color:var(--text-muted); }
     .tb-controls {
       display:flex;
       justify-content:space-between;
-      gap:.8rem;
+      gap:.65rem;
       flex-wrap:wrap;
       align-items:end;
     }
     .tb-show-stage {
-      margin-top:1rem;
-      padding:1.2rem;
+      margin-top:.65rem;
+      padding:.9rem;
       border-radius:16px;
       border:1px solid rgba(255,255,255,.13);
       background: radial-gradient(ellipse at center, rgba(124,58,237,.17), rgba(11,10,20,.92) 72%);
       overflow:hidden;
       position:relative;
       perspective: 1200px;
-      min-height: 420px;
+      min-height: 320px;
     }
     .tb-stage-glow {
       position:absolute;
@@ -66,18 +66,18 @@ $siteLogo = $settings['site_logo'] ?? null;
     }
     .tb-phase {
       text-align:center;
-      margin-bottom:1rem;
+      margin-bottom:.55rem;
     }
     .tb-phase h3 {
       margin:0;
-      font-size:1.4rem;
+      font-size:1.15rem;
       letter-spacing:.03em;
       color:#f2ecff;
     }
     .tb-phase p {
       margin:.35rem 0 0;
       color:#c5b8ef;
-      font-size:.92rem;
+      font-size:.82rem;
     }
     .tb-drum-wrap {
       position:relative;
@@ -119,10 +119,10 @@ $siteLogo = $settings['site_logo'] ?? null;
       text-overflow:ellipsis;
     }
     .tb-reveal-grid {
-      margin-top:1rem;
+      margin-top:.55rem;
       display:grid;
-      gap:.7rem;
-      grid-template-columns: repeat(auto-fit,minmax(140px,1fr));
+      gap:.55rem;
+      grid-template-columns: repeat(auto-fit,minmax(132px,1fr));
     }
     .tb-reveal-grid .tb-ball {
       position:relative;
@@ -194,8 +194,8 @@ $siteLogo = $settings['site_logo'] ?? null;
       display: grid;
       grid-template-columns: repeat(8, minmax(0, 1fr));
       gap: .45rem;
-      min-height: 300px;
-      max-height: 420px;
+      min-height: 255px;
+      max-height: 330px;
       overflow: hidden;
       mask-image: linear-gradient(to bottom, transparent, #000 9%, #000 91%, transparent);
     }
@@ -205,7 +205,7 @@ $siteLogo = $settings['site_logo'] ?? null;
       background: rgba(255,255,255,.07);
       border-radius: 10px;
       padding: .42rem .45rem;
-      min-height: 44px;
+      min-height: 40px;
       color: #f8f4ff;
       font-weight: 800;
       font-size: .8rem;
@@ -225,16 +225,14 @@ $siteLogo = $settings['site_logo'] ?? null;
     .tb-final-column {
       width:min(520px,100%);
       margin:1rem auto 0;
-      display:flex;
-      flex-direction:column;
-      gap:.55rem;
-      max-height:420px;
+      max-height:330px;
       overflow:hidden;
       mask-image: linear-gradient(to bottom, transparent, #000 10%, #000 90%, transparent);
     }
+    .tb-flow-track { display:flex; flex-direction:column; gap:.55rem; will-change:transform; }
     .tb-final-column .tb-flow-item {
       font-size:1rem;
-      min-height:54px;
+      min-height:50px;
       display:flex;
       flex-direction:column;
       justify-content:center;
@@ -283,31 +281,31 @@ $siteLogo = $settings['site_logo'] ?? null;
 </nav>
 
 <div class="tb-wrap">
-  <div class="tb-card" style="margin-bottom:1rem;">
+  <div class="tb-card" style="margin-bottom:.65rem;">
     <div class="tb-controls">
       <div>
         <div class="badge">Tombola oficial</div>
-        <h2 style="margin:.4rem 0 0;">Noche de sorteo: imagen ganadora</h2>
-        <p class="tb-meta" style="margin:.35rem 0 0;">Proceso real aleatorio: 10 -> 5 -> 3 -> 1. Solo imagenes pagadas.</p>
+        <h2 style="margin:.25rem 0 0;font-size:clamp(1.25rem,2.4vw,1.8rem);line-height:1.1;">Tombola: imagen ganadora</h2>
+        <p class="tb-meta" style="margin:.25rem 0 0;">Proceso aleatorio: universo -> 50 -> 5 -> ganador. Solo imagenes pagadas.</p>
       </div>
       <div>
         <div class="tb-actions">
         <div>
           <label class="form-label">Sorteo</label>
-          <select class="form-control" id="tbRaffle" style="min-width:320px;max-width:520px;"></select>
+          <select class="form-control" id="tbRaffle" style="min-width:260px;max-width:480px;padding:.55rem .75rem;"></select>
         </div>
         <button class="btn btn-primary" id="tbStartBtn">Seleccionar 50</button>
         <button class="btn btn-accent" id="tbSelect5Btn" style="display:none;">Seleccionar 5</button>
         <button class="btn btn-primary" id="tbWinnerBtn" style="display:none;">Definir ganador</button>
         <button class="btn btn-outline" id="tbResetBtn" style="display:none;margin-left:.5rem;opacity:.7;" title="Solo para pruebas">ðŸ”“ Resetear</button>
         </div>
-        <label class="tb-speed">Ritmo del show
+        <label class="tb-speed">Ritmo
           <input type="range" id="tbDrama" min="1" max="3" value="2">
           <span id="tbDramaLabel">Medio</span>
         </label>
       </div>
     </div>
-    <div id="tbInfo" class="tb-meta" style="margin-top:.7rem;"></div>
+    <div id="tbInfo" class="tb-meta" style="margin-top:.45rem;"></div>
   </div>
 
   <div class="tb-show-stage tb-card">
@@ -342,13 +340,14 @@ const tbState = {
 
 const API_BASE = new URL('api', window.location.href).pathname.replace(/\/?$/, '/');
 const DRAMA_PRESETS = {
-  1: { label: 'Rapido', pageDelay: 120, reveal: 80, pause: 220 },
-  2: { label: 'Medio', pageDelay: 210, reveal: 130, pause: 420 },
-  3: { label: 'Epico', pageDelay: 320, reveal: 190, pause: 680 },
+  1: { label: 'Rapido', scroll: 5.4, finalScroll: 4.4, reveal: 55, pause: 180 },
+  2: { label: 'Medio', scroll: 8.2, finalScroll: 6.2, reveal: 85, pause: 300 },
+  3: { label: 'Epico', scroll: 11.5, finalScroll: 8.4, reveal: 120, pause: 460 },
 };
 
 function esc(s){return String(s ?? '').replace(/[&<>\"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[m]));}
 function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+function tweenTo(target, vars){return new Promise(resolve => gsap.to(target, { ...vars, onComplete: resolve }));}
 function shuffleVisual(items){
   const out = [...items];
   for(let i = out.length - 1; i > 0; i--){
@@ -391,49 +390,57 @@ function itemHtml(item){
   return `<div class="tb-flow-item">${esc(item.number)}<small>${esc(item.buyer_name || 'Participante')}</small></div>`;
 }
 
-function renderFlowGrid(items, columns = 8) {
-  const el = document.getElementById('tbUniverseFlow');
+function splitColumns(items, columns) {
   const buckets = Array.from({ length: columns }, () => []);
   items.forEach((item, idx) => buckets[idx % columns].push(item));
-  el.innerHTML = buckets.map(bucket => `<div class="tb-flow-column">${bucket.map(itemHtml).join('')}</div>`).join('');
-  el.querySelectorAll('.tb-flow-column').forEach((col, idx) => {
-    col.style.transform = `translateY(${idx % 2 ? '-18px' : '18px'})`;
-    gsap.to(col, { y: idx % 2 ? 18 : -18, duration: .42, ease: 'power1.inOut' });
-  });
+  return buckets;
 }
 
-function renderColumn(items) {
+function renderFlowGrid(items, columns = 8, repeat = 1) {
+  const el = document.getElementById('tbUniverseFlow');
+  const buckets = splitColumns(items, columns);
+  el.innerHTML = buckets.map(bucket => {
+    const repeated = Array.from({ length: repeat }, () => bucket).flat();
+    return `<div class="tb-flow-column">${repeated.map(itemHtml).join('')}</div>`;
+  }).join('');
+}
+
+function renderColumn(items, repeat = 1) {
   const el = document.getElementById('tbFinalFlow');
-  el.innerHTML = items.map(itemHtml).join('');
-  gsap.fromTo('#tbFinalFlow .tb-flow-item',
-    { opacity: .25, y: 32 },
-    { opacity: 1, y: 0, duration: .34, stagger: .025, ease: 'power2.out' }
-  );
+  const repeated = Array.from({ length: repeat }, () => items).flat();
+  el.innerHTML = `<div class="tb-flow-track">${repeated.map(itemHtml).join('')}</div>`;
 }
 
 async function playUniverseFlow(items, cycles = 10) {
   const mood = currentDrama();
-  const source = items.length ? items : [];
-  for (let cycle = 1; cycle <= cycles; cycle++) {
-    phase(`Pasada ${cycle} de ${cycles}: universo completo`, 'Las imagenes pagadas pasan en orden aleatorio, en bloques de 50.');
-    const shuffled = shuffleVisual(source);
-    for (let i = 0; i < shuffled.length; i += 50) {
-      const chunk = shuffled.slice(i, i + 50);
-      renderFlowGrid(chunk, 8);
-      status(`Mostrando imagenes ${i + 1} a ${Math.min(i + 50, shuffled.length)} de ${shuffled.length}`);
-      await sleep(mood.pageDelay);
-    }
-  }
+  const source = shuffleVisual(items.length ? items : []);
+  phase(`Universo completo: 10 pasadas`, 'Todas las imagenes pagadas avanzan en orden aleatorio y continuo.');
+  status(`Recorriendo ${source.length} imagenes pagadas en 8 columnas.`);
+  renderFlowGrid(source, 8, cycles);
+  const columns = [...document.querySelectorAll('#tbUniverseFlow .tb-flow-column')];
+  const distance = Math.max(360, document.getElementById('tbUniverseFlow').scrollHeight - document.getElementById('tbUniverseFlow').clientHeight + 180);
+  gsap.set(columns, { y: 0 });
+  await Promise.all(columns.map((col, idx) => tweenTo(col, {
+    y: -distance,
+    duration: mood.scroll + (idx % 3) * .45,
+    ease: 'power1.inOut'
+  })));
+  await sleep(mood.pause);
 }
 
 async function playFinalFlow(items, cycles = 10, label = 'semifinalistas') {
   const mood = currentDrama();
-  for (let cycle = 1; cycle <= cycles; cycle++) {
-    phase(`Pasada ${cycle} de ${cycles}: ${label}`, 'Las imagenes vuelven a pasar en orden aleatorio.');
-    renderColumn(shuffleVisual(items));
-    status(`Mezclando ${items.length} imagenes ${label}.`);
-    await sleep(Math.max(520, mood.pageDelay * Math.min(items.length, 8)));
-  }
+  const source = shuffleVisual(items);
+  phase(`${label}: 10 pasadas`, 'Las imagenes avanzan de forma vertical y continua.');
+  status(`Recorriendo ${source.length} imagenes ${label}.`);
+  renderColumn(source, cycles);
+  const el = document.getElementById('tbFinalFlow');
+  const track = el.querySelector('.tb-flow-track');
+  const distance = Math.max(320, track.scrollHeight - el.clientHeight + 140);
+  gsap.set(track, { y: 0 });
+  await tweenTo(track, { y: -distance, duration: mood.finalScroll, ease: 'power1.inOut' });
+  gsap.set(track, { y: 0 });
+  await sleep(mood.pause);
 }
 
 async function revealGrid(elId, items, perItemDelay) {
