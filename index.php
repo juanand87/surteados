@@ -379,7 +379,7 @@ $homeCarouselRaffles = array_values(array_filter($allData['raffles'] ?? [], func
 <div class="hero-slider-wrap<?= empty($homeSlides) ? ' hidden' : '' ?>" id="heroSliderWrap">
   <div class="hs-track" id="hsTrack">
     <?php foreach ($homeSlides as $slide): ?>
-      <article class="hs-slide" style="background-image:url('<?= htmlspecialchars($slide['image']) ?>'); background-size:cover; background-position:center; background-repeat:no-repeat;">
+      <article class="hs-slide" style="background-image:url('<?= htmlspecialchars($slide['image']) ?>'); background-size:100% auto; background-position:center center; background-repeat:no-repeat;">
         <div class="hs-slide-inner">
           <?php if ($slide['badge'] !== ''): ?><div class="badge"><?= htmlspecialchars($slide['badge']) ?></div><?php endif; ?>
           <?php if ($slide['title'] !== ''): ?><h1><?= htmlspecialchars($slide['title']) ?></h1><?php endif; ?>

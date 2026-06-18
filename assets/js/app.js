@@ -213,7 +213,7 @@ document.addEventListener('DOMContentLoaded', setupCustomerNav);
   function slideStyle(s) {
     const image = s.bgImage || s.image || '';
     if (image) {
-      return `background:url('${escHtml(image)}') center/cover no-repeat;`;
+      return `background:url('${escHtml(image)}') center center/100% auto no-repeat;`;
     }
     const c1 = s.bgColor1 || 'var(--color-primary-dark)';
     const c2 = s.bgColor2 || '#0d0520';
