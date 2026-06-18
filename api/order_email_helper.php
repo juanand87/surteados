@@ -73,6 +73,7 @@ function surteados_send_order_confirmation(PDO $pdo, string $orderId, string $bu
     $buyerNameSafe = htmlspecialchars($buyerName, ENT_QUOTES, 'UTF-8');
     $buyerEmailSafe = htmlspecialchars($buyerEmail, ENT_QUOTES, 'UTF-8');
     $siteNameSafe = htmlspecialchars($siteName, ENT_QUOTES, 'UTF-8');
+    $siteLogo = htmlspecialchars($siteUrl . '/assets/uploads/logo_79fc52eace063168.png', ENT_QUOTES, 'UTF-8');
 
     $htmlBody = <<<HTML
 <!DOCTYPE html>
@@ -81,7 +82,7 @@ function surteados_send_order_confirmation(PDO $pdo, string $orderId, string $bu
 <body style="margin:0;padding:0;background:#0d0520;font-family:Arial,sans-serif;color:#e2e8f0;">
   <div style="max-width:580px;margin:32px auto;background:#140b30;border-radius:16px;overflow:hidden;border:1px solid #2d1f5e;">
     <div style="background:linear-gradient(135deg,#7c3aed,#db2777);padding:28px 32px;text-align:center;">
-      <div style="font-size:36px;margin-bottom:8px;">🎉</div>
+      <img src="{$siteLogo}" alt="Surteados" style="display:block;width:150px;max-width:70%;height:auto;margin:0 auto 12px;">
       <h1 style="margin:0;color:#fff;font-size:22px;font-weight:800;">¡Compra confirmada!</h1>
       <p style="margin:8px 0 0;color:rgba(255,255,255,.8);font-size:14px;">{$siteNameSafe}</p>
     </div>

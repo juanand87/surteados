@@ -62,6 +62,7 @@ if ($token || $orderId) {
 $isPending = $ticket && $ticket['payment_status'] === 'pending';
 $isPaid    = $ticket && $ticket['payment_status'] === 'paid';
 $isFailed  = $ticket && in_array($ticket['payment_status'], ['failed', 'refunded']);
+$siteLogo = 'https://www.surteados.cl/assets/uploads/logo_79fc52eace063168.png';
 
 if ($isPaid && !empty($ticket['flow_order'])) {
     try {
@@ -87,6 +88,7 @@ if ($isPaid && !empty($ticket['flow_order'])) {
     .result-page { min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:2rem; background:var(--bg-base); }
     .result-card { background:#fff; border-radius:1.5rem; box-shadow:0 8px 40px rgba(0,0,0,.1); padding:3rem 2.5rem; max-width:600px; width:100%; text-align:center; }
     .result-icon { font-size:4rem; margin-bottom:1rem; }
+    .result-logo { display:block; width:min(190px,62vw); max-height:100px; object-fit:contain; margin:0 auto 1.25rem; }
     .result-card h1 { font-size:1.75rem; margin-bottom:.5rem; }
     .result-card p  { color:var(--text-secondary); margin-bottom:1.5rem; }
     .ticket-grid { display:flex; flex-wrap:wrap; gap:.6rem; justify-content:center; margin:1.5rem 0; }
@@ -107,7 +109,7 @@ if ($isPaid && !empty($ticket['flow_order'])) {
   <div class="result-card">
 
     <?php if ($isPaid): ?>
-      <div class="result-icon">🎉</div>
+      <img class="result-logo" src="<?= htmlspecialchars($siteLogo) ?>" alt="Surteados">
       <h1>¡Pago exitoso!</h1>
       <p>Tu compra fue procesada correctamente. Guarda tus números de ticket.</p>
 

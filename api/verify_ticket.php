@@ -12,6 +12,7 @@ $statusColor = $valid ? '#22c55e' : '#ef4444';
 $ticketLabel = $number !== '' ? surteados_ticket_number_label($number) : '-';
 $drawDate = !empty($ticket['draw_date']) ? date('d/m/Y H:i', strtotime($ticket['draw_date'])) : '-';
 $paidDate = !empty($ticket['purchase_date']) ? date('d/m/Y H:i', strtotime($ticket['purchase_date'])) : '-';
+$siteLogo = 'https://www.surteados.cl/assets/uploads/logo_79fc52eace063168.png';
 
 header('Content-Type: text/html; charset=UTF-8');
 header('X-Robots-Tag: noindex, nofollow');
@@ -25,6 +26,7 @@ header('X-Robots-Tag: noindex, nofollow');
     * { box-sizing: border-box; }
     body { margin:0; min-height:100vh; display:grid; place-items:center; padding:24px; font-family:Arial,Helvetica,sans-serif; background:#130322; color:#fff; }
     .box { width:min(92vw,560px); border:1px solid rgba(255,255,255,.14); border-radius:18px; padding:28px; background:linear-gradient(145deg,#260b4b,#160322); box-shadow:0 24px 80px rgba(0,0,0,.35); }
+    .logo { display:block; width:min(190px,62vw); max-height:96px; object-fit:contain; margin:0 auto 22px; }
     .badge { display:inline-flex; align-items:center; gap:.5rem; padding:.45rem .75rem; border-radius:999px; background:<?= $statusColor ?>22; color:<?= $statusColor ?>; font-weight:800; font-size:.82rem; margin-bottom:16px; }
     h1 { margin:0 0 16px; font-size:2rem; }
     .row { display:flex; justify-content:space-between; gap:18px; padding:10px 0; border-bottom:1px solid rgba(255,255,255,.1); }
@@ -35,6 +37,7 @@ header('X-Robots-Tag: noindex, nofollow');
 </head>
 <body>
   <main class="box">
+    <img class="logo" src="<?= htmlspecialchars($siteLogo) ?>" alt="Surteados">
     <div class="badge"><?= $valid ? 'VERIFICADO' : 'RECHAZADO' ?></div>
     <h1><?= htmlspecialchars($title) ?></h1>
     <?php if ($valid): ?>

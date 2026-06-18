@@ -822,7 +822,7 @@ if (!empty($cfg['heroSliderEnabled']) && !empty($cfg['heroSlides']) && is_array(
       <!-- Step 4: Success -->
       <div class="step-panel" id="step4">
         <div class="text-center" style="padding: 1rem 0;">
-          <div style="font-size:4rem; margin-bottom:1rem; animation: float-anim 2s ease-in-out infinite;">🎉</div>
+          <img class="purchase-success-logo" src="https://www.surteados.cl/assets/uploads/logo_79fc52eace063168.png" alt="Surteados">
           <h3 class="text-white mb-2">¡Compra exitosa!</h3>
           <p id="step4Subtitle" class="mb-3">Tus <?= htmlspecialchars($ticketLabelP) ?> han sido asignados. Revisa tu correo.</p>
 
