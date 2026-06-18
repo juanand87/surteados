@@ -142,7 +142,7 @@ if ($method === 'POST') {
         $pool = tombola_attach_prize_image($pool, (string)($raffle['image_url'] ?? ''));
 
         $shuffled = tombola_shuffle_secure($pool);
-        $semifinalists = array_slice($shuffled, 0, min(50, count($shuffled)));
+        $semifinalists = array_slice($shuffled, 0, min(10, count($shuffled)));
         $auditId = generate_id('ta');
         $poolHash = tombola_hash_payload(array_column($pool, 'number'));
         $resultHash = tombola_hash_payload([
