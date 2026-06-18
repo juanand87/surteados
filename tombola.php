@@ -199,6 +199,13 @@ $siteLogo = $settings['site_logo'] ?? null;
       overflow: hidden;
       mask-image: linear-gradient(to bottom, transparent, #000 9%, #000 91%, transparent);
     }
+    .tb-flow-grid:empty,
+    .tb-final-column:empty,
+    .tb-reveal-grid:empty {
+      display: none;
+      min-height: 0;
+      margin: 0;
+    }
     .tb-flow-column { display:flex; flex-direction:column; gap:.45rem; will-change:transform; }
     .tb-flow-item {
       border: 1px solid rgba(255,255,255,.18);
@@ -211,6 +218,17 @@ $siteLogo = $settings['site_logo'] ?? null;
       font-size: .8rem;
       text-align: center;
       box-shadow: 0 8px 18px rgba(0,0,0,.22);
+    }
+    .tb-flow-prize,
+    .tb-ball-prize {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      object-fit: cover;
+      display: block;
+      margin: 0 auto .22rem;
+      border: 1px solid rgba(255,255,255,.2);
+      background: rgba(255,255,255,.08);
     }
     .tb-flow-item small {
       display:block;
@@ -387,7 +405,8 @@ async function api(path, opts = {}) {
 }
 
 function itemHtml(item){
-  return `<div class="tb-flow-item">${esc(item.number)}<small>${esc(item.buyer_name || 'Participante')}</small></div>`;
+  const img = item.prize_image ? `<img class="tb-flow-prize" src="${esc(item.prize_image)}" alt="">` : '';
+  return `<div class="tb-flow-item">${img}${esc(item.number)}<small>${esc(item.buyer_name || 'Participante')}</small></div>`;
 }
 
 function splitColumns(items, columns) {
@@ -448,7 +467,8 @@ async function revealGrid(elId, items, perItemDelay) {
   el.innerHTML = '';
   for (const it of items) {
     const wrap = document.createElement('div');
-    wrap.innerHTML = `<div class="tb-ball">${esc(it.number)}<small>${esc(it.buyer_name || 'Participante')}</small></div>`;
+    const img = it.prize_image ? `<img class="tb-ball-prize" src="${esc(it.prize_image)}" alt="">` : '';
+    wrap.innerHTML = `<div class="tb-ball">${img}${esc(it.number)}<small>${esc(it.buyer_name || 'Participante')}</small></div>`;
     const node = wrap.firstElementChild;
     node.style.opacity = '0';
     node.style.transform = 'translateY(18px) scale(.92)';

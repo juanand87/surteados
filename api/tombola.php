@@ -71,6 +71,16 @@ function tombola_ticket_pool(PDO $pdo, string $raffleId): array
     return $pool;
 }
 
+function tombola_attach_prize_image(array $items, string $imageUrl): array
+{
+    if ($imageUrl === '') return $items;
+    foreach ($items as &$item) {
+        $item['prize_image'] = $imageUrl;
+    }
+    unset($item);
+    return $items;
+}
+
 function tombola_load_audit(PDO $pdo, string $auditId, string $raffleId): array
 {
     $stmt = $pdo->prepare('SELECT * FROM tombola_audits WHERE id = ? AND raffle_id = ? LIMIT 1');
@@ -119,7 +129,7 @@ if ($method === 'POST') {
     $auditId = trim((string)($b['audit_id'] ?? ''));
     if ($raffleId === '') json_error('raffle_id requerido');
 
-    $raffleStmt = $pdo->prepare('SELECT id, title, draw_date FROM raffles WHERE id = ?');
+    $raffleStmt = $pdo->prepare('SELECT id, title, draw_date, image_url FROM raffles WHERE id = ?');
     $raffleStmt->execute([$raffleId]);
     $raffle = $raffleStmt->fetch();
     if (!$raffle) json_error('Sorteo no encontrado', 404);
@@ -129,6 +139,7 @@ if ($method === 'POST') {
         if (count($pool) < 1) {
             json_error('No hay imagenes pagadas para este sorteo');
         }
+        $pool = tombola_attach_prize_image($pool, (string)($raffle['image_url'] ?? ''));
 
         $shuffled = tombola_shuffle_secure($pool);
         $semifinalists = array_slice($shuffled, 0, min(50, count($shuffled)));
