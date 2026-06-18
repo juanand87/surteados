@@ -305,17 +305,17 @@ usort($sortedPacks, fn($a, $b) => ((int)$a['qty'] <=> (int)$b['qty']) ?: ((int)$
         <?php if ($meetLink): ?>
         <?php if ($transmissionEnabled): ?>
         <a href="<?= htmlspecialchars($meetLink) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-ghost" style="display:inline-flex;align-items:center;gap:.35rem;">
-          <?= $status === 'ended' ? 'Ver grabación' : 'Ver transmisión' ?>
+          📹 <?= $status === 'ended' ? 'Ver grabación' : 'Ver transmisión' ?>
         </a>
         <?php else: ?>
         <span class="btn btn-ghost vs-transmission-disabled" title="<?= htmlspecialchars($transmissionTooltip) ?>" aria-disabled="true" style="display:inline-flex;align-items:center;gap:.35rem;">
-          Ver transmisión
+          📹 Ver transmisión
         </span>
         <?php endif; ?>
         <?php endif; ?>
         <?php if ($status === 'active' && !$salesClosed): ?>
         <button class="btn btn-primary" onclick="openPurchaseModal('<?= htmlspecialchars($raffle['id']) ?>')" style="font-weight:800;">
-          Comprar <?= htmlspecialchars($ticketLabel) ?><?= $minPrice > 0 ? ' desde $' . number_format($minPrice, 0, ',', '.') : '' ?>
+          🖼️ Comprar <?= htmlspecialchars($ticketLabel) ?><?= $minPrice > 0 ? ' desde $' . number_format($minPrice, 0, ',', '.') : '' ?>
         </button>
         <?php elseif ($status === 'active' && $salesClosed): ?>
         <span class="pill pill-amber" style="font-size:.78rem;">Compra cerrada</span>
@@ -353,7 +353,7 @@ usort($sortedPacks, fn($a, $b) => ((int)$a['qty'] <=> (int)$b['qty']) ?: ((int)$
         </div>
         <div style="text-align:center;margin-top:1.25rem;">
           <button class="btn btn-primary btn-lg" onclick="openPurchaseModal('<?= htmlspecialchars($raffle['id']) ?>')" style="font-weight:800;">
-            Comprar <?= htmlspecialchars(ucfirst($ticketLabel)) ?> ahora
+            🖼️ Comprar <?= htmlspecialchars(ucfirst($ticketLabel)) ?> ahora
           </button>
         </div>
       </div>
