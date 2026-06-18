@@ -418,23 +418,8 @@ if (!empty($cfg['heroSliderEnabled']) && !empty($cfg['heroSlides']) && is_array(
         <a href="sorteos.php" class="btn btn-primary btn-lg">🎟️ Ver Sorteos Activos</a>
         <a href="ganadores.php" class="btn btn-outline btn-lg">Ver Ganadores</a>
       </div>
-      <div class="hero-stats" id="heroStats">
-        <div class="hero-stat">
-          <div class="num" id="statTotalSorteos">—</div>
-          <div class="label">Sorteos activos</div>
-        </div>
-        <div class="hero-stat">
-          <div class="num" id="statTicketsVendidos">—</div>
-            <div class="label"><?= htmlspecialchars(ucfirst($ticketLabelP)) ?> vendidos</div>
-        </div>
-        <div class="hero-stat">
-          <div class="num" id="statGanadores">—</div>
-          <div class="label">Ganadores felices</div>
-        </div>
-        <div class="hero-stat">
-          <div class="num">100%</div>
-          <div class="label">Notariado</div>
-        </div>
+      <div class="hero-bases-link-wrap">
+        <a href="documentos/Bases_Condiciones.pdf" class="hero-bases-link" target="_blank" rel="noopener">Ver bases ante notario</a>
       </div>
     </div>
     <div class="hero-right">

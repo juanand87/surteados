@@ -560,6 +560,21 @@ p  { color: var(--text-secondary); }
 .hero-left h1 { margin-bottom: 1.25rem; }
 .hero-left p { font-size: 1.1rem; margin-bottom: 2rem; max-width: 460px; }
 .hero-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
+.hero-bases-link-wrap {
+  margin-top: 2.25rem;
+}
+.hero-bases-link {
+  display: inline-flex;
+  align-items: center;
+  color: var(--text-inv);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 5px;
+  text-decoration-thickness: 2px;
+}
+.hero-bases-link:hover {
+  color: var(--color-accent);
+}
 .hero-stats {
   display: flex;
   gap: 2rem;
