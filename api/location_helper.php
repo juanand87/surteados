@@ -52,17 +52,31 @@ function surteados_ensure_locations(PDO $pdo): void
         "INSERT INTO regions (id, name, roman, sort_order) VALUES (?, ?, ?, ?)
          ON DUPLICATE KEY UPDATE name = VALUES(name), roman = VALUES(roman), sort_order = VALUES(sort_order)"
     );
-    $communeStmt = $pdo->prepare(
-        "INSERT INTO communes (region_id, name, sort_order) VALUES (?, ?, ?)
-         ON DUPLICATE KEY UPDATE sort_order = VALUES(sort_order)"
+    $communeFindStmt = $pdo->prepare(
+        "SELECT id FROM communes WHERE region_id = ? AND name = ? LIMIT 1"
+    );
+    $communeUpdateStmt = $pdo->prepare(
+        "UPDATE communes SET sort_order = ? WHERE id = ?"
+    );
+    $communeInsertStmt = $pdo->prepare(
+        "INSERT INTO communes (region_id, name, sort_order) VALUES (?, ?, ?)"
     );
 
     foreach (surteados_locations_dataset() as $regionIndex => $region) {
         $regionStmt->execute([$region['id'], $region['name'], $region['roman'], $regionIndex + 1]);
         foreach ($region['communes'] as $communeIndex => $commune) {
-            $communeStmt->execute([$region['id'], $commune, $communeIndex + 1]);
+            $sortOrder = $communeIndex + 1;
+            $communeFindStmt->execute([$region['id'], $commune]);
+            $communeId = $communeFindStmt->fetchColumn();
+            if ($communeId) {
+                $communeUpdateStmt->execute([$sortOrder, $communeId]);
+            } else {
+                $communeInsertStmt->execute([$region['id'], $commune, $sortOrder]);
+            }
         }
     }
+
+    surteados_normalize_communes_autoincrement($pdo);
 
     if (!surteados_column_exists($pdo, 'tickets', 'buyer_commune_id')) {
         $pdo->exec('ALTER TABLE tickets ADD COLUMN buyer_commune_id SMALLINT UNSIGNED NULL AFTER buyer_comuna');
@@ -82,6 +96,18 @@ function surteados_ensure_locations(PDO $pdo): void
            AND t.buyer_comuna IS NOT NULL
            AND t.buyer_comuna <> ''"
     );
+}
+
+function surteados_normalize_communes_autoincrement(PDO $pdo): void
+{
+    $statusStmt = $pdo->query("SHOW TABLE STATUS LIKE 'communes'");
+    $status = $statusStmt ? $statusStmt->fetch() : null;
+    $autoIncrement = (int)($status['Auto_increment'] ?? 0);
+    if ($autoIncrement > 60000) {
+        $next = (int)$pdo->query('SELECT COALESCE(MAX(id), 0) + 1 FROM communes')->fetchColumn();
+        $next = max($next, 400);
+        $pdo->exec('ALTER TABLE communes AUTO_INCREMENT = ' . $next);
+    }
 }
 
 function surteados_column_exists(PDO $pdo, string $table, string $column): bool
