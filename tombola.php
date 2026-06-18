@@ -1,8 +1,7 @@
 <?php
 require __DIR__ . '/api/config.php';
 
-session_name(SESSION_NAME);
-if (session_status() === PHP_SESSION_NONE) session_start();
+admin_session_start();
 if (empty($_SESSION['admin_id'])) {
     header('Location: panel/index.php');
     exit;
@@ -275,6 +274,7 @@ $siteLogo = $settings['site_logo'] ?? null;
 <script>
 const tbState = { raffles: [], locked: false };
 let drumRotation = 0;
+const API_BASE = new URL('api', window.location.href).pathname.replace(/\/?$/, '/');
 
 const DRAMA_PRESETS = {
   1: { label: 'Rápido', spin10: 4.2, spin5: 3.8, spin3: 3.4, reveal: 180, pauseA: 320, pauseB: 360, pauseC: 420 },
@@ -287,13 +287,23 @@ function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
 
 async function api(path, opts = {}) {
   const { method = 'GET', body } = opts;
-  const res = await fetch('/surteados/api' + path, {
+  const res = await fetch(API_BASE + path.replace(/^\//, ''), {
     method,
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     body: body ? JSON.stringify(body) : undefined,
   });
-  const json = await res.json();
+  const text = await res.text();
+  let json;
+  try {
+    json = JSON.parse(text);
+  } catch (e) {
+    if (res.status === 401 || text.includes('Acceso Administrador')) {
+      window.location.href = 'panel/index.php';
+      return;
+    }
+    throw new Error('Respuesta no válida del servidor. Revisa la sesión de administrador o el log PHP.');
+  }
   if (!json.ok) throw new Error(json.error || 'Error inesperado');
   return json.data;
 }
@@ -369,8 +379,8 @@ async function loadRaffles() {
   tbState.raffles = data;
   const sel = document.getElementById('tbRaffle');
   sel.innerHTML = data.map(r => {
-    const lock = r.locked ? ' [BLOQUEADO]' : '';
-    return `<option value="${r.id}" ${r.locked ? 'disabled' : ''}>${esc(r.title)} | ${r.paid_images} imagenes pagadas${lock}</option>`;
+    const previous = r.has_winner ? ' | ganador registrado' : '';
+    return `<option value="${r.id}">${esc(r.title)} | ${r.paid_images} imagenes pagadas${previous}</option>`;
   }).join('') || '<option value="">Sin sorteos</option>';
   renderInfo();
 }
@@ -388,15 +398,10 @@ function renderInfo() {
     resetBtn.style.display = 'none';
     return;
   }
-  if (r.locked) {
-    info.textContent = 'Este sorteo ya tiene ganador. Puedes resetearlo para pruebas.';
-    btn.disabled = true;
-    resetBtn.style.display = '';
-  } else {
-    info.textContent = `Listo para sortear. Universo: ${r.paid_images} imagenes pagadas.`;
-    btn.disabled = r.paid_images < 1;
-    resetBtn.style.display = 'none';
-  }
+  const suffix = r.has_winner ? ' Ya existe un ganador registrado, pero la tómbola no se bloqueará por ahora.' : '';
+  info.textContent = `Listo para sortear. Universo: ${r.paid_images} imagenes pagadas.${suffix}`;
+  btn.disabled = r.paid_images < 1;
+  resetBtn.style.display = r.has_winner ? '' : 'none';
 }
 
 async function resetTombola() {
@@ -407,8 +412,9 @@ async function resetTombola() {
   resetBtn.disabled = true;
   resetBtn.textContent = 'Reseteando...';
   try {
-    await fetch('/surteados/api/tombola.php', {
+    await fetch(API_BASE + 'tombola.php', {
       method: 'DELETE',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ raffle_id: raffleId })
     });
@@ -487,10 +493,10 @@ async function runTombola() {
     setTimeout(() => confetti({ particleCount: 110, spread: 70, origin: { x: 0.2, y: 0.7 } }), 220);
     setTimeout(() => confetti({ particleCount: 110, spread: 70, origin: { x: 0.8, y: 0.7 } }), 240);
 
-    phase('Resultado oficial guardado', 'La tómbola quedó bloqueada para este sorteo.');
+    phase('Resultado oficial guardado', 'El ganador quedó registrado. El sorteo sigue disponible por ahora.');
     status('Ganador registrado correctamente.');
     document.getElementById('tbSaved').textContent =
-      `Ganador guardado automaticamente. Imagen #${result.winner.number}. La tombola quedó bloqueada para este sorteo.`;
+      `Ganador guardado automaticamente. Imagen #${result.winner.number}. El sorteo no fue bloqueado.`;
 
     await loadRaffles();
   } catch (e) {

@@ -35,12 +35,48 @@ $apiBase   = '../api';
       text-align: left;
     }
     .btn-link-like:hover { text-decoration: underline; }
+    .admin-topbar {
+      background: #dff4fb !important;
+      border-bottom: 1px solid #b9e3f0;
+      box-shadow: 0 8px 24px rgba(15, 76, 97, .08);
+    }
+    .admin-topbar .navbar-logo span.brand,
+    .admin-topbar .navbar-logo span.brand em {
+      color: #123344;
+    }
+    .admin-topbar .logo-icon {
+      background: rgba(14, 116, 144, .12);
+      color: #0e7490;
+    }
+    .admin-topbar .admin-user-label {
+      font-size: .8rem;
+      color: #24485a;
+      font-weight: 700;
+    }
+    .admin-topbar .pill-purple {
+      background: rgba(14, 116, 144, .12);
+      border-color: rgba(14, 116, 144, .22);
+      color: #0f5168;
+    }
+    .admin-topbar .navbar-actions .btn {
+      border-color: rgba(14, 116, 144, .28);
+      color: #123344;
+      background: rgba(255, 255, 255, .62);
+    }
+    .admin-topbar .navbar-actions .btn:hover {
+      background: #fff;
+      color: #0e7490;
+      border-color: rgba(14, 116, 144, .42);
+    }
+    .admin-topbar .navbar-mobile-toggle span {
+      background: #123344;
+    }
   </style>
 </head>
 <body>
 
 <!-- ADMIN NAVBAR -->
-<nav class="navbar" id="navbar" style="background:rgba(10,10,15,0.98);">
+<nav class="navbar admin-topbar" id="navbar">
   <div class="navbar-inner">
     <a href="../index.php" class="navbar-logo">
       <div class="logo-icon">🎟️</div>
@@ -48,7 +84,7 @@ $apiBase   = '../api';
     </a>
     <div style="display:flex; align-items:center; gap:.5rem;">
       <span class="pill pill-purple" style="font-size:.7rem;">Panel Admin</span>
-      <span style="font-size:.8rem; color:rgba(255,255,255,.6);">👤 <?= $adminUser ?></span>
+      <span class="admin-user-label">👤 <?= $adminUser ?></span>
     </div>
     <div class="navbar-actions">
       <a href="../index.php" class="btn btn-outline btn-sm">← Ver sitio</a>

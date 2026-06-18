@@ -73,7 +73,7 @@ function surteados_send_order_confirmation(PDO $pdo, string $orderId, string $bu
     $buyerNameSafe = htmlspecialchars($buyerName, ENT_QUOTES, 'UTF-8');
     $buyerEmailSafe = htmlspecialchars($buyerEmail, ENT_QUOTES, 'UTF-8');
     $siteNameSafe = htmlspecialchars($siteName, ENT_QUOTES, 'UTF-8');
-    $siteLogo = htmlspecialchars($siteUrl . '/assets/uploads/logo_79fc52eace063168.png', ENT_QUOTES, 'UTF-8');
+    $siteLogo = 'https://www.surteados.cl/assets/uploads/logo_79fc52eace063168.png';
 
     $htmlBody = <<<HTML
 <!DOCTYPE html>
