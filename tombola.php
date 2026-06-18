@@ -637,10 +637,10 @@ async function scatterSelectedImages() {
   gsap.to([...grid.querySelectorAll('.tb-flow-item:not(.selected)')], {
     opacity: 0,
     scale: .72,
-    duration: .45,
-    ease: 'power2.in'
+    duration: 1.25,
+    ease: 'power2.inOut'
   });
-  await sleep(470);
+  await sleep(1280);
 
   grid.classList.remove('is-stopping', 'is-spinning');
   grid.classList.add('final-scatter');
@@ -665,8 +665,8 @@ async function scatterSelectedImages() {
       yPercent: 0,
       scale: 1,
       opacity: 1,
-      duration: .95 + (idx % 3) * .08,
-      ease: 'power3.inOut'
+      duration: 2.25 + (idx % 3) * .16,
+      ease: 'power2.inOut'
     });
   }));
 }
@@ -758,6 +758,8 @@ async function highlightSelected10(items) {
     status(`Columna ${idx + 1} de ${items.length}: imagen seleccionada ${item.number}`);
     await sleep(450);
   }
+  status('10 imagenes seleccionadas. Preparando presentacion final...');
+  await sleep(4000);
   status('Ordenando las 10 imagenes seleccionadas...');
   await scatterSelectedImages();
 }
