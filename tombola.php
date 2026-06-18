@@ -299,6 +299,21 @@ $siteLogo = $settings['site_logo'] ?? null;
     .tb-flow-grid.is-stopping .tb-flow-column.locked {
       animation: none !important;
     }
+    .tb-flow-grid.final-scatter {
+      display: block;
+      position: relative;
+      mask-image: none;
+    }
+    .tb-flow-grid.final-scatter .tb-flow-column {
+      display: none;
+    }
+    .tb-flow-grid.final-scatter .tb-flow-item.final-selected {
+      position: absolute;
+      width: min(168px, 17%);
+      min-width: 132px;
+      min-height: 68px;
+      z-index: 4;
+    }
     .tb-flow-column.smooth-locking,
     .tb-flow-column.smooth-locking.locked {
       animation: none !important;
@@ -521,6 +536,7 @@ function renderSpinningBoard(items) {
     frame.push(source[frame.length % source.length]);
   }
   renderFlowGrid(frame, 10, 2);
+  document.getElementById('tbUniverseFlow').classList.remove('final-scatter');
   document.getElementById('tbUniverseFlow').classList.add('is-spinning');
 }
 
@@ -570,18 +586,89 @@ function playSlotSound() {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     if (!AudioCtx) return;
     const ctx = playSlotSound.ctx || (playSlotSound.ctx = new AudioCtx());
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(620, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(210, ctx.currentTime + .16);
-    gain.gain.setValueAtTime(.0001, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(.16, ctx.currentTime + .02);
-    gain.gain.exponentialRampToValueAtTime(.0001, ctx.currentTime + .18);
-    osc.connect(gain).connect(ctx.destination);
-    osc.start();
-    osc.stop(ctx.currentTime + .2);
+    const now = ctx.currentTime;
+    const master = ctx.createGain();
+    master.gain.setValueAtTime(.0001, now);
+    master.gain.exponentialRampToValueAtTime(.28, now + .018);
+    master.gain.exponentialRampToValueAtTime(.0001, now + .38);
+    master.connect(ctx.destination);
+
+    const low = ctx.createOscillator();
+    low.type = 'square';
+    low.frequency.setValueAtTime(190, now);
+    low.frequency.exponentialRampToValueAtTime(95, now + .18);
+    low.connect(master);
+    low.start(now);
+    low.stop(now + .22);
+
+    const bell = ctx.createOscillator();
+    bell.type = 'triangle';
+    bell.frequency.setValueAtTime(980, now + .03);
+    bell.frequency.exponentialRampToValueAtTime(520, now + .32);
+    bell.connect(master);
+    bell.start(now + .03);
+    bell.stop(now + .36);
   } catch(e) {}
+}
+
+function selectedScatterPositions(count) {
+  const base = [
+    [8, 12], [31, 8], [57, 13], [80, 10], [18, 38],
+    [43, 34], [68, 40], [10, 68], [38, 66], [72, 68]
+  ];
+  return base.slice(0, count);
+}
+
+async function scatterSelectedImages() {
+  const grid = document.getElementById('tbUniverseFlow');
+  const gridRect = grid.getBoundingClientRect();
+  const nodes = tbState.slotTargets.map(slot => slot?.targetEl).filter(Boolean);
+  if (!nodes.length) return;
+
+  const starts = nodes.map(node => {
+    const rect = node.getBoundingClientRect();
+    return {
+      left: rect.left - gridRect.left,
+      top: rect.top - gridRect.top,
+      width: rect.width
+    };
+  });
+
+  gsap.to([...grid.querySelectorAll('.tb-flow-item:not(.selected)')], {
+    opacity: 0,
+    scale: .72,
+    duration: .45,
+    ease: 'power2.in'
+  });
+  await sleep(470);
+
+  grid.classList.remove('is-stopping', 'is-spinning');
+  grid.classList.add('final-scatter');
+  grid.innerHTML = '';
+
+  const positions = selectedScatterPositions(nodes.length);
+  nodes.forEach((node, idx) => {
+    node.classList.add('final-selected', 'selected');
+    node.classList.remove('slot-center', 'slot-target');
+    node.style.left = `${starts[idx].left}px`;
+    node.style.top = `${starts[idx].top}px`;
+    node.style.width = `${Math.max(132, starts[idx].width)}px`;
+    grid.appendChild(node);
+  });
+
+  await Promise.all(nodes.map((node, idx) => {
+    const [x, y] = positions[idx] || [50, 50];
+    return tweenTo(node, {
+      left: `${x}%`,
+      top: `${y}%`,
+      xPercent: 0,
+      yPercent: 0,
+      scale: 1,
+      opacity: 1,
+      duration: .95 + (idx % 3) * .08,
+      ease: 'power3.inOut'
+    });
+  }));
 }
 
 function matrixTranslateY(transform) {
@@ -671,6 +758,8 @@ async function highlightSelected10(items) {
     status(`Columna ${idx + 1} de ${items.length}: imagen seleccionada ${item.number}`);
     await sleep(450);
   }
+  status('Ordenando las 10 imagenes seleccionadas...');
+  await scatterSelectedImages();
 }
 
 function renderColumn(items, repeat = 1) {
@@ -796,7 +885,7 @@ function clearStage(clearState = true) {
   tbState.slotTargets.forEach(slot => slot?.tween?.kill());
   tbState.slotTargets = [];
   tbState.spinning = false;
-  document.getElementById('tbUniverseFlow')?.classList.remove('is-spinning', 'is-stopping');
+  document.getElementById('tbUniverseFlow')?.classList.remove('is-spinning', 'is-stopping', 'final-scatter');
   document.getElementById('tbUniverseFlow').innerHTML = '';
   document.getElementById('tbRound50').innerHTML = '';
   document.getElementById('tbFinalFlow').innerHTML = '';
