@@ -2771,12 +2771,14 @@ textarea.form-control { resize: vertical; min-height: 80px; }
   margin: .35rem 0 0;
   font-size: clamp(1.2rem, 2vw, 1.75rem);
 }
-.home-raffle-strip-actions {
-  display: flex;
-  align-items: center;
-  gap: .45rem;
+.home-raffle-carousel-shell {
+  position: relative;
 }
 .home-raffle-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
   width: 36px;
   height: 36px;
   border-radius: 999px;
@@ -2789,9 +2791,11 @@ textarea.form-control { resize: vertical; min-height: 80px; }
   transition: transform .2s ease, border-color .2s ease;
 }
 .home-raffle-nav:hover {
-  transform: translateY(-1px);
+  transform: translateY(-50%) scale(1.04);
   border-color: var(--color-primary);
 }
+.home-raffle-nav-prev { left: -18px; }
+.home-raffle-nav-next { right: -18px; }
 .home-raffle-strip-link {
   color: var(--text-secondary);
   font-weight: 800;
@@ -2880,7 +2884,8 @@ textarea.form-control { resize: vertical; min-height: 80px; }
   .hs-arrow { display: none; }
   .hs-slide-inner h1 { font-size: 1.75rem; }
   .home-raffle-strip-head { align-items: start; flex-direction: column; }
-  .home-raffle-strip-actions { width: 100%; }
+  .home-raffle-nav-prev { left: .35rem; }
+  .home-raffle-nav-next { right: .35rem; }
   .home-raffle-carousel { grid-auto-columns: minmax(230px, 82vw); }
 }
 

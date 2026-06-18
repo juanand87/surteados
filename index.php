@@ -409,42 +409,42 @@ $homeCarouselRaffles = array_values(array_filter($allData['raffles'] ?? [], func
       <span class="badge">Sorteos activos</span>
       <h2>Elige tu próxima imagen</h2>
     </div>
-    <div class="home-raffle-strip-actions">
-      <button class="home-raffle-nav" id="homeRafflePrev" type="button" aria-label="Sorteos anteriores">&#10094;</button>
-      <button class="home-raffle-nav" id="homeRaffleNext" type="button" aria-label="Sorteos siguientes">&#10095;</button>
-      <a href="sorteos.php" class="home-raffle-strip-link">Ver todos</a>
-    </div>
+    <a href="sorteos.php" class="home-raffle-strip-link">Ver todos</a>
   </div>
-  <div class="home-raffle-carousel">
-    <?php foreach ($homeCarouselRaffles as $raffle):
-      $packs = $raffle['packs'] ?? [];
-      $prices = array_filter(array_map(fn($pack) => (int)($pack['price'] ?? 0), $packs));
-      $minPrice = $prices ? min($prices) : 0;
-      $image = $raffle['image'] ?? '';
-      $title = $raffle['title'] ?? 'Sorteo';
-    ?>
-      <article class="home-raffle-slide">
-        <a href="ver-sorteo.php?id=<?= urlencode((string)$raffle['id']) ?>" class="home-raffle-card">
-          <div class="home-raffle-image">
-            <?php if ($image): ?>
-              <img src="<?= htmlspecialchars($image) ?>" alt="<?= htmlspecialchars($title) ?>" loading="lazy">
-            <?php else: ?>
-              <span><?= htmlspecialchars($raffle['imageEmoji'] ?? '🎁') ?></span>
-            <?php endif; ?>
-          </div>
-          <div class="home-raffle-info">
-            <div class="home-raffle-category"><?= htmlspecialchars($raffle['category'] ?? 'Sorteo') ?></div>
-            <h3><?= htmlspecialchars($title) ?></h3>
-            <div class="home-raffle-meta">
-              <?php if ($minPrice > 0): ?>
-                <span>Desde $<?= number_format($minPrice, 0, ',', '.') ?></span>
+  <div class="home-raffle-carousel-shell">
+    <button class="home-raffle-nav home-raffle-nav-prev" id="homeRafflePrev" type="button" aria-label="Sorteos anteriores">&#10094;</button>
+    <div class="home-raffle-carousel">
+      <?php foreach ($homeCarouselRaffles as $raffle):
+        $packs = $raffle['packs'] ?? [];
+        $prices = array_filter(array_map(fn($pack) => (int)($pack['price'] ?? 0), $packs));
+        $minPrice = $prices ? min($prices) : 0;
+        $image = $raffle['image'] ?? '';
+        $title = $raffle['title'] ?? 'Sorteo';
+      ?>
+        <article class="home-raffle-slide">
+          <a href="ver-sorteo.php?id=<?= urlencode((string)$raffle['id']) ?>" class="home-raffle-card">
+            <div class="home-raffle-image">
+              <?php if ($image): ?>
+                <img src="<?= htmlspecialchars($image) ?>" alt="<?= htmlspecialchars($title) ?>" loading="lazy">
+              <?php else: ?>
+                <span><?= htmlspecialchars($raffle['imageEmoji'] ?? '🎁') ?></span>
               <?php endif; ?>
-              <strong>Comprar imagen</strong>
             </div>
-          </div>
-        </a>
-      </article>
-    <?php endforeach; ?>
+            <div class="home-raffle-info">
+              <div class="home-raffle-category"><?= htmlspecialchars($raffle['category'] ?? 'Sorteo') ?></div>
+              <h3><?= htmlspecialchars($title) ?></h3>
+              <div class="home-raffle-meta">
+                <?php if ($minPrice > 0): ?>
+                  <span>Desde $<?= number_format($minPrice, 0, ',', '.') ?></span>
+                <?php endif; ?>
+                <strong>Comprar imagen</strong>
+              </div>
+            </div>
+          </a>
+        </article>
+      <?php endforeach; ?>
+    </div>
+    <button class="home-raffle-nav home-raffle-nav-next" id="homeRaffleNext" type="button" aria-label="Sorteos siguientes">&#10095;</button>
   </div>
 </section>
 <?php endif; ?>

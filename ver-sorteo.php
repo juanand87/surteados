@@ -63,7 +63,7 @@ $meetLink    = $raffle['meetLink'] ?? '';
 $hasLimit    = !empty($raffle['totalTickets']) && (int)$raffle['totalTickets'] > 0;
 $drawTsForTransmission = $drawDate ? strtotime($drawDate) : false;
 $transmissionEnabled = $status === 'ended' || ($drawTsForTransmission && time() >= ($drawTsForTransmission - 3600));
-$transmissionTooltip = 'El botÃ³n Ver TransmisiÃ³n estarÃ¡ activo 1 hora antes del inicio del sorteo.';
+$transmissionTooltip = 'El botón Ver Transmisión estará activo 1 hora antes del inicio del sorteo.';
 
 $pct = $hasLimit
     ? min(100, (int)round($raffle['soldTickets'] / $raffle['totalTickets'] * 100))
@@ -75,8 +75,8 @@ if (!empty($raffle['packs'])) {
     $minPrice = $prices ? min($prices) : 0;
 }
 
-$statusLabels = ['active' => 'En curso', 'soon' => 'PrÃ³ximamente', 'ended' => 'Finalizado'];
-$statusEmoji  = ['active' => 'ðŸŸ¢',       'soon' => 'ðŸŸ¡',            'ended' => 'ðŸ”´'];
+$statusLabels = ['active' => 'En curso', 'soon' => 'Próximamente', 'ended' => 'Finalizado'];
+$statusEmoji  = ['active' => '&#128994;', 'soon' => '&#128993;', 'ended' => '&#128308;'];
 
 // Format draw date nicely
 $drawDateHuman = '';
@@ -204,32 +204,32 @@ usort($sortedPacks, fn($a, $b) => ((int)$a['qty'] <=> (int)$b['qty']) ?: ((int)$
       <?php if ($siteLogo): ?>
         <img src="<?= htmlspecialchars($siteLogo) ?>" alt="Logo" class="navbar-logo-img">
       <?php else: ?>
-        <div class="logo-icon">ðŸŽŸï¸</div>
+        <div class="logo-icon">&#127903;&#65039;</div>
         <span class="brand">Sur<em>tea</em>dos</span>
       <?php endif; ?>
     </a>
     <nav class="navbar-nav">
       <a href="index.php">Inicio</a>
       <a href="sorteos.php" class="active">Sorteos</a>
-      <a href="como-participar.php">Â¿CÃ³mo participar?</a>
+      <a href="como-participar.php">¿Cómo participar?</a>
       <a href="ganadores.php">Ganadores</a>
       <a href="mis-imagenes.php">Mis im&aacute;genes</a>
     </nav>
     <div class="navbar-actions">
-      <a href="mis-imagenes.php#login" class="btn btn-outline btn-sm">Iniciar sesiÃ³n</a>
+      <a href="mis-imagenes.php#login" class="btn btn-outline btn-sm">Iniciar sesión</a>
       <a href="mis-imagenes.php#register" class="btn btn-primary btn-sm">Registrarse</a>
-      <button class="cart-chip-btn" id="cartOpenBtn" onclick="openCartDrawer()">ðŸ›’ Carro <span class="cart-chip-count" id="cartCountNav">0</span></button>
+      <button class="cart-chip-btn" id="cartOpenBtn" onclick="openCartDrawer()">&#128722; Carro <span class="cart-chip-count" id="cartCountNav">0</span></button>
     </div>
     <button class="navbar-mobile-toggle" id="mobileToggle">
       <span></span><span></span><span></span>
     </button>
   </div>
   <div class="mobile-nav" id="mobileNav">
-    <a href="index.php">ðŸ  Inicio</a>
-    <a href="sorteos.php">ðŸŽŸï¸ Sorteos</a>
-    <a href="como-participar.php">ðŸ§­ Â¿CÃ³mo participar?</a>
-    <a href="ganadores.php">ðŸ† Ganadores</a>
-    <a href="mis-imagenes.php">ðŸŽ« Mis im&aacute;genes</a>
+    <a href="index.php">&#127968; Inicio</a>
+    <a href="sorteos.php">&#127903;&#65039; Sorteos</a>
+    <a href="como-participar.php">&#129517; ¿Cómo participar?</a>
+    <a href="ganadores.php">&#127942; Ganadores</a>
+    <a href="mis-imagenes.php">&#127915; Mis im&aacute;genes</a>
   </div>
 </nav>
 
