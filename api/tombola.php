@@ -36,7 +36,8 @@ if ($method === 'GET') {
             if (is_array($nums)) $images += count($nums);
         }
         $row['paid_images'] = $images;
-        $row['locked'] = (int)$row['has_winner'] > 0;
+        $row['has_winner'] = (int)$row['has_winner'] > 0;
+        $row['locked'] = false;
     }
 
     json_ok($rows);
@@ -47,13 +48,6 @@ if ($method === 'POST') {
     $b = body();
     $raffleId = trim((string)($b['raffle_id'] ?? ''));
     if ($raffleId === '') json_error('raffle_id requerido');
-
-    $checkWinner = $pdo->prepare('SELECT id FROM winners WHERE raffle_id = ? LIMIT 1');
-    $checkWinner->execute([$raffleId]);
-    if ($checkWinner->fetch()) {
-        json_error('Este sorteo ya tiene ganador y la tómbola está bloqueada');
-    }
-
     $raffleStmt = $pdo->prepare('SELECT id, title, draw_date FROM raffles WHERE id = ?');
     $raffleStmt->execute([$raffleId]);
     $raffle = $raffleStmt->fetch();
@@ -131,7 +125,7 @@ if ($method === 'POST') {
         'winner' => $winner,
         'winner_id' => $winnerId,
         'saved' => true,
-        'blocked' => true,
+        'blocked' => false,
     ]);
 }
 

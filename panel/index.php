@@ -4,8 +4,13 @@ require __DIR__ . '/../api/config.php';
 
 admin_session_start();
 
+$redirect = trim((string)($_POST['redirect'] ?? $_GET['redirect'] ?? ''));
+if (!in_array($redirect, ['dashboard.php', '../tombola.php'], true)) {
+    $redirect = 'dashboard.php';
+}
+
 if (!empty($_SESSION['admin_id'])) {
-    header('Location: dashboard.php');
+    header('Location: ' . $redirect);
     exit;
 }
 
@@ -24,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             session_regenerate_id(true);
             $_SESSION['admin_id']       = $user['id'];
             $_SESSION['admin_username'] = $user['username'];
-            header('Location: dashboard.php');
+            header('Location: ' . $redirect);
             exit;
         }
     }
@@ -64,6 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <?php endif; ?>
 
   <form method="POST">
+    <input type="hidden" name="redirect" value="<?= htmlspecialchars($redirect) ?>">
     <div class="form-group">
       <label class="form-label" for="username">Usuario</label>
       <input class="form-control" id="username" type="text" name="username"

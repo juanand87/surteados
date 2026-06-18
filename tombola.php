@@ -3,7 +3,7 @@ require __DIR__ . '/api/config.php';
 
 admin_session_start();
 if (empty($_SESSION['admin_id'])) {
-    header('Location: panel/index.php');
+    header('Location: panel/index.php?redirect=' . rawurlencode('../tombola.php'));
     exit;
 }
 
@@ -304,7 +304,13 @@ async function api(path, opts = {}) {
     }
     throw new Error('Respuesta no válida del servidor. Revisa la sesión de administrador o el log PHP.');
   }
-  if (!json.ok) throw new Error(json.error || 'Error inesperado');
+  if (!json.ok) {
+    if (res.status === 401) {
+      window.location.href = 'panel/index.php?redirect=' + encodeURIComponent('../tombola.php');
+      return;
+    }
+    throw new Error(json.error || 'Error inesperado');
+  }
   return json.data;
 }
 
@@ -496,7 +502,7 @@ async function runTombola() {
     phase('Resultado oficial guardado', 'El ganador quedó registrado. El sorteo sigue disponible por ahora.');
     status('Ganador registrado correctamente.');
     document.getElementById('tbSaved').textContent =
-      `Ganador guardado automaticamente. Imagen #${result.winner.number}. El sorteo no fue bloqueado.`;
+      `Ganador guardado automaticamente. Imagen #${result.winner.number}. El sorteo sigue disponible.`;
 
     await loadRaffles();
   } catch (e) {
