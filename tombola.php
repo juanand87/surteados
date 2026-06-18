@@ -267,7 +267,10 @@ $siteLogo = $settings['site_logo'] ?? null;
     }
     .tb-flow-grid.is-stopping .tb-flow-column.locked {
       animation: none !important;
-      transform: translateY(0) !important;
+    }
+    .tb-flow-column.smooth-locking,
+    .tb-flow-column.smooth-locking.locked {
+      animation: none !important;
     }
     @keyframes tbColumnSpin {
       from { transform: translateY(0); }
@@ -396,6 +399,7 @@ const tbState = {
   finalists: [],
   winner: null,
   spinTimer: null,
+  slotTargets: [],
   spinning: false,
 };
 
@@ -450,6 +454,15 @@ async function api(path, opts = {}) {
 function itemHtml(item){
   const img = item.prize_image ? `<img class="tb-flow-prize" src="${esc(item.prize_image)}" alt="">` : '';
   return `<div class="tb-flow-item" data-number="${esc(item.number)}">${img}${esc(item.number)}<small>${esc(item.buyer_name || 'Participante')}</small></div>`;
+}
+
+function makeFlowItemNode(item, classes = '') {
+  const node = document.createElement('div');
+  node.className = `tb-flow-item${classes ? ' ' + classes : ''}`;
+  node.dataset.number = String(item.number);
+  const img = item.prize_image ? `<img class="tb-flow-prize" src="${esc(item.prize_image)}" alt="">` : '';
+  node.innerHTML = `${img}${esc(item.number)}<small>${esc(item.buyer_name || 'Participante')}</small>`;
+  return node;
 }
 
 function splitColumns(items, columns) {
@@ -554,22 +567,92 @@ function playSlotSound() {
   } catch(e) {}
 }
 
+function matrixTranslateY(transform) {
+  if (!transform || transform === 'none') return 0;
+  const match3d = transform.match(/^matrix3d\((.+)\)$/);
+  if (match3d) {
+    const values = match3d[1].split(',').map(Number);
+    return values[13] || 0;
+  }
+  const match2d = transform.match(/^matrix\((.+)\)$/);
+  if (match2d) {
+    const values = match2d[1].split(',').map(Number);
+    return values[5] || 0;
+  }
+  return 0;
+}
+
+function prepareSmoothSlotStop(pool, selected) {
+  const grid = document.getElementById('tbUniverseFlow');
+  const columns = [...grid.querySelectorAll('.tb-flow-column')].slice(0, selected.length);
+  const selectedNumbers = new Set(selected.map(item => String(item.number)));
+  const fillers = shuffleVisual(pool.filter(item => !selectedNumbers.has(String(item.number))));
+  const fallback = fillers.length ? fillers : selected;
+
+  tbState.slotTargets.forEach(slot => slot?.tween?.kill());
+  tbState.slotTargets = [];
+
+  columns.forEach((column, idx) => {
+    const currentY = matrixTranslateY(getComputedStyle(column).transform);
+    column.style.animation = 'none';
+    column.classList.add('smooth-locking');
+    gsap.set(column, { y: currentY });
+
+    for (let i = 0; i < 5; i++) {
+      column.appendChild(makeFlowItemNode(fallback[(idx * 7 + i) % fallback.length]));
+    }
+
+    const targetEl = makeFlowItemNode(selected[idx], 'slot-center slot-target');
+    column.appendChild(targetEl);
+
+    for (let i = 0; i < 7; i++) {
+      column.appendChild(makeFlowItemNode(fallback[(idx * 11 + i + 5) % fallback.length]));
+    }
+
+    const startY = Number(gsap.getProperty(column, 'y')) || currentY;
+    const loopDistance = Math.max(grid.clientHeight * 1.25, 520 + idx * 12);
+    const tween = gsap.to(column, {
+      y: startY - loopDistance,
+      duration: 7.2 + (idx % 4) * .35,
+      ease: 'none',
+      repeat: -1
+    });
+    tbState.slotTargets.push({ column, item: selected[idx], targetEl, tween });
+  });
+
+  grid.classList.remove('is-spinning');
+  grid.classList.add('is-stopping');
+}
+
 async function highlightSelected10(items) {
-  const columns = [...document.querySelectorAll('#tbUniverseFlow .tb-flow-column')];
+  const grid = document.getElementById('tbUniverseFlow');
   for (let idx = 0; idx < items.length; idx++) {
     const item = items[idx];
-    const column = columns[idx];
-    if (column) {
-      column.classList.add('locked');
-      const node = [...column.querySelectorAll('.tb-flow-item')].find(el => el.dataset.number === String(item.number) && el.classList.contains('slot-center'));
-      if (node) {
-        node.classList.add('selected');
-        gsap.fromTo(node, { scale: 1.2 }, { scale: 1.04, duration: .55, ease: 'elastic.out(1,.55)' });
+    const slot = tbState.slotTargets[idx];
+    const column = slot?.column;
+    const node = slot?.targetEl;
+    if (column && node) {
+      const currentY = Number(gsap.getProperty(column, 'y')) || matrixTranslateY(getComputedStyle(column).transform);
+      slot.tween?.kill();
+      gsap.set(column, { y: currentY });
+
+      let targetY = (grid.clientHeight / 2) - (node.offsetTop + node.offsetHeight / 2);
+      if (targetY > currentY) {
+        targetY -= Math.max(grid.clientHeight, column.scrollHeight / 3);
       }
+      await tweenTo(column, {
+        y: targetY,
+        duration: 1.55,
+        ease: 'power3.out'
+      });
+
+      column.classList.add('locked');
+      node.classList.add('selected');
+      gsap.fromTo(node, { scale: 1.2 }, { scale: 1.04, duration: .55, ease: 'elastic.out(1,.55)' });
       playSlotSound();
     }
     status(`Columna ${idx + 1} de ${items.length}: imagen seleccionada ${item.number}`);
-    await sleep(2000);
+    await sleep(450);
   }
 }
 
@@ -694,6 +777,8 @@ function clearStage(clearState = true) {
     clearInterval(tbState.spinTimer);
     tbState.spinTimer = null;
   }
+  tbState.slotTargets.forEach(slot => slot?.tween?.kill());
+  tbState.slotTargets = [];
   tbState.spinning = false;
   document.getElementById('tbUniverseFlow')?.classList.remove('is-spinning', 'is-stopping');
   document.getElementById('tbUniverseFlow').innerHTML = '';
@@ -710,6 +795,7 @@ function clearStage(clearState = true) {
     tbState.semifinalists = [];
     tbState.finalists = [];
     tbState.winner = null;
+    tbState.slotTargets = [];
   }
 }
 
@@ -777,9 +863,9 @@ async function stopAndSelect10() {
     }
     tbState.spinning = false;
     phase('Deteniendo tombola', 'Cada columna se detiene como tragamonedas y deja una imagen seleccionada al centro.');
-    renderSlotSelectionBoard(tbState.pool, tbState.semifinalists);
+    prepareSmoothSlotStop(tbState.pool, tbState.semifinalists);
     status('Las columnas se detendran una por una cada 2 segundos.');
-    await sleep(650);
+    await sleep(250);
     await highlightSelected10(tbState.semifinalists);
     phase('10 imagenes seleccionadas', 'Estas imagenes quedan preseleccionadas para la siguiente etapa.');
     status(`Acta digital: ${tbState.auditId}`);
