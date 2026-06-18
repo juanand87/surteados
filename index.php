@@ -232,6 +232,9 @@ if (!empty($cfg['heroSliderEnabled']) && !empty($cfg['heroSlides']) && is_array(
         ];
     }
 }
+$homeCarouselRaffles = array_values(array_filter($allData['raffles'] ?? [], function($raffle) {
+    return ($raffle['status'] ?? '') === 'active';
+}));
 ?><!DOCTYPE html>
 <html lang="es">
 <head>
@@ -377,7 +380,6 @@ if (!empty($cfg['heroSliderEnabled']) && !empty($cfg['heroSlides']) && is_array(
   <div class="hs-track" id="hsTrack">
     <?php foreach ($homeSlides as $slide): ?>
       <article class="hs-slide" style="background-image:url('<?= htmlspecialchars($slide['image']) ?>'); background-size:cover; background-position:center; background-repeat:no-repeat;">
-        <div class="hs-overlay"></div>
         <div class="hs-slide-inner">
           <?php if ($slide['badge'] !== ''): ?><div class="badge"><?= htmlspecialchars($slide['badge']) ?></div><?php endif; ?>
           <?php if ($slide['title'] !== ''): ?><h1><?= htmlspecialchars($slide['title']) ?></h1><?php endif; ?>
@@ -399,6 +401,53 @@ if (!empty($cfg['heroSliderEnabled']) && !empty($cfg['heroSlides']) && is_array(
   <button class="hs-arrow hs-prev" id="hsPrev" aria-label="Anterior">&#10094;</button>
   <button class="hs-arrow hs-next" id="hsNext" aria-label="Siguiente">&#10095;</button>
 </div>
+
+<?php if (!empty($homeCarouselRaffles)): ?>
+<section class="home-raffle-strip" aria-label="Sorteos disponibles">
+  <div class="home-raffle-strip-head">
+    <div>
+      <span class="badge">Sorteos activos</span>
+      <h2>Elige tu próxima imagen</h2>
+    </div>
+    <div class="home-raffle-strip-actions">
+      <button class="home-raffle-nav" id="homeRafflePrev" type="button" aria-label="Sorteos anteriores">&#10094;</button>
+      <button class="home-raffle-nav" id="homeRaffleNext" type="button" aria-label="Sorteos siguientes">&#10095;</button>
+      <a href="sorteos.php" class="home-raffle-strip-link">Ver todos</a>
+    </div>
+  </div>
+  <div class="home-raffle-carousel">
+    <?php foreach ($homeCarouselRaffles as $raffle):
+      $packs = $raffle['packs'] ?? [];
+      $prices = array_filter(array_map(fn($pack) => (int)($pack['price'] ?? 0), $packs));
+      $minPrice = $prices ? min($prices) : 0;
+      $image = $raffle['image'] ?? '';
+      $title = $raffle['title'] ?? 'Sorteo';
+    ?>
+      <article class="home-raffle-slide">
+        <a href="ver-sorteo.php?id=<?= urlencode((string)$raffle['id']) ?>" class="home-raffle-card">
+          <div class="home-raffle-image">
+            <?php if ($image): ?>
+              <img src="<?= htmlspecialchars($image) ?>" alt="<?= htmlspecialchars($title) ?>" loading="lazy">
+            <?php else: ?>
+              <span><?= htmlspecialchars($raffle['imageEmoji'] ?? '🎁') ?></span>
+            <?php endif; ?>
+          </div>
+          <div class="home-raffle-info">
+            <div class="home-raffle-category"><?= htmlspecialchars($raffle['category'] ?? 'Sorteo') ?></div>
+            <h3><?= htmlspecialchars($title) ?></h3>
+            <div class="home-raffle-meta">
+              <?php if ($minPrice > 0): ?>
+                <span>Desde $<?= number_format($minPrice, 0, ',', '.') ?></span>
+              <?php endif; ?>
+              <strong>Comprar imagen</strong>
+            </div>
+          </div>
+        </a>
+      </article>
+    <?php endforeach; ?>
+  </div>
+</section>
+<?php endif; ?>
 
 <!-- ═══════════════════════════════ HERO ═══════════════════════════════ -->
 <section class="hero" id="hero">
@@ -564,7 +613,7 @@ if (!empty($cfg['heroSliderEnabled']) && !empty($cfg['heroSlides']) && is_array(
           <div class="logo-icon">🎟️</div>
           <span class="brand">Sur<em>tea</em>dos</span>
         </a>
-        <p>Plataforma chilena de rifas digitales, seguros y transparentes. Premios reales con procesos claros y auditables.</p>
+        <p>Plataforma chilena, sorteo de imagenes digitales, seguros y transparentes. Premios reales con procesos claros y auditables. Bases ante notario.</p>
         <div class="social-links" style="margin-top:1rem;">
           <a href="#" class="social-link" title="Instagram">📸</a>
           <a href="#" class="social-link" title="TikTok">🎵</a>

@@ -223,7 +223,6 @@ document.addEventListener('DOMContentLoaded', setupCustomerNav);
   if (hasServerSlides) {
     track.innerHTML = settingsSlides.map((s) => `
     <div class="hs-slide" style="${slideStyle(s)}">
-      ${s.bgType === 'image' ? '<div class="hs-overlay"></div>' : '<div class="hs-overlay"></div>'}
       <div class="hs-slide-inner">
         ${s.badge ? `<div class="badge mb-3">${escHtml(s.badge)}</div>` : ''}
         ${s.title ? `<h1>${escHtml(s.title)}</h1>` : ''}
@@ -266,6 +265,22 @@ document.addEventListener('DOMContentLoaded', setupCustomerNav);
     if (Math.abs(dx) > 50) { goTo(current + (dx < 0 ? 1 : -1)); startAuto(); }
   });
   startAuto();
+})();
+// Home raffle carousel
+(function() {
+  const carousel = document.querySelector('.home-raffle-carousel');
+  const prev = document.getElementById('homeRafflePrev');
+  const next = document.getElementById('homeRaffleNext');
+  if (!carousel || !prev || !next) return;
+
+  function move(dir) {
+    const firstCard = carousel.querySelector('.home-raffle-slide');
+    const step = firstCard ? firstCard.getBoundingClientRect().width + 16 : 320;
+    carousel.scrollBy({ left: dir * step, behavior: 'smooth' });
+  }
+
+  prev.addEventListener('click', () => move(-1));
+  next.addEventListener('click', () => move(1));
 })();
 
 // ─── Navbar scroll effect ─────────────────────────────────────────────────────
