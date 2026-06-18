@@ -236,6 +236,7 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'tickets';
   </div>
 </div>
 
+<?php include __DIR__ . '/partials/site_footer.php'; ?>
 <div class="cart-overlay" id="cartOverlay" onclick="closeCartDrawer()" style="display:none;position:fixed;inset:0;background:rgba(10,10,15,.55);z-index:1000;"></div>
 <aside class="cart-drawer" id="cartDrawer" style="position:fixed;top:0;right:0;width:min(380px,94vw);height:100vh;z-index:1001;background:var(--bg-card);border-left:1px solid var(--border-strong);box-shadow:var(--shadow-lg);transform:translateX(110%);transition:transform .22s ease;display:flex;flex-direction:column;">
   <div class="cart-drawer-head">

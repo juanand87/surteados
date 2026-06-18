@@ -1,6 +1,6 @@
-<?php
+﻿<?php
 /**
- * SURTEADOS — Página de resultado de pago (Flow.cl return URL)
+ * SURTEADOS â€” PÃ¡gina de resultado de pago (Flow.cl return URL)
  * URL: /surteados/pago-exitoso.php?token=XXXX
  */
 require __DIR__ . '/api/config.php';
@@ -77,7 +77,7 @@ if ($isPaid && !empty($ticket['flow_order'])) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title><?= $isPaid ? '¡Pago exitoso!' : ($isPending ? 'Verificando pago…' : 'Resultado del pago') ?> — Surteados</title>
+  <title><?= $isPaid ? 'Â¡Pago exitoso!' : ($isPending ? 'Verificando pagoâ€¦' : 'Resultado del pago') ?> â€” Surteados</title>
   <?php if ($isPending): ?>
   <meta http-equiv="refresh" content="6;url=pago-exitoso.php?<?= $token ? 'token=' . htmlspecialchars(rawurlencode($token)) : 'orderId=' . htmlspecialchars(rawurlencode($orderId)) ?>">
   <?php endif; ?>
@@ -100,7 +100,7 @@ if ($isPaid && !empty($ticket['flow_order'])) {
 <body>
 <nav class="navbar" style="background:rgba(10,10,15,.98);">
   <div class="navbar-inner">
-    <a href="index.php" class="navbar-logo"><div class="logo-icon">🎟️</div><span class="brand">Sur<em>tea</em>dos</span></a>
+    <a href="index.php" class="navbar-logo"><div class="logo-icon">ðŸŽŸï¸</div><span class="brand">Sur<em>tea</em>dos</span></a>
     <div class="navbar-actions"><a href="sorteos.php" class="btn btn-outline btn-sm">Ver sorteos</a></div>
   </div>
 </nav>
@@ -110,13 +110,13 @@ if ($isPaid && !empty($ticket['flow_order'])) {
 
     <?php if ($isPaid): ?>
       <img class="result-logo" src="<?= htmlspecialchars($siteLogo) ?>" alt="Surteados">
-      <h1>¡Pago exitoso!</h1>
-      <p>Tu compra fue procesada correctamente. Guarda tus números de ticket.</p>
+      <h1>Â¡Pago exitoso!</h1>
+      <p>Tu compra fue procesada correctamente. Guarda tus nÃºmeros de ticket.</p>
 
       <div style="background:var(--bg-base); border-radius:1rem; padding:1.5rem; margin-bottom:1.5rem;">
         <p style="font-weight:600; margin-bottom:.25rem;">Compra #<?= htmlspecialchars($ticket['flow_order_number'] ?: ($ticket['flow_order'] ?? '')) ?></p>
         <p style="font-size:.85rem; color:var(--text-secondary); margin-bottom:1rem;">
-          <?= count($tickets) ?> sorteo(s) — <?= '$' . number_format($totalAmount, 0, ',', '.') ?> CLP
+          <?= count($tickets) ?> sorteo(s) â€” <?= '$' . number_format($totalAmount, 0, ',', '.') ?> CLP
         </p>
 
         <?php foreach ($tickets as $t): ?>
@@ -124,7 +124,7 @@ if ($isPaid && !empty($ticket['flow_order'])) {
           <div style="background:#fff;border:1px solid #eee;border-radius:.75rem;padding:.9rem;margin-bottom:.75rem;text-align:left;">
             <p style="font-weight:700;margin:0 0 .35rem 0;"><?= htmlspecialchars($t['raffle_title'] ?? 'Sorteo') ?></p>
             <p style="font-size:.82rem;color:var(--text-secondary);margin:0 0 .5rem 0;">
-              <?= htmlspecialchars($t['pack_label'] ?? '') ?> — <?= '$' . number_format((int)$t['amount'], 0, ',', '.') ?> CLP
+              <?= htmlspecialchars($t['pack_label'] ?? '') ?> â€” <?= '$' . number_format((int)$t['amount'], 0, ',', '.') ?> CLP
             </p>
             <div class="ticket-grid" style="justify-content:flex-start; margin:.2rem 0 0;">
               <?php foreach ($tNums as $n): ?>
@@ -134,7 +134,7 @@ if ($isPaid && !empty($ticket['flow_order'])) {
           </div>
         <?php endforeach; ?>
 
-        <p style="font-weight:700; margin-top:1rem; margin-bottom:.25rem; font-size:.95rem;">Total números asignados: <?= count($allNums) ?></p>
+        <p style="font-weight:700; margin-top:1rem; margin-bottom:.25rem; font-size:.95rem;">Total nÃºmeros asignados: <?= count($allNums) ?></p>
       </div>
 
       <p style="font-size:.82rem; color:var(--text-secondary);">
@@ -142,7 +142,7 @@ if ($isPaid && !empty($ticket['flow_order'])) {
         (<?= htmlspecialchars($ticket['buyer_email']) ?>)
       </p>
       <p style="font-size:.78rem; color:var(--text-secondary); margin-top:.25rem;">
-        Guarda este número de orden Flow: <code><?= htmlspecialchars($ticket['flow_order_number'] ?: ($ticket['flow_order'] ?? '')) ?></code>
+        Guarda este nÃºmero de orden Flow: <code><?= htmlspecialchars($ticket['flow_order_number'] ?: ($ticket['flow_order'] ?? '')) ?></code>
       </p>
 
       <?php
@@ -151,31 +151,31 @@ if ($isPaid && !empty($ticket['flow_order'])) {
       ?>
       <a href="api/ticket_pdf.php?orderId=<?= $pdfOrderId ?>&email=<?= $pdfEmail ?>" target="_blank" rel="noopener"
          class="btn btn-primary" style="margin-top:1.5rem; display:block; width:100%; text-align:center;">
-        📄 Ver mis imágenes compradas
+        ðŸ“„ Ver mis imÃ¡genes compradas
       </a>
-      <a href="sorteos.php" class="btn btn-ghost btn-sm" style="margin-top:.75rem;">Ver más sorteos</a>
+      <a href="sorteos.php" class="btn btn-ghost btn-sm" style="margin-top:.75rem;">Ver mÃ¡s sorteos</a>
 
     <?php elseif ($isPending): ?>
-      <div class="result-icon"><span class="spin">⏳</span></div>
-      <h1>Verificando tu pago…</h1>
-      <p>Estamos confirmando el pago con Flow.cl. Esta página se actualizará automáticamente en unos segundos.</p>
-      <p style="font-size:.82rem;">Si el pago fue aprobado, tus tickets aparecerán aquí en breve.</p>
+      <div class="result-icon"><span class="spin">â³</span></div>
+      <h1>Verificando tu pagoâ€¦</h1>
+      <p>Estamos confirmando el pago con Flow.cl. Esta pÃ¡gina se actualizarÃ¡ automÃ¡ticamente en unos segundos.</p>
+      <p style="font-size:.82rem;">Si el pago fue aprobado, tus tickets aparecerÃ¡n aquÃ­ en breve.</p>
       <div style="width:48px; height:4px; background:var(--color-primary); border-radius:2px; margin:1.5rem auto; animation:spin 1.5s linear infinite;"></div>
       <a href="sorteos.php" class="btn btn-ghost btn-sm" style="margin-top:.5rem;">Volver a sorteos</a>
 
     <?php elseif ($isFailed): ?>
-      <div class="result-icon">❌</div>
+      <div class="result-icon">âŒ</div>
       <h1>Pago no completado</h1>
       <p>El pago fue <?= $ticket['payment_status'] === 'refunded' ? 'devuelto' : 'rechazado o cancelado' ?>.</p>
-      <p style="font-size:.85rem;">Si tienes dudas contáctanos. Estado: <code><?= htmlspecialchars($ticket['payment_status']) ?></code></p>
+      <p style="font-size:.85rem;">Si tienes dudas contÃ¡ctanos. Estado: <code><?= htmlspecialchars($ticket['payment_status']) ?></code></p>
       <a href="sorteos.php" class="btn btn-primary" style="margin-top:1rem;">Intentar de nuevo</a>
 
     <?php else: ?>
-      <div class="result-icon">🤔</div>
+      <div class="result-icon">ðŸ¤”</div>
       <h1>No encontramos tu pago</h1>
       <p>No pudimos encontrar una compra asociada a este enlace.</p>
       <?php if (!$token && !$orderId): ?>
-      <p style="font-size:.85rem;">El enlace no contiene un identificador de pago válido.</p>
+      <p style="font-size:.85rem;">El enlace no contiene un identificador de pago vÃ¡lido.</p>
       <?php endif; ?>
       <a href="sorteos.php" class="btn btn-primary" style="margin-top:1rem;">Volver a sorteos</a>
     <?php endif; ?>
@@ -189,6 +189,7 @@ if ($isPaid && !empty($ticket['flow_order'])) {
   } catch (_) {}
 </script>
 <?php endif; ?>
+<?php include __DIR__ . '/partials/site_footer.php'; ?>
 </body>
 </html>
 

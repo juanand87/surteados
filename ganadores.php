@@ -102,18 +102,7 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'tickets';
 </div>
 
 <!-- Footer -->
-<footer class="footer">
-  <div class="container">
-    <div class="footer-bottom">
-      <p>© 2026 Surteados. Todos los derechos reservados.</p>
-      <div class="social-links">
-        <a href="#" class="social-link">📸</a>
-        <a href="#" class="social-link">🎵</a>
-        <a href="#" class="social-link">▶️</a>
-      </div>
-    </div>
-  </div>
-</footer>
+<?php include __DIR__ . '/partials/site_footer.php'; ?>
 
 <div class="theme-picker" id="themePicker">
   <div class="theme-toggle" id="themeToggle">🎨</div>

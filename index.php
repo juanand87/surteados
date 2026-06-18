@@ -605,55 +605,7 @@ $homeCarouselRaffles = array_values(array_filter($allData['raffles'] ?? [], func
 </section>
 
 <!-- ═══════════════════════════ FOOTER ═══════════════════════════ -->
-<footer class="footer">
-  <div class="container">
-    <div class="footer-grid">
-      <div class="footer-brand">
-        <a href="index.php" class="navbar-logo" style="margin-bottom:.75rem; display:inline-flex;">
-          <div class="logo-icon">🎟️</div>
-          <span class="brand">Sur<em>tea</em>dos</span>
-        </a>
-        <p>Plataforma chilena, sorteo de imagenes digitales, seguros y transparentes. Premios reales con procesos claros y auditables. Bases ante notario.</p>
-        <div class="social-links" style="margin-top:1rem;">
-          <a href="#" class="social-link" title="Instagram">📸</a>
-          <a href="#" class="social-link" title="TikTok">🎵</a>
-          <a href="#" class="social-link" title="YouTube">▶️</a>
-          <a href="#" class="social-link" title="Facebook">👥</a>
-        </div>
-      </div>
-      <div class="footer-col">
-        <h5>Sorteos</h5>
-        <a href="sorteos.php">Sorteos activos</a>
-        <a href="sorteos.php?filter=soon">Próximamente</a>
-        <a href="ganadores.php">Ganadores</a>
-        <a href="mis-imagenes.php">Recuperar <?= htmlspecialchars($ticketLabelP) ?></a>
-      </div>
-      <div class="footer-col">
-        <h5>Información</h5>
-        <a href="como-participar.php">¿Cómo participar?</a>
-        <a href="#beneficios">Beneficios</a>
-        <a href="https://surteados.cl/documentos/Bases_Condiciones.pdf" target="_blank" rel="noopener">Bases legales</a>
-        <a href="#">Política de privacidad</a>
-      </div>
-      <div class="footer-col">
-        <h5>Contacto</h5>
-        <a href="mailto:contacto@surteados.cl">📧 contacto@surteados.cl</a>
-        <a href="#">💬 WhatsApp</a>
-        <a href="panel/">⚙️ Admin</a>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      <p>© 2026 Surteados. Todos los derechos reservados.</p>
-      <div class="payment-methods">
-        <span style="font-size:.78rem; color:var(--text-muted); margin-right:.25rem;">Medios de pago:</span>
-        <span class="payment-badge">Webpay</span>
-        <span class="payment-badge">Khipu</span>
-        <span class="payment-badge">Flow</span>
-        <span class="payment-badge">Transfer</span>
-      </div>
-    </div>
-  </div>
-</footer>
+<?php include __DIR__ . '/partials/site_footer.php'; ?>
 
 <!-- ═══════════════════════════ THEME PICKER ═══════════════════════════ -->
 <div class="theme-picker" id="themePicker">
