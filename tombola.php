@@ -36,12 +36,20 @@ $siteLogo = $settings['site_logo'] ?? null;
       box-shadow: 0 24px 46px rgba(0,0,0,.32);
     }
     .tb-meta { font-size:.82rem; color:var(--text-muted); }
+    .tb-header-card {
+      padding: .65rem .75rem;
+      border-radius: 16px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.1), rgba(255,255,255,.035)),
+        linear-gradient(170deg, rgba(24,20,44,.88), rgba(14,12,29,.94));
+      border-color: rgba(255,255,255,.16);
+    }
     .tb-controls {
       display:flex;
-      justify-content:space-between;
-      gap:.65rem;
+      justify-content:center;
+      gap:.7rem;
       flex-wrap:wrap;
-      align-items:end;
+      align-items:center;
     }
     .tb-show-stage {
       margin-top:.65rem;
@@ -188,7 +196,29 @@ $siteLogo = $settings['site_logo'] ?? null;
       text-align:center;
       min-height:1.5rem;
     }
-    .tb-actions { display:flex; gap:.5rem; flex-wrap:wrap; }
+    .tb-actions {
+      display:flex;
+      gap:.55rem;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:center;
+    }
+    .tb-raffle-select {
+      min-width: 320px;
+      max-width: 560px;
+      padding: .58rem .8rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,.92);
+      border: 1px solid rgba(255,255,255,.34);
+      box-shadow: 0 10px 26px rgba(0,0,0,.18);
+    }
+    .tb-start-btn {
+      padding: .55rem 1rem;
+      min-height: 0;
+      border-radius: 999px;
+      font-size: .88rem;
+      box-shadow: 0 10px 24px rgba(124,58,237,.24);
+    }
     .tb-flow-grid {
       margin-top: 1rem;
       display: grid;
@@ -251,7 +281,8 @@ $siteLogo = $settings['site_logo'] ?? null;
       margin-top:.12rem;
       color:#cbbcf2;
       font-weight:600;
-      font-size:.62rem;
+      font-size:.78rem;
+      line-height:1.15;
       white-space:nowrap;
       overflow:hidden;
       text-overflow:ellipsis;
@@ -340,31 +371,17 @@ $siteLogo = $settings['site_logo'] ?? null;
 </nav>
 
 <div class="tb-wrap">
-  <div class="tb-card" style="margin-bottom:.65rem;">
+  <div class="tb-card tb-header-card" style="margin-bottom:.65rem;">
     <div class="tb-controls">
-      <div>
-        <div class="badge">Tombola oficial</div>
-        <h2 style="margin:.25rem 0 0;font-size:clamp(1.25rem,2.4vw,1.8rem);line-height:1.1;">Tombola: imagen ganadora</h2>
-        <p class="tb-meta" style="margin:.25rem 0 0;">Proceso aleatorio: giro continuo -> detener -> 10 imagenes preseleccionadas.</p>
-      </div>
-      <div>
-        <div class="tb-actions">
-        <div>
-          <label class="form-label">Sorteo</label>
-          <select class="form-control" id="tbRaffle" style="min-width:260px;max-width:480px;padding:.55rem .75rem;"></select>
-        </div>
-        <button class="btn btn-primary" id="tbStartBtn">Iniciar Tombola</button>
+      <div class="tb-actions">
+        <select class="form-control tb-raffle-select" id="tbRaffle" aria-label="Seleccionar sorteo"></select>
+        <button class="btn btn-primary tb-start-btn" id="tbStartBtn">Iniciar Tombola</button>
         <button class="btn btn-accent" id="tbSelect5Btn" style="display:none;">Seleccionar 5</button>
         <button class="btn btn-primary" id="tbWinnerBtn" style="display:none;">Definir ganador</button>
         <button class="btn btn-outline" id="tbResetBtn" style="display:none;margin-left:.5rem;opacity:.7;" title="Solo para pruebas">ðŸ”“ Resetear</button>
-        </div>
-        <label class="tb-speed">Ritmo
-          <input type="range" id="tbDrama" min="1" max="3" value="2">
-          <span id="tbDramaLabel">Medio</span>
-        </label>
       </div>
     </div>
-    <div id="tbInfo" class="tb-meta" style="margin-top:.45rem;"></div>
+    <div id="tbInfo" class="tb-meta" style="display:none;"></div>
   </div>
 
   <div class="tb-show-stage tb-card">
@@ -746,8 +763,7 @@ async function loadRaffles() {
   tbState.raffles = data || [];
   const sel = document.getElementById('tbRaffle');
   sel.innerHTML = tbState.raffles.map(r => {
-    const previous = r.has_winner ? ' | ganador registrado' : '';
-    return `<option value="${esc(r.id)}">${esc(r.title)} | ${r.paid_images} imagenes pagadas${previous}</option>`;
+    return `<option value="${esc(r.id)}">${esc(r.title)}</option>`;
   }).join('') || '<option value="">Sin sorteos</option>';
   renderInfo();
 }
@@ -952,7 +968,7 @@ document.getElementById('tbStopBtn').addEventListener('click', stopAndSelect10);
 document.getElementById('tbSelect5Btn').addEventListener('click', selectFinalists5);
 document.getElementById('tbWinnerBtn').addEventListener('click', selectWinner);
 document.getElementById('tbResetBtn').addEventListener('click', resetTombola);
-document.getElementById('tbDrama').addEventListener('input', setDramaLabel);
+document.getElementById('tbDrama')?.addEventListener('input', setDramaLabel);
 setDramaLabel();
 loadRaffles().catch(e => alert(e.message));
 </script>
