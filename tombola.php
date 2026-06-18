@@ -194,8 +194,9 @@ $siteLogo = $settings['site_logo'] ?? null;
       display: grid;
       grid-template-columns: repeat(8, minmax(0, 1fr));
       gap: .45rem;
-      min-height: 255px;
-      max-height: 330px;
+      height: 386px;
+      min-height: 386px;
+      max-height: 386px;
       overflow: hidden;
       mask-image: linear-gradient(to bottom, transparent, #000 9%, #000 91%, transparent);
     }
@@ -212,7 +213,7 @@ $siteLogo = $settings['site_logo'] ?? null;
       background: rgba(255,255,255,.07);
       border-radius: 10px;
       padding: .42rem .45rem;
-      min-height: 40px;
+      min-height: 58px;
       color: #f8f4ff;
       font-weight: 800;
       font-size: .8rem;
@@ -232,8 +233,8 @@ $siteLogo = $settings['site_logo'] ?? null;
     }
     .tb-flow-prize,
     .tb-ball-prize {
-      width: 34px;
-      height: 34px;
+      width: 30px;
+      height: 30px;
       border-radius: 8px;
       object-fit: cover;
       display: block;
@@ -250,6 +251,16 @@ $siteLogo = $settings['site_logo'] ?? null;
       white-space:nowrap;
       overflow:hidden;
       text-overflow:ellipsis;
+    }
+    .tb-flow-grid.is-spinning .tb-flow-column {
+      animation: tbColumnSpin var(--tb-spin-duration, 7s) linear infinite;
+      transform: translateY(0);
+    }
+    .tb-flow-grid.is-spinning .tb-flow-column:nth-child(2n) { --tb-spin-duration: 7.6s; }
+    .tb-flow-grid.is-spinning .tb-flow-column:nth-child(3n) { --tb-spin-duration: 8.2s; }
+    @keyframes tbColumnSpin {
+      from { transform: translateY(0); }
+      to { transform: translateY(-50%); }
     }
     .tb-final-column {
       width:min(520px,100%);
@@ -458,13 +469,28 @@ function renderFixedBoard(items) {
   renderFlowGrid(frame, 8, 1);
 }
 
+function renderSpinningBoard(items) {
+  const source = shuffleVisual(items || []);
+  const frame = [];
+  if (!source.length) {
+    document.getElementById('tbUniverseFlow').innerHTML = '';
+    return;
+  }
+  while (frame.length < Math.max(96, source.length * 2)) {
+    frame.push(source[frame.length % source.length]);
+  }
+  renderFlowGrid(frame, 8, 2);
+  document.getElementById('tbUniverseFlow').classList.add('is-spinning');
+}
+
 function renderSelectionBoard(pool, selected) {
   const selectedNumbers = new Set(selected.map(item => String(item.number)));
   const fillers = shuffleVisual(pool.filter(item => !selectedNumbers.has(String(item.number))));
   const frame = [...selected];
   let i = 0;
-  while (frame.length < 48 && fillers.length) {
-    frame.push(fillers[i % fillers.length]);
+  const fillSource = fillers.length ? fillers : selected;
+  while (frame.length < 48 && fillSource.length) {
+    frame.push(fillSource[i % fillSource.length]);
     i++;
   }
   renderFlowGrid(shuffleVisual(frame), 8, 1);
@@ -605,6 +631,7 @@ function clearStage(clearState = true) {
     tbState.spinTimer = null;
   }
   tbState.spinning = false;
+  document.getElementById('tbUniverseFlow')?.classList.remove('is-spinning');
   document.getElementById('tbUniverseFlow').innerHTML = '';
   document.getElementById('tbRound50').innerHTML = '';
   document.getElementById('tbFinalFlow').innerHTML = '';
@@ -661,14 +688,7 @@ async function startInfiniteTombola() {
     tbState.pool = result.pool || [];
     tbState.semifinalists = result.semifinalists || [];
     tbState.spinning = true;
-    renderFixedBoard(tbState.pool);
-    tbState.spinTimer = setInterval(() => {
-      renderFixedBoard(tbState.pool);
-      gsap.fromTo('#tbUniverseFlow .tb-flow-column',
-        { opacity: .82, y: 64 },
-        { opacity: 1, y: 0, duration: .52, stagger: .018, ease: 'power1.out' }
-      );
-    }, 560);
+    renderSpinningBoard(tbState.pool);
     status(`Girando ${result.pool_size} imagenes pagadas. Presiona detener para seleccionar 10.`);
     document.getElementById('tbSaved').textContent = `Acta digital preparada: ${result.audit_id}. La seleccion se revelara al detener.`;
     setButtons('spinning');
@@ -692,6 +712,7 @@ async function stopAndSelect10() {
       tbState.spinTimer = null;
     }
     tbState.spinning = false;
+    document.getElementById('tbUniverseFlow').classList.remove('is-spinning');
     phase('Deteniendo tombola', 'Se congelan las imagenes y se encienden las 10 seleccionadas.');
     renderSelectionBoard(tbState.pool, tbState.semifinalists);
     status('Preparando iluminacion de las 10 imagenes seleccionadas...');
