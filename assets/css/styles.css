@@ -1726,6 +1726,13 @@ p  { color: var(--text-secondary); }
 
 .step-panel { display: none; }
 .step-panel.active { display: block; }
+.purchase-success-logo {
+  display: block;
+  width: min(180px, 58vw);
+  max-height: 96px;
+  object-fit: contain;
+  margin: 0 auto 1.35rem;
+}
 
 /* =====================================================
    FORMS
