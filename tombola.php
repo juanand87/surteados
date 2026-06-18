@@ -27,7 +27,7 @@ $siteLogo = $settings['site_logo'] ?? null;
         radial-gradient(800px 380px at 15% 10%, rgba(245,158,11,.12), transparent 55%),
         #090812;
     }
-    .tb-wrap { max-width: 1240px; margin: 0 auto; padding: 76px 16px 28px; }
+    .tb-wrap { max-width: 1610px; margin: 0 auto; padding: 76px 16px 28px; }
     .tb-card {
       background: linear-gradient(170deg, rgba(24,20,44,.92), rgba(14,12,29,.95));
       border: 1px solid rgba(170,147,255,.22);
@@ -52,7 +52,7 @@ $siteLogo = $settings['site_logo'] ?? null;
       overflow:hidden;
       position:relative;
       perspective: 1200px;
-      min-height: 320px;
+      min-height: 430px;
     }
     .tb-stage-glow {
       position:absolute;
@@ -192,11 +192,11 @@ $siteLogo = $settings['site_logo'] ?? null;
     .tb-flow-grid {
       margin-top: 1rem;
       display: grid;
-      grid-template-columns: repeat(8, minmax(0, 1fr));
+      grid-template-columns: repeat(10, minmax(0, 1fr));
       gap: .45rem;
-      height: 386px;
-      min-height: 386px;
-      max-height: 386px;
+      height: 464px;
+      min-height: 464px;
+      max-height: 464px;
       overflow: hidden;
       mask-image: linear-gradient(to bottom, transparent, #000 9%, #000 91%, transparent);
     }
@@ -220,6 +220,10 @@ $siteLogo = $settings['site_logo'] ?? null;
       text-align: center;
       box-shadow: 0 8px 18px rgba(0,0,0,.22);
       transition: background .28s ease, color .28s ease, border-color .28s ease, box-shadow .28s ease, transform .28s ease;
+    }
+    .tb-flow-item.slot-center {
+      border-color: rgba(255,255,255,.44);
+      box-shadow: 0 0 0 1px rgba(255,255,255,.12), 0 14px 28px rgba(0,0,0,.32);
     }
     .tb-flow-item.selected {
       background: radial-gradient(circle at 50% 35%, #fff7a8 0%, #facc15 54%, #eab308 100%);
@@ -258,6 +262,13 @@ $siteLogo = $settings['site_logo'] ?? null;
     }
     .tb-flow-grid.is-spinning .tb-flow-column:nth-child(2n) { --tb-spin-duration: 7.6s; }
     .tb-flow-grid.is-spinning .tb-flow-column:nth-child(3n) { --tb-spin-duration: 8.2s; }
+    .tb-flow-grid.is-stopping .tb-flow-column {
+      animation: tbColumnSpin .82s linear infinite;
+    }
+    .tb-flow-grid.is-stopping .tb-flow-column.locked {
+      animation: none !important;
+      transform: translateY(0) !important;
+    }
     @keyframes tbColumnSpin {
       from { transform: translateY(0); }
       to { transform: translateY(-50%); }
@@ -304,7 +315,7 @@ $siteLogo = $settings['site_logo'] ?? null;
       .tb-drum-wrap { height: 190px; }
       .tb-ball { width:144px; margin-left:-72px; }
       .tb-win-number { font-size:1.85rem; }
-      .tb-flow-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .tb-flow-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); height: 430px; min-height:430px; max-height:430px; }
     }
   </style>
 </head>
@@ -447,7 +458,7 @@ function splitColumns(items, columns) {
   return buckets;
 }
 
-function renderFlowGrid(items, columns = 8, repeat = 1) {
+function renderFlowGrid(items, columns = 10, repeat = 1) {
   const el = document.getElementById('tbUniverseFlow');
   const buckets = splitColumns(items, columns);
   el.innerHTML = buckets.map(bucket => {
@@ -463,10 +474,10 @@ function renderFixedBoard(items) {
     document.getElementById('tbUniverseFlow').innerHTML = '';
     return;
   }
-  while (frame.length < 48) {
+  while (frame.length < 70) {
     frame.push(pool[frame.length % pool.length]);
   }
-  renderFlowGrid(frame, 8, 1);
+  renderFlowGrid(frame, 10, 1);
 }
 
 function renderSpinningBoard(items) {
@@ -476,11 +487,39 @@ function renderSpinningBoard(items) {
     document.getElementById('tbUniverseFlow').innerHTML = '';
     return;
   }
-  while (frame.length < Math.max(96, source.length * 2)) {
+  while (frame.length < Math.max(140, source.length * 2)) {
     frame.push(source[frame.length % source.length]);
   }
-  renderFlowGrid(frame, 8, 2);
+  renderFlowGrid(frame, 10, 2);
   document.getElementById('tbUniverseFlow').classList.add('is-spinning');
+}
+
+function buildSlotColumn(centerItem, pool, visibleRows = 7) {
+  const centerIndex = Math.floor(visibleRows / 2);
+  const source = shuffleVisual(pool.length ? pool : [centerItem]);
+  const rows = [];
+  let i = 0;
+  for (let row = 0; row < visibleRows; row++) {
+    rows[row] = row === centerIndex ? centerItem : source[i++ % source.length];
+  }
+  return rows;
+}
+
+function renderSlotSelectionBoard(pool, selected) {
+  const el = document.getElementById('tbUniverseFlow');
+  const selectedNumbers = new Set(selected.map(item => String(item.number)));
+  const fillers = pool.filter(item => !selectedNumbers.has(String(item.number)));
+  el.classList.remove('is-spinning');
+  el.classList.add('is-stopping');
+  el.innerHTML = selected.map((item, idx) => {
+    const rows = buildSlotColumn(item, fillers, 7);
+    const repeated = [...rows, ...rows];
+    return `<div class="tb-flow-column" data-slot="${idx}">${repeated.map((row, rowIdx) => {
+      const centerClass = rowIdx === 3 ? ' slot-center' : '';
+      const img = row.prize_image ? `<img class="tb-flow-prize" src="${esc(row.prize_image)}" alt="">` : '';
+      return `<div class="tb-flow-item${centerClass}" data-number="${esc(row.number)}">${img}${esc(row.number)}<small>${esc(row.buyer_name || 'Participante')}</small></div>`;
+    }).join('')}</div>`;
+  }).join('');
 }
 
 function renderSelectionBoard(pool, selected) {
@@ -489,23 +528,48 @@ function renderSelectionBoard(pool, selected) {
   const frame = [...selected];
   let i = 0;
   const fillSource = fillers.length ? fillers : selected;
-  while (frame.length < 48 && fillSource.length) {
+  while (frame.length < 70 && fillSource.length) {
     frame.push(fillSource[i % fillSource.length]);
     i++;
   }
-  renderFlowGrid(shuffleVisual(frame), 8, 1);
+  renderFlowGrid(shuffleVisual(frame), 10, 1);
+}
+
+function playSlotSound() {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = playSlotSound.ctx || (playSlotSound.ctx = new AudioCtx());
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(620, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(210, ctx.currentTime + .16);
+    gain.gain.setValueAtTime(.0001, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(.16, ctx.currentTime + .02);
+    gain.gain.exponentialRampToValueAtTime(.0001, ctx.currentTime + .18);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + .2);
+  } catch(e) {}
 }
 
 async function highlightSelected10(items) {
-  const nodes = [...document.querySelectorAll('#tbUniverseFlow .tb-flow-item')];
-  for (const item of items) {
-    const node = nodes.find(el => el.dataset.number === String(item.number));
-    if (node) {
-      node.classList.add('selected');
-      gsap.fromTo(node, { scale: 1.18 }, { scale: 1.04, duration: .45, ease: 'elastic.out(1,.55)' });
+  const columns = [...document.querySelectorAll('#tbUniverseFlow .tb-flow-column')];
+  for (let idx = 0; idx < items.length; idx++) {
+    const item = items[idx];
+    const column = columns[idx];
+    if (column) {
+      column.classList.add('locked');
+      const node = [...column.querySelectorAll('.tb-flow-item')].find(el => el.dataset.number === String(item.number) && el.classList.contains('slot-center'));
+      if (node) {
+        node.classList.add('selected');
+        gsap.fromTo(node, { scale: 1.2 }, { scale: 1.04, duration: .55, ease: 'elastic.out(1,.55)' });
+      }
+      playSlotSound();
     }
-    status(`Imagen seleccionada ${items.indexOf(item) + 1} de ${items.length}: ${item.number}`);
-    await sleep(1000);
+    status(`Columna ${idx + 1} de ${items.length}: imagen seleccionada ${item.number}`);
+    await sleep(2000);
   }
 }
 
@@ -519,8 +583,8 @@ async function playUniverseFlow(items, cycles = 10) {
   const mood = currentDrama();
   const source = shuffleVisual(items.length ? items : []);
   phase(`Universo completo: 10 pasadas`, 'Todas las imagenes pagadas avanzan en orden aleatorio y continuo.');
-  status(`Recorriendo ${source.length} imagenes pagadas en 8 columnas.`);
-  renderFlowGrid(source, 8, cycles);
+  status(`Recorriendo ${source.length} imagenes pagadas en 10 columnas.`);
+  renderFlowGrid(source, 10, cycles);
   const columns = [...document.querySelectorAll('#tbUniverseFlow .tb-flow-column')];
   const distance = Math.max(360, document.getElementById('tbUniverseFlow').scrollHeight - document.getElementById('tbUniverseFlow').clientHeight + 180);
   gsap.set(columns, { y: 0 });
@@ -631,7 +695,7 @@ function clearStage(clearState = true) {
     tbState.spinTimer = null;
   }
   tbState.spinning = false;
-  document.getElementById('tbUniverseFlow')?.classList.remove('is-spinning');
+  document.getElementById('tbUniverseFlow')?.classList.remove('is-spinning', 'is-stopping');
   document.getElementById('tbUniverseFlow').innerHTML = '';
   document.getElementById('tbRound50').innerHTML = '';
   document.getElementById('tbFinalFlow').innerHTML = '';
@@ -712,10 +776,9 @@ async function stopAndSelect10() {
       tbState.spinTimer = null;
     }
     tbState.spinning = false;
-    document.getElementById('tbUniverseFlow').classList.remove('is-spinning');
-    phase('Deteniendo tombola', 'Se congelan las imagenes y se encienden las 10 seleccionadas.');
-    renderSelectionBoard(tbState.pool, tbState.semifinalists);
-    status('Preparando iluminacion de las 10 imagenes seleccionadas...');
+    phase('Deteniendo tombola', 'Cada columna se detiene como tragamonedas y deja una imagen seleccionada al centro.');
+    renderSlotSelectionBoard(tbState.pool, tbState.semifinalists);
+    status('Las columnas se detendran una por una cada 2 segundos.');
     await sleep(650);
     await highlightSelected10(tbState.semifinalists);
     phase('10 imagenes seleccionadas', 'Estas imagenes quedan preseleccionadas para la siguiente etapa.');
