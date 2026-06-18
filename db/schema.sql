@@ -77,6 +77,7 @@ CREATE TABLE settings (
 DROP TABLE IF EXISTS raffle_prizes;
 DROP TABLE IF EXISTS raffle_packs;
 DROP TABLE IF EXISTS tickets;
+DROP TABLE IF EXISTS tombola_audits;
 DROP TABLE IF EXISTS winners;
 DROP TABLE IF EXISTS raffles;
 DROP TABLE IF EXISTS communes;
@@ -225,6 +226,24 @@ CREATE TABLE winners (
   video_url       VARCHAR(500),
   notary_doc      VARCHAR(500),
   created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+CREATE TABLE tombola_audits (
+  id                  VARCHAR(25) PRIMARY KEY,
+  raffle_id           VARCHAR(25) NOT NULL,
+  pool_count          INT UNSIGNED NOT NULL DEFAULT 0,
+  pool_hash           CHAR(64) NOT NULL,
+  semifinalists_json  LONGTEXT,
+  finalists_json      LONGTEXT,
+  winner_json         LONGTEXT,
+  algorithm           VARCHAR(120) NOT NULL DEFAULT 'Fisher-Yates + random_int',
+  result_hash         CHAR(64),
+  status              ENUM('semifinalists','finalists','completed') NOT NULL DEFAULT 'semifinalists',
+  created_by          VARCHAR(120),
+  created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_raffle (raffle_id),
+  INDEX idx_status (status)
 ) ENGINE=InnoDB;
 
 -- ── Seed: settings ────────────────────────────────────────────

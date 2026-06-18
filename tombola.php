@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require __DIR__ . '/api/config.php';
 
 admin_session_start();
@@ -189,6 +189,64 @@ $siteLogo = $settings['site_logo'] ?? null;
       min-height:1.5rem;
     }
     .tb-actions { display:flex; gap:.5rem; flex-wrap:wrap; }
+    .tb-flow-grid {
+      margin-top: 1rem;
+      display: grid;
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+      gap: .45rem;
+      min-height: 300px;
+      max-height: 420px;
+      overflow: hidden;
+      mask-image: linear-gradient(to bottom, transparent, #000 9%, #000 91%, transparent);
+    }
+    .tb-flow-column { display:flex; flex-direction:column; gap:.45rem; will-change:transform; }
+    .tb-flow-item {
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.07);
+      border-radius: 10px;
+      padding: .42rem .45rem;
+      min-height: 44px;
+      color: #f8f4ff;
+      font-weight: 800;
+      font-size: .8rem;
+      text-align: center;
+      box-shadow: 0 8px 18px rgba(0,0,0,.22);
+    }
+    .tb-flow-item small {
+      display:block;
+      margin-top:.12rem;
+      color:#cbbcf2;
+      font-weight:600;
+      font-size:.62rem;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .tb-final-column {
+      width:min(520px,100%);
+      margin:1rem auto 0;
+      display:flex;
+      flex-direction:column;
+      gap:.55rem;
+      max-height:420px;
+      overflow:hidden;
+      mask-image: linear-gradient(to bottom, transparent, #000 10%, #000 90%, transparent);
+    }
+    .tb-final-column .tb-flow-item {
+      font-size:1rem;
+      min-height:54px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+    }
+    .tb-result-title {
+      margin:1rem 0 .35rem;
+      color:#fef3c7;
+      text-align:center;
+      font-weight:900;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+    }
     .tb-speed {
       display:flex;
       align-items:center;
@@ -203,6 +261,7 @@ $siteLogo = $settings['site_logo'] ?? null;
       .tb-drum-wrap { height: 190px; }
       .tb-ball { width:144px; margin-left:-72px; }
       .tb-win-number { font-size:1.85rem; }
+      .tb-flow-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
   </style>
 </head>
@@ -213,11 +272,11 @@ $siteLogo = $settings['site_logo'] ?? null;
       <?php if ($siteLogo): ?>
         <img src="<?= htmlspecialchars($siteLogo) ?>" alt="Logo" class="navbar-logo-img">
       <?php else: ?>
-        <div class="logo-icon">🎟️</div><span class="brand">Sur<em>tea</em>dos</span>
+        <div class="logo-icon">ðŸŽŸï¸</div><span class="brand">Sur<em>tea</em>dos</span>
       <?php endif; ?>
     </a>
     <div class="navbar-actions">
-      <a href="panel/dashboard.php" class="btn btn-outline btn-sm">← Panel</a>
+      <a href="panel/dashboard.php" class="btn btn-outline btn-sm">â† Panel</a>
       <a href="panel/logout.php" class="btn btn-ghost btn-sm">Salir</a>
     </div>
   </div>
@@ -237,8 +296,10 @@ $siteLogo = $settings['site_logo'] ?? null;
           <label class="form-label">Sorteo</label>
           <select class="form-control" id="tbRaffle" style="min-width:320px;max-width:520px;"></select>
         </div>
-        <button class="btn btn-primary" id="tbStartBtn">Iniciar tombola</button>
-        <button class="btn btn-outline" id="tbResetBtn" style="display:none;margin-left:.5rem;opacity:.7;" title="Solo para pruebas">🔓 Resetear</button>
+        <button class="btn btn-primary" id="tbStartBtn">Seleccionar 50</button>
+        <button class="btn btn-accent" id="tbSelect5Btn" style="display:none;">Seleccionar 5</button>
+        <button class="btn btn-primary" id="tbWinnerBtn" style="display:none;">Definir ganador</button>
+        <button class="btn btn-outline" id="tbResetBtn" style="display:none;margin-left:.5rem;opacity:.7;" title="Solo para pruebas">ðŸ”“ Resetear</button>
         </div>
         <label class="tb-speed">Ritmo del show
           <input type="range" id="tbDrama" min="1" max="3" value="2">
@@ -253,17 +314,14 @@ $siteLogo = $settings['site_logo'] ?? null;
     <div class="tb-stage-glow"></div>
     <div class="tb-phase">
       <div class="tb-badge-live"><span class="tb-dot"></span>EN VIVO</div>
-      <h3 id="tbPhaseTitle">Esperando inicio de tómbola</h3>
+      <h3 id="tbPhaseTitle">Esperando inicio de tÃ³mbola</h3>
       <p id="tbPhaseSub">Selecciona un sorteo y presiona iniciar para comenzar el show.</p>
     </div>
 
-    <div class="tb-drum-wrap">
-      <div id="tbDrum" class="tb-drum"></div>
-    </div>
-
-    <div id="tbRound10" class="tb-reveal-grid"></div>
+    <div id="tbUniverseFlow" class="tb-flow-grid"></div>
+    <div id="tbRound50" class="tb-reveal-grid"></div>
+    <div id="tbFinalFlow" class="tb-final-column"></div>
     <div id="tbRound5" class="tb-reveal-grid"></div>
-    <div id="tbRound3" class="tb-reveal-grid"></div>
     <div id="tbWinner" class="tb-final"></div>
 
     <div id="tbStatus" class="tb-status"></div>
@@ -272,18 +330,33 @@ $siteLogo = $settings['site_logo'] ?? null;
 </div>
 
 <script>
-const tbState = { raffles: [], locked: false };
-let drumRotation = 0;
-const API_BASE = new URL('api', window.location.href).pathname.replace(/\/?$/, '/');
-
-const DRAMA_PRESETS = {
-  1: { label: 'Rápido', spin10: 4.2, spin5: 3.8, spin3: 3.4, reveal: 180, pauseA: 320, pauseB: 360, pauseC: 420 },
-  2: { label: 'Medio',  spin10: 6.5, spin5: 6.0, spin3: 5.6, reveal: 280, pauseA: 620, pauseB: 700, pauseC: 760 },
-  3: { label: 'Épico',  spin10: 8.8, spin5: 8.2, spin3: 7.6, reveal: 390, pauseA: 980, pauseB: 1120, pauseC: 1280 },
+const tbState = {
+  raffles: [],
+  auditId: '',
+  selectedRaffleId: '',
+  pool: [],
+  semifinalists: [],
+  finalists: [],
+  winner: null,
 };
 
-function esc(s){return String(s).replace(/[&<>\"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[m]));}
+const API_BASE = new URL('api', window.location.href).pathname.replace(/\/?$/, '/');
+const DRAMA_PRESETS = {
+  1: { label: 'Rapido', pageDelay: 120, reveal: 80, pause: 220 },
+  2: { label: 'Medio', pageDelay: 210, reveal: 130, pause: 420 },
+  3: { label: 'Epico', pageDelay: 320, reveal: 190, pause: 680 },
+};
+
+function esc(s){return String(s ?? '').replace(/[&<>\"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[m]));}
 function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+function shuffleVisual(items){
+  const out = [...items];
+  for(let i = out.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
 
 async function api(path, opts = {}) {
   const { method = 'GET', body } = opts;
@@ -299,10 +372,10 @@ async function api(path, opts = {}) {
     json = JSON.parse(text);
   } catch (e) {
     if (res.status === 401 || text.includes('Acceso Administrador')) {
-      window.location.href = 'panel/index.php';
+      window.location.href = 'panel/index.php?redirect=' + encodeURIComponent('../tombola.php');
       return;
     }
-    throw new Error('Respuesta no válida del servidor. Revisa la sesión de administrador o el log PHP.');
+    throw new Error('Respuesta no valida del servidor. Revisa la sesion de administrador o el log PHP.');
   }
   if (!json.ok) {
     if (res.status === 401) {
@@ -314,63 +387,61 @@ async function api(path, opts = {}) {
   return json.data;
 }
 
-function renderBall(item, cls = '') {
-  return `<div class="tb-ball ${cls}">#${esc(item.number)}<small>${esc(item.buyer_name || 'Participante')}</small></div>`;
+function itemHtml(item){
+  return `<div class="tb-flow-item">${esc(item.number)}<small>${esc(item.buyer_name || 'Participante')}</small></div>`;
 }
 
-function phase(title, sub = '') {
-  document.getElementById('tbPhaseTitle').textContent = title;
-  document.getElementById('tbPhaseSub').textContent = sub;
-}
-
-function status(msg = '') {
-  document.getElementById('tbStatus').textContent = msg;
-}
-
-function currentDrama() {
-  const v = Number(document.getElementById('tbDrama')?.value || 2);
-  return DRAMA_PRESETS[v] || DRAMA_PRESETS[2];
-}
-
-function setDramaLabel() {
-  const v = Number(document.getElementById('tbDrama')?.value || 2);
-  const lb = document.getElementById('tbDramaLabel');
-  if (lb) lb.textContent = (DRAMA_PRESETS[v] || DRAMA_PRESETS[2]).label;
-}
-
-function buildDrum(items) {
-  const drum = document.getElementById('tbDrum');
-  drum.innerHTML = '';
-  if (!items?.length) return;
-
-  const radius = window.innerWidth < 760 ? 185 : 260;
-  const step = 360 / items.length;
-  items.forEach((it, i) => {
-    const card = document.createElement('div');
-    card.className = 'tb-ball';
-    card.innerHTML = `#${esc(it.number)}<small>${esc(it.buyer_name || 'Participante')}</small>`;
-    card.style.transform = `rotateY(${i * step}deg) translateZ(${radius}px)`;
-    drum.appendChild(card);
+function renderFlowGrid(items, columns = 8) {
+  const el = document.getElementById('tbUniverseFlow');
+  const buckets = Array.from({ length: columns }, () => []);
+  items.forEach((item, idx) => buckets[idx % columns].push(item));
+  el.innerHTML = buckets.map(bucket => `<div class="tb-flow-column">${bucket.map(itemHtml).join('')}</div>`).join('');
+  el.querySelectorAll('.tb-flow-column').forEach((col, idx) => {
+    col.style.transform = `translateY(${idx % 2 ? '-18px' : '18px'})`;
+    gsap.to(col, { y: idx % 2 ? 18 : -18, duration: .42, ease: 'power1.inOut' });
   });
 }
 
-async function spinDrum(turns, durationSec) {
-  const target = drumRotation + (360 * turns);
-  await gsap.to('#tbDrum', {
-    rotationY: target,
-    duration: durationSec,
-    ease: 'power2.inOut'
-  });
-  drumRotation = target % 360;
+function renderColumn(items) {
+  const el = document.getElementById('tbFinalFlow');
+  el.innerHTML = items.map(itemHtml).join('');
+  gsap.fromTo('#tbFinalFlow .tb-flow-item',
+    { opacity: .25, y: 32 },
+    { opacity: 1, y: 0, duration: .34, stagger: .025, ease: 'power2.out' }
+  );
+}
+
+async function playUniverseFlow(items, cycles = 10) {
+  const mood = currentDrama();
+  const source = items.length ? items : [];
+  for (let cycle = 1; cycle <= cycles; cycle++) {
+    phase(`Pasada ${cycle} de ${cycles}: universo completo`, 'Las imagenes pagadas pasan en orden aleatorio, en bloques de 50.');
+    const shuffled = shuffleVisual(source);
+    for (let i = 0; i < shuffled.length; i += 50) {
+      const chunk = shuffled.slice(i, i + 50);
+      renderFlowGrid(chunk, 8);
+      status(`Mostrando imagenes ${i + 1} a ${Math.min(i + 50, shuffled.length)} de ${shuffled.length}`);
+      await sleep(mood.pageDelay);
+    }
+  }
+}
+
+async function playFinalFlow(items, cycles = 10, label = 'semifinalistas') {
+  const mood = currentDrama();
+  for (let cycle = 1; cycle <= cycles; cycle++) {
+    phase(`Pasada ${cycle} de ${cycles}: ${label}`, 'Las imagenes vuelven a pasar en orden aleatorio.');
+    renderColumn(shuffleVisual(items));
+    status(`Mezclando ${items.length} imagenes ${label}.`);
+    await sleep(Math.max(520, mood.pageDelay * Math.min(items.length, 8)));
+  }
 }
 
 async function revealGrid(elId, items, perItemDelay) {
   const el = document.getElementById(elId);
   el.innerHTML = '';
   for (const it of items) {
-    const html = renderBall(it);
     const wrap = document.createElement('div');
-    wrap.innerHTML = html;
+    wrap.innerHTML = `<div class="tb-ball">${esc(it.number)}<small>${esc(it.buyer_name || 'Participante')}</small></div>`;
     const node = wrap.firstElementChild;
     node.style.opacity = '0';
     node.style.transform = 'translateY(18px) scale(.92)';
@@ -380,13 +451,42 @@ async function revealGrid(elId, items, perItemDelay) {
   }
 }
 
+function phase(title, sub = '') {
+  document.getElementById('tbPhaseTitle').textContent = title;
+  document.getElementById('tbPhaseSub').textContent = sub;
+}
+function status(msg = '') { document.getElementById('tbStatus').textContent = msg; }
+function currentDrama() {
+  const v = Number(document.getElementById('tbDrama')?.value || 2);
+  return DRAMA_PRESETS[v] || DRAMA_PRESETS[2];
+}
+function setDramaLabel() {
+  const v = Number(document.getElementById('tbDrama')?.value || 2);
+  const lb = document.getElementById('tbDramaLabel');
+  if (lb) lb.textContent = (DRAMA_PRESETS[v] || DRAMA_PRESETS[2]).label;
+}
+
+function setButtons(stage = 'initial') {
+  const startBtn = document.getElementById('tbStartBtn');
+  const select5Btn = document.getElementById('tbSelect5Btn');
+  const winnerBtn = document.getElementById('tbWinnerBtn');
+  const raffle = tbState.raffles.find(x => x.id === document.getElementById('tbRaffle').value);
+  const canStart = !!raffle && raffle.paid_images > 0;
+  startBtn.style.display = stage === 'initial' ? '' : 'none';
+  select5Btn.style.display = stage === 'semifinalists' ? '' : 'none';
+  winnerBtn.style.display = stage === 'finalists' ? '' : 'none';
+  startBtn.disabled = !canStart;
+  select5Btn.disabled = false;
+  winnerBtn.disabled = false;
+}
+
 async function loadRaffles() {
   const data = await api('/tombola.php');
-  tbState.raffles = data;
+  tbState.raffles = data || [];
   const sel = document.getElementById('tbRaffle');
-  sel.innerHTML = data.map(r => {
+  sel.innerHTML = tbState.raffles.map(r => {
     const previous = r.has_winner ? ' | ganador registrado' : '';
-    return `<option value="${r.id}">${esc(r.title)} | ${r.paid_images} imagenes pagadas${previous}</option>`;
+    return `<option value="${esc(r.id)}">${esc(r.title)} | ${r.paid_images} imagenes pagadas${previous}</option>`;
   }).join('') || '<option value="">Sin sorteos</option>';
   renderInfo();
 }
@@ -396,24 +496,43 @@ function renderInfo() {
   const id = sel.value;
   const r = tbState.raffles.find(x => x.id === id);
   const info = document.getElementById('tbInfo');
-  const btn = document.getElementById('tbStartBtn');
   const resetBtn = document.getElementById('tbResetBtn');
   if (!r) {
     info.textContent = 'Selecciona un sorteo.';
-    btn.disabled = true;
+    setButtons('initial');
     resetBtn.style.display = 'none';
     return;
   }
-  const suffix = r.has_winner ? ' Ya existe un ganador registrado, pero la tómbola no se bloqueará por ahora.' : '';
+  tbState.selectedRaffleId = id;
+  const suffix = r.has_winner ? ' Ya existe un ganador registrado, pero la tombola no se bloqueara por ahora.' : '';
   info.textContent = `Listo para sortear. Universo: ${r.paid_images} imagenes pagadas.${suffix}`;
-  btn.disabled = r.paid_images < 1;
-  resetBtn.style.display = r.has_winner ? '' : 'none';
+  resetBtn.style.display = r.has_winner || r.audits_completed > 0 ? '' : 'none';
+  clearStage(false);
+  setButtons('initial');
+}
+
+function clearStage(clearState = true) {
+  document.getElementById('tbUniverseFlow').innerHTML = '';
+  document.getElementById('tbRound50').innerHTML = '';
+  document.getElementById('tbFinalFlow').innerHTML = '';
+  document.getElementById('tbRound5').innerHTML = '';
+  document.getElementById('tbWinner').innerHTML = '';
+  document.getElementById('tbSaved').textContent = '';
+  status('');
+  phase('Esperando inicio de tombola', 'Selecciona un sorteo y presiona seleccionar 50 para comenzar.');
+  if (clearState) {
+    tbState.auditId = '';
+    tbState.pool = [];
+    tbState.semifinalists = [];
+    tbState.finalists = [];
+    tbState.winner = null;
+  }
 }
 
 async function resetTombola() {
   const raffleId = document.getElementById('tbRaffle').value;
   if (!raffleId) return;
-  if (!confirm('¿Borrar el ganador guardado de este sorteo? (Solo para pruebas)')) return;
+  if (!confirm('¿Borrar ganadores y actas guardadas de este sorteo? (Solo para pruebas)')) return;
   const resetBtn = document.getElementById('tbResetBtn');
   resetBtn.disabled = true;
   resetBtn.textContent = 'Reseteando...';
@@ -424,6 +543,7 @@ async function resetTombola() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ raffle_id: raffleId })
     });
+    clearStage();
     await loadRaffles();
   } catch(e) {
     alert('Error al resetear: ' + e.message);
@@ -433,88 +553,109 @@ async function resetTombola() {
   }
 }
 
-async function runTombola() {
+async function selectSemifinalists50() {
   const raffleId = document.getElementById('tbRaffle').value;
   if (!raffleId) return;
-
   const btn = document.getElementById('tbStartBtn');
   btn.disabled = true;
-  btn.textContent = 'Sorteando...';
-  const mood = currentDrama();
-
-  document.getElementById('tbRound10').innerHTML = '';
-  document.getElementById('tbRound5').innerHTML = '';
-  document.getElementById('tbRound3').innerHTML = '';
-  document.getElementById('tbWinner').innerHTML = '';
-  document.getElementById('tbSaved').textContent = '';
-  status('Preparando tómbola...');
-  phase('Cargando universo de imagenes', 'Verificando participaciones pagadas y preparando el sorteo.');
-
+  btn.textContent = 'Seleccionando...';
+  clearStage();
   try {
-    const result = await api('/tombola.php', { method: 'POST', body: { raffle_id: raffleId } });
+    phase('Preparando universo de imagenes', 'El servidor esta seleccionando 50 semifinalistas con aleatoriedad segura.');
+    status('Consultando imagenes pagadas...');
+    const result = await api('/tombola.php', { method: 'POST', body: { raffle_id: raffleId, stage: 'semifinalists' } });
+    tbState.auditId = result.audit_id;
+    tbState.pool = result.pool || [];
+    tbState.semifinalists = result.semifinalists || [];
+    await playUniverseFlow(tbState.pool, 10);
+    document.getElementById('tbUniverseFlow').innerHTML = '';
+    phase('50 semifinalistas seleccionadas', 'Estas imagenes pasan a la tombola de semifinalistas.');
+    status(`Acta digital: ${result.audit_id} | Hash: ${result.result_hash}`);
+    await revealGrid('tbRound50', tbState.semifinalists, currentDrama().reveal);
+    document.getElementById('tbSaved').textContent = `Seleccionadas ${tbState.semifinalists.length} imagenes semifinalistas desde ${result.pool_size} imagenes pagadas.`;
+    setButtons('semifinalists');
+  } catch (e) {
+    alert(e.message);
+    setButtons('initial');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Seleccionar 50';
+  }
+}
 
-    phase('Ronda 1: aparecen 10 imagenes', 'La tómbola gira y selecciona a los primeros clasificados...');
-    status(`Universo total: ${result.pool_size} imagenes pagadas`);
-    buildDrum(result.round10);
-    await spinDrum(8, mood.spin10);
-    await revealGrid('tbRound10', result.round10, mood.reveal);
+async function selectFinalists5() {
+  const raffleId = document.getElementById('tbRaffle').value;
+  if (!raffleId || !tbState.auditId) return;
+  const btn = document.getElementById('tbSelect5Btn');
+  btn.disabled = true;
+  btn.textContent = 'Seleccionando...';
+  try {
+    const result = await api('/tombola.php', { method: 'POST', body: { raffle_id: raffleId, stage: 'finalists', audit_id: tbState.auditId } });
+    tbState.semifinalists = result.semifinalists || tbState.semifinalists;
+    tbState.finalists = result.finalists || [];
+    document.getElementById('tbRound50').innerHTML = '';
+    await playFinalFlow(tbState.semifinalists, 10, 'semifinalistas');
+    document.getElementById('tbFinalFlow').innerHTML = '';
+    phase('5 finalistas seleccionadas', 'Estas imagenes pasan a la definicion final.');
+    status(`Hash actualizado: ${result.result_hash}`);
+    await revealGrid('tbRound5', tbState.finalists, currentDrama().reveal + 60);
+    document.getElementById('tbSaved').textContent = `Seleccionadas ${tbState.finalists.length} imagenes finalistas desde las 50 semifinalistas.`;
+    setButtons('finalists');
+  } catch (e) {
+    alert(e.message);
+    setButtons('semifinalists');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Seleccionar 5';
+  }
+}
 
-    await sleep(mood.pauseA);
-    phase('Ronda 2: quedan 5 semifinalistas', 'La tómbola sigue girando para reducir de 10 a 5.');
-    buildDrum(result.round5);
-    await spinDrum(9, mood.spin5);
-    status('Semifinalistas confirmados.');
-    await revealGrid('tbRound5', result.round5, mood.reveal + 40);
-
-    await sleep(mood.pauseB);
-    phase('Ronda 3: quedan 3 finalistas', 'Nueva mezcla aleatoria para definir a los tres últimos números.');
-    buildDrum(result.round3);
-    await spinDrum(10, mood.spin3);
-    status('Finalistas confirmados. Iniciando definición del ganador...');
-    await revealGrid('tbRound3', result.round3, mood.reveal + 60);
-
-    await sleep(mood.pauseC);
-    phase('Gran final', 'Último giro...');
-    status('Definiendo imagen ganadora...');
-    for (const n of ['3','2','1']) {
-      status(`Definiendo imagen ganadora en ${n}...`);
-      await sleep(520);
-    }
-
-    const w = result.winner;
+async function selectWinner() {
+  const raffleId = document.getElementById('tbRaffle').value;
+  if (!raffleId || !tbState.auditId) return;
+  const btn = document.getElementById('tbWinnerBtn');
+  btn.disabled = true;
+  btn.textContent = 'Definiendo...';
+  try {
+    const result = await api('/tombola.php', { method: 'POST', body: { raffle_id: raffleId, stage: 'winner', audit_id: tbState.auditId } });
+    tbState.finalists = result.finalists || tbState.finalists;
+    tbState.winner = result.winner;
+    document.getElementById('tbRound5').innerHTML = '';
+    await playFinalFlow(tbState.finalists, 10, 'finalistas');
+    document.getElementById('tbFinalFlow').innerHTML = '';
+    const w = tbState.winner;
+    phase('Resultado oficial guardado', 'El ganador quedo registrado. El sorteo sigue disponible por ahora.');
+    status(`Acta digital: ${result.audit_id} | Hash final: ${result.result_hash}`);
     document.getElementById('tbWinner').innerHTML = `
       <article class="tb-winner-card">
         <h4>Imagen ganadora</h4>
-        <div class="tb-win-number">#${esc(w.number)}</div>
+        <div class="tb-win-number">${esc(w.number)}</div>
         <div style="font-weight:700;color:#fff;">${esc(w.buyer_name || 'Participante')}</div>
         <div class="tb-meta" style="margin-top:.28rem;">${esc(w.buyer_email || 'Sin correo')}</div>
       </article>`;
-
     gsap.fromTo('.tb-winner-card',
       { opacity: 0, y: 30, scale: .84, rotateX: -16 },
       { opacity: 1, y: 0, scale: 1, rotateX: 0, duration: .9, ease: 'back.out(1.4)' }
     );
-
     confetti({ particleCount: 160, spread: 95, origin: { y: 0.65 } });
     setTimeout(() => confetti({ particleCount: 110, spread: 70, origin: { x: 0.2, y: 0.7 } }), 220);
     setTimeout(() => confetti({ particleCount: 110, spread: 70, origin: { x: 0.8, y: 0.7 } }), 240);
-
-    phase('Resultado oficial guardado', 'El ganador quedó registrado. El sorteo sigue disponible por ahora.');
-    status('Ganador registrado correctamente.');
-    document.getElementById('tbSaved').textContent =
-      `Ganador guardado automaticamente. Imagen #${result.winner.number}. El sorteo sigue disponible.`;
-
+    document.getElementById('tbSaved').textContent = `Ganador guardado automaticamente. Imagen ${w.number}. Acta ${result.audit_id}.`;
+    setButtons('completed');
     await loadRaffles();
   } catch (e) {
     alert(e.message);
+    setButtons('finalists');
   } finally {
-    btn.textContent = 'Iniciar tombola';
-    renderInfo();
+    btn.disabled = false;
+    btn.textContent = 'Definir ganador';
   }
 }
 
 document.getElementById('tbRaffle').addEventListener('change', renderInfo);
-document.getElementById('tbStartBtn').addEventListener('click', runTombola);
+document.getElementById('tbStartBtn').addEventListener('click', selectSemifinalists50);
+document.getElementById('tbSelect5Btn').addEventListener('click', selectFinalists5);
+document.getElementById('tbWinnerBtn').addEventListener('click', selectWinner);
 document.getElementById('tbResetBtn').addEventListener('click', resetTombola);
 document.getElementById('tbDrama').addEventListener('input', setDramaLabel);
 setDramaLabel();
@@ -522,3 +663,4 @@ loadRaffles().catch(e => alert(e.message));
 </script>
 </body>
 </html>
+
