@@ -92,6 +92,11 @@ function tombola_load_audit(PDO $pdo, string $auditId, string $raffleId): array
 
 function tombola_decode_list(?string $json, string $label, bool $required = true): array
 {
+    $json = trim((string)($json ?? ''));
+    if ($json === '') {
+        if ($required) json_error("No hay {$label} registrados para continuar");
+        return [];
+    }
     $data = json_decode($json ?? '[]', true);
     if (!is_array($data)) json_error("Datos de {$label} invalidos");
     if (!$data && $required) json_error("No hay {$label} registrados para continuar");

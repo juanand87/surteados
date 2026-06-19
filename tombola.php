@@ -318,19 +318,54 @@ $siteLogo = $settings['site_logo'] ?? null;
       display: flex;
       align-items: center;
       justify-content: center;
-      mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
+      mask-image: linear-gradient(to right, transparent, #000 10%, #000 90%, transparent);
+      min-height: 420px;
     }
     .tb-winner-reel {
-      width: min(260px, 86%);
-      height: 100%;
+      width: min(1080px, 96%);
+      height: 190px;
       overflow: hidden;
       position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .tb-winner-reel::before {
+      content: "";
+      position: absolute;
+      top: 4px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 18px solid transparent;
+      border-right: 18px solid transparent;
+      border-top: 28px solid #facc15;
+      filter: drop-shadow(0 0 16px rgba(250,204,21,.75));
+      z-index: 6;
+    }
+    .tb-winner-reel::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 36px;
+      bottom: 14px;
+      width: 2px;
+      transform: translateX(-50%);
+      background: linear-gradient(to bottom, rgba(250,204,21,.2), rgba(250,204,21,.85), rgba(250,204,21,.2));
+      box-shadow: 0 0 18px rgba(250,204,21,.45);
+      z-index: 5;
     }
     .tb-winner-reel .tb-flow-track {
-      gap: .7rem;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 1rem;
+      will-change: transform;
     }
     .tb-winner-reel .tb-flow-item {
-      min-height: 76px;
+      width: 178px;
+      min-width: 178px;
+      min-height: 92px;
       font-size: .95rem;
       display: flex;
       flex-direction: column;
@@ -703,33 +738,36 @@ async function alignSelectedForWinner() {
   if (!nodes.length) return;
   const gridW = grid.clientWidth;
   const gridH = grid.clientHeight;
-  const cardW = Math.min(190, Math.max(140, gridW * .16));
-  const topPad = Math.max(12, (gridH - nodes.length * 42) / 2 - 36);
+  const cardW = Math.min(170, Math.max(126, gridW / 11.8));
+  const gap = Math.max(8, Math.min(18, (gridW - (cardW * nodes.length)) / Math.max(1, nodes.length + 1)));
+  const rowWidth = (cardW * nodes.length) + (gap * (nodes.length - 1));
+  const leftPad = Math.max(10, (gridW - rowWidth) / 2);
+  const top = Math.max(40, (gridH - 92) / 2);
 
   phase('Seleccionando ganador', 'Las 10 imagenes preseleccionadas vuelven a la tombola final.');
-  status('Alineando imagenes seleccionadas...');
+  status('Ordenando imagenes seleccionadas...');
   await Promise.all(nodes.map((node, idx) => {
     node.classList.remove('selected');
     node.style.width = `${cardW}px`;
     return tweenTo(node, {
-      left: `${(gridW - cardW) / 2}px`,
-      top: `${topPad + idx * 42}px`,
-      scale: .92,
-      duration: 1.15 + idx * .035,
+      left: `${leftPad + idx * (cardW + gap)}px`,
+      top: `${top}px`,
+      scale: .96,
+      duration: 1.05 + idx * .045,
       ease: 'power3.inOut'
     });
   }));
-  await sleep(450);
+  await sleep(650);
 }
 
 async function playWinnerReel(items, winner) {
   const grid = document.getElementById('tbUniverseFlow');
   const source = shuffleVisual(items.length ? items : [winner]);
   const sequence = [];
-  for (let i = 0; i < 9; i++) sequence.push(...shuffleVisual(source));
+  for (let i = 0; i < 18; i++) sequence.push(...shuffleVisual(source));
   sequence.push(...shuffleVisual(source.filter(item => String(item.number) !== String(winner.number))));
   sequence.push(winner);
-  sequence.push(...shuffleVisual(source).slice(0, 4));
+  sequence.push(...shuffleVisual(source).slice(0, 6));
 
   grid.classList.remove('final-scatter', 'is-stopping', 'is-spinning');
   grid.classList.add('winner-mode');
@@ -737,7 +775,7 @@ async function playWinnerReel(items, winner) {
     <div class="tb-winner-reel">
       <div class="tb-flow-track">
         ${sequence.map((item, idx) => {
-          const isWinnerTarget = idx === sequence.length - 5;
+          const isWinnerTarget = idx === sequence.length - 7;
           const img = item.prize_image ? `<img class="tb-flow-prize" src="${esc(item.prize_image)}" alt="">` : '';
           return `<div class="tb-flow-item${isWinnerTarget ? ' winner-target' : ''}" data-number="${esc(item.number)}">${img}${esc(item.number)}<small>${esc(item.buyer_name || 'Participante')}</small></div>`;
         }).join('')}
@@ -747,13 +785,13 @@ async function playWinnerReel(items, winner) {
   const reel = grid.querySelector('.tb-winner-reel');
   const track = grid.querySelector('.tb-flow-track');
   const target = grid.querySelector('.winner-target');
-  gsap.set(track, { y: 0 });
+  gsap.set(track, { x: 0 });
   await sleep(120);
-  const targetY = (reel.clientHeight / 2) - (target.offsetTop + target.offsetHeight / 2);
+  const targetX = (reel.clientWidth / 2) - (target.offsetLeft + target.offsetWidth / 2);
   status('Tombola final en movimiento...');
   await tweenTo(track, {
-    y: targetY,
-    duration: 7.8,
+    x: targetX,
+    duration: 15,
     ease: 'power4.out'
   });
   target.classList.add('selected');
