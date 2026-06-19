@@ -1,6 +1,7 @@
 ﻿<?php
 require_once __DIR__ . '/api/config.php';
 require_once __DIR__ . '/api/data_helper.php';
+header('Content-Type: text/html; charset=UTF-8');
 try {
     $pdo     = db();
     $allData = getPublicData($pdo);
@@ -18,8 +19,8 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'tickets';
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Â¿CÃ³mo participar? â€” Surteados</title>
-  <meta name="description" content="Aprende a participar en los sorteos de Surteados. Es fÃ¡cil, rÃ¡pido y completamente seguro en solo 3 pasos.">
+  <title>¿Cómo participar? — Surteados</title>
+  <meta name="description" content="Aprende a participar en los sorteos de Surteados. Es fácil, rápido y completamente seguro en solo 3 pasos.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/styles.css">
@@ -36,55 +37,55 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'tickets';
 </head>
 <body>
 
-<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• NAVBAR â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<!-- NAVBAR -->
 <nav class="navbar" id="navbar">
   <div class="navbar-inner">
     <a href="index.php" class="navbar-logo">
       <?php if ($siteLogo): ?>
         <img src="<?= htmlspecialchars($siteLogo) ?>" alt="Logo" class="navbar-logo-img">
       <?php else: ?>
-        <div class="logo-icon">ðŸŽŸï¸</div>
+        <div class="logo-icon">&#127903;&#65039;</div>
         <span class="brand">Sur<em>tea</em>dos</span>
       <?php endif; ?>
     </a>
     <nav class="navbar-nav">
       <a href="index.php">Inicio</a>
       <a href="sorteos.php">Sorteos</a>
-      <a href="como-participar.php" class="active">Â¿CÃ³mo participar?</a>
+      <a href="como-participar.php" class="active">¿Cómo participar?</a>
       <a href="ganadores.php">Ganadores</a>
         <a href="mis-imagenes.php">Mis im&aacute;genes</a>
     </nav>
     <div class="navbar-actions">
-      <a href="mis-imagenes.php#login" class="btn btn-outline btn-sm">Iniciar sesiÃ³n</a>
+      <a href="mis-imagenes.php#login" class="btn btn-outline btn-sm">Iniciar sesión</a>
       <a href="mis-imagenes.php#register" class="btn btn-primary btn-sm">Registrarse</a>
-      <button class="cart-chip-btn" id="cartOpenBtn" onclick="openCartDrawer()">ðŸ›’ Carro <span class="cart-chip-count" id="cartCountNav">0</span></button>
+      <button class="cart-chip-btn" id="cartOpenBtn" onclick="openCartDrawer()">&#128722; Carro <span class="cart-chip-count" id="cartCountNav">0</span></button>
     </div>
-    <button class="navbar-mobile-toggle" id="mobileToggle" aria-label="MenÃº">
+    <button class="navbar-mobile-toggle" id="mobileToggle" aria-label="Menú">
       <span></span><span></span><span></span>
     </button>
   </div>
   <div class="mobile-nav" id="mobileNav">
-    <a href="index.php">ðŸ  Inicio</a>
-    <a href="sorteos.php">ðŸŽŸï¸ Sorteos</a>
-    <a href="como-participar.php" class="active">ðŸ§­ Â¿CÃ³mo participar?</a>
-    <a href="ganadores.php">ðŸ† Ganadores</a>
-      <a href="mis-imagenes.php">ðŸŽ« Mis im&aacute;genes</a>
-    <a href="panel/">âš™ï¸ Admin</a>
+    <a href="index.php">&#127968; Inicio</a>
+    <a href="sorteos.php">&#127903;&#65039; Sorteos</a>
+    <a href="como-participar.php" class="active">&#129517; ¿Cómo participar?</a>
+    <a href="ganadores.php">&#127942; Ganadores</a>
+      <a href="mis-imagenes.php">&#127915; Mis im&aacute;genes</a>
+    <a href="panel/">&#9881;&#65039; Admin</a>
   </div>
 </nav>
 
 <div style="padding-top:68px;">
 
-  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• PAGE HEADER â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+  <!-- PAGE HEADER -->
   <div class="page-header">
     <div class="container text-center">
-      <div class="badge" style="margin:0 auto 1rem;display:inline-flex;">ðŸ§­ GuÃ­a rÃ¡pida</div>
-      <h1>Â¿CÃ³mo <span class="text-gradient">Participar?</span></h1>
-      <p style="max-width:540px;margin:.75rem auto 0;color:var(--text-secondary);">Todo lo que necesitas saber: desde elegir tu sorte hasta recibir tu nÃºmero y conocer el resultado.</p>
+      <div class="badge" style="margin:0 auto 1rem;display:inline-flex;">&#129517; Guía rápida</div>
+      <h1>¿Cómo <span class="text-gradient">Participar?</span></h1>
+      <p style="max-width:540px;margin:.75rem auto 0;color:var(--text-secondary);">Todo lo que necesitas saber: desde elegir tu sorteo hasta recibir tu número y conocer el resultado.</p>
     </div>
   </div>
 
-  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• LIVE INFO BAR â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+  <!-- LIVE INFO BAR -->
   <section class="section how-participate" id="howParticipateSection" style="padding:1.75rem 0;">
     <div class="container">
       <div class="how-participate-live">
@@ -94,11 +95,11 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'tickets';
         </div>
         <div class="hp-live-item">
           <span class="hp-live-label">Precio desde</span>
-          <strong id="hpPriceFrom">â€”</strong>
+          <strong id="hpPriceFrom">—</strong>
         </div>
         <div class="hp-live-item">
-          <span class="hp-live-label">PrÃ³ximo sorteo</span>
-          <strong id="hpDrawDate">â€”</strong>
+          <span class="hp-live-label">Próximo sorteo</span>
+          <strong id="hpDrawDate">—</strong>
         </div>
         <div class="hp-live-item">
           <span class="hp-live-label">Tu carrito</span>
@@ -108,12 +109,12 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'tickets';
     </div>
   </section>
 
-  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• STEPS â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+  <!-- STEPS -->
   <section class="section container">
     <div class="section-header">
-      <div class="badge">ðŸ“‹ Paso a paso</div>
-      <h2>En <span class="text-gradient">3 pasos</span> estÃ¡s participando</h2>
-      <p>Todo el proceso tarda menos de 2 minutos. Sin registros ni contraseÃ±as.</p>
+      <div class="badge">&#128203; Paso a paso</div>
+      <h2>En <span class="text-gradient">3 pasos</span> estás participando</h2>
+      <p>Todo el proceso tarda menos de 2 minutos. Sin registros ni contraseñas.</p>
     </div>
 
     <div class="cp-steps">
@@ -127,13 +128,13 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'tickets';
         <div class="cp-step-body">
           <span class="cp-step-chip">Elegir</span>
           <h3>Elige tu sorteo y pack de <?= htmlspecialchars($ticketLabelP) ?></h3>
-          <p>Explora los sorteos activos. Cada uno muestra el premio, precio, cuÃ¡ntos <?= htmlspecialchars($ticketLabelP) ?> quedan y cuÃ¡ndo se realiza. Elige el que mÃ¡s te motive y selecciona tu pack.</p>
+          <p>Explora los sorteos activos. Cada uno muestra el premio, precio, cuántos <?= htmlspecialchars($ticketLabelP) ?> quedan y cuándo se realiza. Elige el que más te motive y selecciona tu pack.</p>
           <ul class="cp-tips">
-            <li>ðŸ“¦ Packs con mÃ¡s <?= htmlspecialchars($ticketLabelP) ?> = mÃ¡s nÃºmeros = mÃ¡s posibilidades de ganar.</li>
-            <li>ðŸ·ï¸ Puedes agregar varios sorteos al carrito y pagar todo junto.</li>
-            <li>â° Los cupos son limitados â€” cuando se agota, se cierra la venta.</li>
+            <li>&#128230; Packs con más <?= htmlspecialchars($ticketLabelP) ?> = más números = más posibilidades de ganar.</li>
+            <li>&#127991;&#65039; Puedes agregar varios sorteos al carrito y pagar todo junto.</li>
+            <li>&#9200; Los cupos son limitados — cuando se agota, se cierra la venta.</li>
           </ul>
-          <a href="sorteos.php" class="btn btn-primary btn-sm cp-step-cta">Ver sorteos activos â†’</a>
+          <a href="sorteos.php" class="btn btn-primary btn-sm cp-step-cta">Ver sorteos activos →</a>
         </div>
       </div>
 
@@ -146,11 +147,11 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'tickets';
         <div class="cp-step-body">
           <span class="cp-step-chip">Pagar</span>
           <h3>Ingresa tus datos y paga de forma segura</h3>
-          <p>Solo necesitas tu nombre y correo electrÃ³nico. El pago se procesa con <strong>Flow.cl</strong>, plataforma 100% segura. Acepta mÃºltiples medios de pago.</p>
+          <p>Solo necesitas tu nombre y correo electrónico. El pago se procesa con <strong>Flow.cl</strong>, plataforma 100% segura. Acepta múltiples medios de pago.</p>
           <ul class="cp-tips">
-            <li>ðŸ”’ TransacciÃ³n cifrada â€” tus datos nunca se almacenan en texto plano.</li>
-            <li>ðŸ’³ Webpay, Khipu, tarjeta de crÃ©dito/dÃ©bito y transferencia.</li>
-            <li>ðŸ“§ Escribe bien tu correo â€” ahÃ­ recibirÃ¡s tus <?= htmlspecialchars($ticketLabelP) ?> al instante.</li>
+            <li>&#128274; Transacción cifrada — tus datos nunca se almacenan en texto plano.</li>
+            <li>&#128179; Webpay, Khipu, tarjeta de crédito/débito y transferencia.</li>
+            <li>&#128231; Escribe bien tu correo — ahí recibirás tus <?= htmlspecialchars($ticketLabelP) ?> al instante.</li>
           </ul>
         </div>
       </div>
@@ -161,16 +162,16 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'tickets';
           <div class="cp-step-num cp-num-green">3</div>
         </div>
         <div class="cp-step-body">
-          <span class="cp-step-chip">Â¡Listo!</span>
+          <span class="cp-step-chip">¡Listo!</span>
           <h3>Recibe tus <?= htmlspecialchars($ticketLabelP) ?> y espera el sorteo en vivo</h3>
-          <p>En segundos llega a tu correo la confirmaciÃ³n con tus nÃºmero(s) asignados al azar. El dÃ­a del sorteo se transmite en vivo y el resultado se publica en el sitio y redes sociales.</p>
+          <p>En segundos llega a tu correo la confirmación con tus número(s) asignados al azar. El día del sorteo se transmite en vivo y el resultado se publica en el sitio y redes sociales.</p>
           <ul class="cp-tips">
-            <li>ðŸŽ« Cada nÃºmero es Ãºnico â€” no se repiten dentro de un mismo sorteo.</li>
-            <li>ðŸ“º El sorteo se realiza en directo con presencia notarial.</li>
-            <li>ðŸ† Si ganas, te avisamos por email y publicamos el resultado pÃºblicamente.</li>
+            <li>&#127915; Cada número es único — no se repiten dentro de un mismo sorteo.</li>
+            <li>&#128250; El sorteo se realiza en directo con presencia notarial.</li>
+            <li>&#127942; Si ganas, te avisamos por email y publicamos el resultado públicamente.</li>
           </ul>
           <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-top:.75rem;">
-            <a href="sorteos.php" class="btn btn-accent btn-sm">Comprar ahora ðŸŽŸï¸</a>
+            <a href="sorteos.php" class="btn btn-accent btn-sm">Comprar ahora &#127903;&#65039;</a>
             <a href="mis-imagenes.php" class="btn btn-outline btn-sm">Ver mis <?= htmlspecialchars($ticketLabelP) ?></a>
           </div>
         </div>
@@ -179,83 +180,83 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'tickets';
     </div>
   </section>
 
-  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• FAQ â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+  <!-- FAQ -->
   <section class="section" style="background:var(--bg-surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
     <div class="container">
       <div class="section-header">
-        <div class="badge">â“ Preguntas frecuentes</div>
+        <div class="badge">&#10067; Preguntas frecuentes</div>
         <h2>Todo lo que <span class="text-gradient">necesitas saber</span></h2>
       </div>
 
       <div class="faq-list">
 
         <details class="faq-item">
-          <summary>Â¿Es legal participar en los sorteos de Surteados?</summary>
-          <p>SÃ­. Todos nuestros sorteos estÃ¡n declarados ante notario y cumplen con la normativa chilena vigente para concursos y rifas. Publicamos las bases legales de cada sorteo antes del inicio de la venta.</p>
+          <summary>¿Es legal participar en los sorteos de Surteados?</summary>
+          <p>Sí. Todos nuestros sorteos están declarados ante notario y cumplen con la normativa chilena vigente para concursos y rifas. Publicamos las bases legales de cada sorteo antes del inicio de la venta.</p>
         </details>
 
         <details class="faq-item">
-          <summary>Â¿CÃ³mo sÃ© que el sorteo es transparente y no estÃ¡ arreglado?</summary>
-          <p>El sorteo se realiza en vivo con transmisiÃ³n pÃºblica, usando un sistema de selecciÃ³n aleatoria verificable. El acta notarial y el listado completo de participantes quedan disponibles despuÃ©s del sorteo para cualquier auditorÃ­a.</p>
+          <summary>¿Cómo sé que el sorteo es transparente y no está arreglado?</summary>
+          <p>El sorteo se realiza en vivo con transmisión pública, usando un sistema de selección aleatoria verificable. El acta notarial y el listado completo de participantes quedan disponibles después del sorteo para cualquier auditoría.</p>
         </details>
 
         <details class="faq-item">
-          <summary>Â¿Necesito crear una cuenta para participar?</summary>
-          <p>No es obligatorio. Puedes comprar solo con tus datos de contacto. Para revisar tus <?= htmlspecialchars($ticketLabelP) ?>, puedes ingresar en <a href="mis-imagenes.php">Mis im&aacute;genes</a> con un cÃ³digo enviado a tu correo o registrar tus datos.</p>
+          <summary>¿Necesito crear una cuenta para participar?</summary>
+          <p>No es obligatorio. Puedes comprar solo con tus datos de contacto. Para revisar tus <?= htmlspecialchars($ticketLabelP) ?>, puedes ingresar en <a href="mis-imagenes.php">Mis im&aacute;genes</a> con un código enviado a tu correo o registrar tus datos.</p>
         </details>
 
         <details class="faq-item">
-          <summary>Â¿QuÃ© pasa si no recibo el correo con mis <?= htmlspecialchars($ticketLabelP) ?>?</summary>
-          <p>Primero revisa la carpeta de spam o correo no deseado. Si tampoco estÃ¡ ahÃ­, entra en <a href="mis-imagenes.php">Mis im&aacute;genes</a>, solicita un cÃ³digo de acceso a tu correo o inicia sesiÃ³n con tu cuenta. Si el problema persiste, escrÃ­benos a <a href="mailto:contacto@surteados.cl">contacto@surteados.cl</a>.</p>
+          <summary>¿Qué pasa si no recibo el correo con mis <?= htmlspecialchars($ticketLabelP) ?>?</summary>
+          <p>Primero revisa la carpeta de spam o correo no deseado. Si tampoco está ahí, entra en <a href="mis-imagenes.php">Mis im&aacute;genes</a>, solicita un código de acceso a tu correo o inicia sesión con tu cuenta. Si el problema persiste, escríbenos a <a href="mailto:contacto@surteados.cl">contacto@surteados.cl</a>.</p>
         </details>
 
         <details class="faq-item">
-          <summary>Â¿Puedo participar en mÃ¡s de un sorteo a la vez?</summary>
-          <p>SÃ­. Puedes agregar varios sorteos al carrito y completar el pago en una sola transacciÃ³n. Cada sorteo te asignarÃ¡ sus propios nÃºmeros de forma independiente.</p>
+          <summary>¿Puedo participar en más de un sorteo a la vez?</summary>
+          <p>Sí. Puedes agregar varios sorteos al carrito y completar el pago en una sola transacción. Cada sorteo te asignará sus propios números de forma independiente.</p>
         </details>
 
         <details class="faq-item">
-          <summary>Â¿Puedo pedir un reembolso si me arrepiento?</summary>
-          <p>Una vez emitido el <?= htmlspecialchars($ticketLabel) ?> y asignado el nÃºmero, no es posible hacer devoluciones, ya que el cupo queda reservado a tu nombre. Te recomendamos leer las bases legales antes de comprar.</p>
+          <summary>¿Puedo pedir un reembolso si me arrepiento?</summary>
+          <p>Una vez emitido el <?= htmlspecialchars($ticketLabel) ?> y asignado el número, no es posible hacer devoluciones, ya que el cupo queda reservado a tu nombre. Te recomendamos leer las bases legales antes de comprar.</p>
         </details>
 
         <details class="faq-item">
-          <summary>Â¿CÃ³mo me entero si ganÃ©?</summary>
-          <p>Te notificamos directamente al correo con el que compraste. AdemÃ¡s, publicamos el resultado en nuestras redes sociales y en la secciÃ³n <a href="ganadores.php">Ganadores</a> del sitio, con video del sorteo incluido.</p>
+          <summary>¿Cómo me entero si gané?</summary>
+          <p>Te notificamos directamente al correo con el que compraste. Además, publicamos el resultado en nuestras redes sociales y en la sección <a href="ganadores.php">Ganadores</a> del sitio, con video del sorteo incluido.</p>
         </details>
 
         <details class="faq-item">
-          <summary>Â¿Puedo participar desde fuera de Chile?</summary>
-          <p>Los premios fÃ­sicos actualmente solo se entregan dentro de Chile. Las compras se procesan en pesos chilenos (CLP). Si tienes dudas, escrÃ­benos antes de comprar.</p>
+          <summary>¿Puedo participar desde fuera de Chile?</summary>
+          <p>Los premios físicos actualmente solo se entregan dentro de Chile. Las compras se procesan en pesos chilenos (CLP). Si tienes dudas, escríbenos antes de comprar.</p>
         </details>
 
       </div>
     </div>
   </section>
 
-  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• CTA â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+  <!-- CTA -->
   <section class="section container">
     <div class="cta-banner">
-      <div class="badge" style="display:inline-flex;margin-bottom:1rem;">ðŸŽŸï¸ Â¡Es tu turno!</div>
-      <h2>Ya sabes todo.<br><span class="text-gradient">Â¡Empieza ahora!</span></h2>
-      <p style="color:var(--text-secondary);max-width:440px;margin:0 auto 1.75rem;">Elige tu sorteo, selecciona tu pack y en menos de 2 minutos estarÃ¡s participando por un premio increÃ­ble.</p>
-      <a href="sorteos.php" class="btn btn-accent btn-lg">ðŸŽŸï¸ Ver Sorteos Activos</a>
+      <div class="badge" style="display:inline-flex;margin-bottom:1rem;">&#127903;&#65039; ¡Es tu turno!</div>
+      <h2>Ya sabes todo.<br><span class="text-gradient">¡Empieza ahora!</span></h2>
+      <p style="color:var(--text-secondary);max-width:440px;margin:0 auto 1.75rem;">Elige tu sorteo, selecciona tu pack y en menos de 2 minutos estarás participando por un premio increíble.</p>
+      <a href="sorteos.php" class="btn btn-accent btn-lg">&#127903;&#65039; Ver Sorteos Activos</a>
     </div>
   </section>
 
 </div><!-- /padding-top wrapper -->
 
-<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• FOOTER â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<!-- FOOTER -->
 <?php include __DIR__ . '/partials/site_footer.php'; ?>
 
 <div class="cart-overlay" id="cartOverlay" onclick="closeCartDrawer()" style="display:none;position:fixed;inset:0;background:rgba(10,10,15,.55);z-index:1000;"></div>
 <aside class="cart-drawer" id="cartDrawer" style="position:fixed;top:0;right:0;width:min(380px,94vw);height:100vh;z-index:1001;background:var(--bg-card);border-left:1px solid var(--border-strong);box-shadow:var(--shadow-lg);transform:translateX(110%);transition:transform .22s ease;display:flex;flex-direction:column;">
   <div class="cart-drawer-head">
-    <strong>ðŸ›’ Tu carro</strong>
+    <strong>&#128722; Tu carro</strong>
     <button class="btn btn-ghost btn-sm" onclick="closeCartDrawer()">Cerrar</button>
   </div>
   <div class="cart-drawer-body" id="cartDrawerBody">
-    <p class="text-sm text-muted">Tu carro estÃ¡ vacÃ­o.</p>
+    <p class="text-sm text-muted">Tu carro está vacío.</p>
   </div>
   <div class="cart-drawer-foot">
     <div class="flex-between mb-2">
@@ -267,9 +268,9 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'tickets';
 </aside>
 
 <div class="theme-picker" id="themePicker">
-  <div class="theme-toggle" id="themeToggle" title="Personalizar colores">ðŸŽ¨</div>
+  <div class="theme-toggle" id="themeToggle" title="Personalizar colores">&#127912;</div>
   <div class="theme-panel" id="themePanel">
-    <h4>ðŸŽ¨ Personalizar Tema</h4>
+    <h4>&#127912; Personalizar Tema</h4>
     <div class="theme-presets" id="themePresets">
       <button class="preset-btn active" data-preset="purple" style="background:linear-gradient(135deg,#7c3aed,#f59e0b);"></button>
       <button class="preset-btn" data-preset="blue" style="background:linear-gradient(135deg,#2563eb,#06b6d4);"></button>

@@ -90,10 +90,11 @@ function tombola_load_audit(PDO $pdo, string $auditId, string $raffleId): array
     return $audit;
 }
 
-function tombola_decode_list(?string $json, string $label): array
+function tombola_decode_list(?string $json, string $label, bool $required = true): array
 {
     $data = json_decode($json ?? '[]', true);
-    if (!is_array($data) || !$data) json_error("No hay {$label} registrados para continuar");
+    if (!is_array($data)) json_error("Datos de {$label} invalidos");
+    if (!$data && $required) json_error("No hay {$label} registrados para continuar");
     return $data;
 }
 
@@ -222,8 +223,10 @@ if ($method === 'POST') {
         if ($auditId === '') json_error('audit_id requerido');
         $audit = tombola_load_audit($pdo, $auditId, $raffleId);
         $semifinalists = tombola_decode_list($audit['semifinalists_json'] ?? '', 'semifinalistas');
-        $finalists = tombola_decode_list($audit['finalists_json'] ?? '', 'finalistas');
-        $shuffled = tombola_shuffle_secure($finalists);
+        $finalists = tombola_decode_list($audit['finalists_json'] ?? '', 'finalistas', false);
+        $winnerPool = $finalists ?: $semifinalists;
+        if (!$winnerPool) json_error('No hay imagenes seleccionadas para definir ganador', 400);
+        $shuffled = tombola_shuffle_secure($winnerPool);
         $winner = $shuffled[0];
 
         $prizeStmt = $pdo->prepare('SELECT name FROM raffle_prizes WHERE raffle_id = ? ORDER BY place ASC LIMIT 1');
@@ -252,7 +255,7 @@ if ($method === 'POST') {
             'raffle_id' => $raffleId,
             'pool_hash' => $audit['pool_hash'],
             'semifinalists' => array_column($semifinalists, 'number'),
-            'finalists' => array_column($finalists, 'number'),
+            'finalists' => array_column($winnerPool, 'number'),
             'winner' => $winner['number'],
             'winner_id' => $winnerId,
             'stage' => 'winner',
