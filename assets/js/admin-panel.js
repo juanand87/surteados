@@ -19,6 +19,48 @@ async function api(endpoint, { method = 'GET', body, params } = {}) {
   if (!json.ok) throw new Error(json.error || 'Error en la petición');
   return json.data;
 }
+let adminSessionRedirecting = false;
+
+function handleExpiredAdminSession() {
+  if (adminSessionRedirecting) return;
+  adminSessionRedirecting = true;
+  showToast('Tu sesión de administrador venció. Inicia sesión nuevamente.', 'error');
+  setTimeout(() => {
+    window.location.href = 'index.php?redirect=dashboard.php';
+  }, 1400);
+}
+
+async function uploadAdminFile(formData) {
+  const response = await fetch(`${API_BASE}/upload.php`, {
+    method: 'POST',
+    credentials: 'include',
+    body: formData,
+  });
+  let json;
+  try {
+    json = await response.json();
+  } catch (_) {
+    throw new Error('El servidor no entregó una respuesta válida al cargar la imagen.');
+  }
+  if (response.status === 401 || json?.error === 'No autorizado') {
+    handleExpiredAdminSession();
+    throw new Error('Sesión de administrador vencida.');
+  }
+  if (!response.ok || !json?.ok) {
+    throw new Error(json?.error || 'No se pudo cargar la imagen.');
+  }
+  return json.data;
+}
+
+setInterval(async () => {
+  try {
+    const response = await fetch(`${API_BASE}/auth.php`, { credentials: 'include' });
+    const json = await response.json();
+    if (!json?.ok || !json?.data?.logged_in) handleExpiredAdminSession();
+  } catch (_) {
+    // Un fallo transitorio de red no debe expulsar al administrador.
+  }
+}, 10 * 60 * 1000);
 
 /* ── Toast ────────────────────────────────────────────────────────────────── */
 function showToast(msg, type = 'success') {
@@ -266,12 +308,10 @@ async function handleRaffleImageUpload(input) {
   fd.append('file', input.files[0]);
   fd.append('type', 'raffle');
   try {
-    const resp = await fetch(`${API_BASE}/upload.php`, { method: 'POST', credentials: 'include', body: fd });
-    const json = await resp.json();
-    if (!json.ok) throw new Error(json.error);
-    document.getElementById('rf_imageUrl').value = json.data.url;
+    const uploaded = await uploadAdminFile(fd);
+    document.getElementById('rf_imageUrl').value = uploaded.url;
     const preview = document.getElementById('rf_imagePreview');
-    preview.innerHTML = `<img src="${json.data.url}" style="width:100%;height:100%;object-fit:cover;">`;
+    preview.innerHTML = `<img src="${uploaded.url}" style="width:100%;height:100%;object-fit:cover;">`;
     showToast('Imagen del sorteo cargada ✅');
   } catch(e) { showToast(e.message, 'error'); }
 }
@@ -289,12 +329,10 @@ async function handleRafflePrizeImageUpload(input) {
   fd.append('file', input.files[0]);
   fd.append('type', 'prize');
   try {
-    const resp = await fetch(`${API_BASE}/upload.php`, { method: 'POST', credentials: 'include', body: fd });
-    const json = await resp.json();
-    if (!json.ok) throw new Error(json.error);
-    document.getElementById('rf_prizeImageUrl').value = json.data.url;
+    const uploaded = await uploadAdminFile(fd);
+    document.getElementById('rf_prizeImageUrl').value = uploaded.url;
     const preview = document.getElementById('rf_prizeImagePreview');
-    preview.innerHTML = `<img src="${json.data.url}" style="width:100%;height:100%;object-fit:cover;">`;
+    preview.innerHTML = `<img src="${uploaded.url}" style="width:100%;height:100%;object-fit:cover;">`;
     showToast('Imagen del premio cargada ✅');
   } catch(e) { showToast(e.message, 'error'); }
 }
@@ -591,10 +629,8 @@ async function handleWinnerImageUpload(input) {
   fd.append('file', input.files[0]);
   fd.append('type', 'winner');
   try {
-    const resp = await fetch(`${API_BASE}/upload.php`, { method: 'POST', credentials: 'include', body: fd });
-    const json = await resp.json();
-    if (!json.ok) throw new Error(json.error);
-    const url = json.data.url;
+    const uploaded = await uploadAdminFile(fd);
+    const url = uploaded.url;
     document.getElementById('wn_imageUrl').value = url;
     const preview = document.getElementById('wn_imagePreview');
     if (preview) preview.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;">`;
@@ -634,10 +670,8 @@ async function renderDiseno() {
       fd.append('file', this.files[0]);
       fd.append('type', 'logo');
       try {
-        const resp = await fetch(`${API_BASE}/upload.php`, { method: 'POST', credentials: 'include', body: fd });
-        const json = await resp.json();
-        if (!json.ok) throw new Error(json.error);
-        preview.innerHTML = `<img src="${json.data.url}" alt="Logo" style="width:100%;height:100%;object-fit:contain;border-radius:inherit;">`;
+        const uploaded = await uploadAdminFile(fd);
+        preview.innerHTML = `<img src="${uploaded.url}" alt="Logo" style="width:100%;height:100%;object-fit:contain;border-radius:inherit;">`;
         showToast('Logo actualizado ✅');
       } catch (e) { showToast(e.message, 'error'); }
     };
@@ -833,15 +867,13 @@ async function handleSlideImageUpload(input) {
   fd.append('file', input.files[0]);
   fd.append('type', _slideMode === 'mobile' ? 'slidemobile' : 'slide');
   try {
-    const resp = await fetch(`${API_BASE}/upload.php`, { method: 'POST', credentials: 'include', body: fd });
-    const json = await resp.json();
-    if (!json.ok) throw new Error(json.error);
-    document.getElementById('sl_bgImage').value = json.data.url;
+    const uploaded = await uploadAdminFile(fd);
+    document.getElementById('sl_bgImage').value = uploaded.url;
     const imageRadio = document.querySelector('input[name="sl_bgType"][value="image"]');
     if (imageRadio) imageRadio.checked = true;
     document.getElementById('sl_gradientFields')?.classList.add('hidden');
     document.getElementById('sl_imageFields')?.classList.remove('hidden');
-    updateSlideImagePreview(json.data.url);
+    updateSlideImagePreview(uploaded.url);
     showToast('Imagen del slide cargada');
   } catch (e) {
     showToast(e.message, 'error');
