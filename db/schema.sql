@@ -336,3 +336,79 @@ INSERT INTO winners VALUES
    'Smart TV Samsung 65" QLED',899000,'2026-01-15','001203','2ª Edición','📺',1,'#','#',NOW()),
   ('w003','old003','Moto Yamaha MT-03','Diego Fuentes','Valparaíso, Chile',
    'Yamaha MT-03 2025',5500000,'2026-02-28','000456','3ª Edición','🏍️',1,'#','#',NOW());
+
+-- First-party analytics
+CREATE TABLE analytics_sessions (
+  session_id VARCHAR(64) PRIMARY KEY,
+  visitor_id VARCHAR(64) NOT NULL,
+  entry_path VARCHAR(255) NOT NULL DEFAULT '/',
+  referrer VARCHAR(500),
+  utm_source VARCHAR(100),
+  utm_medium VARCHAR(100),
+  utm_campaign VARCHAR(150),
+  device_type VARCHAR(20) NOT NULL DEFAULT 'desktop',
+  ip_hash CHAR(64),
+  page_views INT UNSIGNED NOT NULL DEFAULT 0,
+  active_seconds INT UNSIGNED NOT NULL DEFAULT 0,
+  converted TINYINT(1) NOT NULL DEFAULT 0,
+  first_seen_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  last_seen_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_analytics_sessions_first (first_seen_at),
+  INDEX idx_analytics_sessions_last (last_seen_at),
+  INDEX idx_analytics_sessions_visitor (visitor_id),
+  INDEX idx_analytics_sessions_device (device_type)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE analytics_page_views (
+  view_id VARCHAR(64) PRIMARY KEY,
+  session_id VARCHAR(64) NOT NULL,
+  visitor_id VARCHAR(64) NOT NULL,
+  path VARCHAR(255) NOT NULL,
+  raffle_id VARCHAR(25),
+  active_seconds INT UNSIGNED NOT NULL DEFAULT 0,
+  started_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  last_seen_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_analytics_views_session (session_id),
+  INDEX idx_analytics_views_path (path),
+  INDEX idx_analytics_views_raffle (raffle_id),
+  INDEX idx_analytics_views_started (started_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE analytics_events (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  session_id VARCHAR(64) NOT NULL,
+  visitor_id VARCHAR(64) NOT NULL,
+  event_type VARCHAR(50) NOT NULL,
+  raffle_id VARCHAR(25),
+  cart_id VARCHAR(64),
+  step TINYINT UNSIGNED,
+  metadata TEXT,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_analytics_events_type (event_type),
+  INDEX idx_analytics_events_session (session_id),
+  INDEX idx_analytics_events_raffle (raffle_id),
+  INDEX idx_analytics_events_created (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE analytics_carts (
+  cart_id VARCHAR(64) PRIMARY KEY,
+  session_id VARCHAR(64) NOT NULL,
+  visitor_id VARCHAR(64) NOT NULL,
+  status ENUM('active','abandoned','converted','cleared') NOT NULL DEFAULT 'active',
+  has_contact TINYINT(1) NOT NULL DEFAULT 0,
+  buyer_name VARCHAR(180),
+  buyer_email VARCHAR(180),
+  buyer_phone VARCHAR(50),
+  items_json LONGTEXT,
+  item_count SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+  total_amount INT UNSIGNED NOT NULL DEFAULT 0,
+  current_step TINYINT UNSIGNED NOT NULL DEFAULT 1,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  abandoned_at DATETIME,
+  converted_at DATETIME,
+  INDEX idx_analytics_carts_status (status),
+  INDEX idx_analytics_carts_updated (updated_at),
+  INDEX idx_analytics_carts_session (session_id),
+  INDEX idx_analytics_carts_email (buyer_email)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

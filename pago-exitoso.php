@@ -97,7 +97,7 @@ if ($isPaid && !empty($ticket['flow_order'])) {
     @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
-<body>
+<body data-analytics-payment-status="<?= $isPaid ? 'paid' : ($isPending ? 'pending' : 'failed') ?>">
 <nav class="navbar" style="background:rgba(10,10,15,.98);">
   <div class="navbar-inner">
     <a href="index.php" class="navbar-logo"><div class="logo-icon">ðŸŽŸï¸</div><span class="brand">Sur<em>tea</em>dos</span></a>

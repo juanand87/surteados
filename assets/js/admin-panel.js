@@ -140,6 +140,7 @@ async function renderSection(name) {
   activateSection(name);
   const renderers = {
     dashboard: renderDashboard,
+    estadisticas: renderAnalytics,
     sorteos:   renderSorteos,
     tickets:   renderTickets,
     ganadores: renderGanadores,
@@ -162,6 +163,107 @@ document.querySelectorAll('.admin-nav-item[data-section]').forEach(item => {
 /* ══════════════════════════════════════════════════════════════════════════ */
 /*  DASHBOARD                                                                */
 /* ══════════════════════════════════════════════════════════════════════════ */
+let analyticsRefreshTimer = null;
+
+function analyticsDuration(seconds) {
+  seconds = Number(seconds || 0);
+  if (seconds < 60) return `${seconds}s`;
+  const minutes = Math.floor(seconds / 60);
+  const rest = seconds % 60;
+  return `${minutes}m ${rest}s`;
+}
+
+function analyticsEmptyRow(columns, message = 'Sin datos para este período') {
+  return `<tr><td colspan="${columns}" style="text-align:center;color:var(--text-muted);padding:1.5rem;">${message}</td></tr>`;
+}
+
+async function renderAnalytics() {
+  clearInterval(analyticsRefreshTimer);
+  const daysEl = document.getElementById('analyticsDays');
+  const refreshBtn = document.getElementById('analyticsRefresh');
+  const days = Number(daysEl?.value || 30);
+  if (refreshBtn) refreshBtn.disabled = true;
+
+  try {
+    const data = await api('/analytics.php', { params: { days } });
+    const summary = data.summary || {};
+    const carts = data.carts || {};
+    const sales = data.sales || {};
+
+    document.getElementById('analyticsSummary').innerHTML = `
+      <div class="stat-card"><div class="stat-number">${summary.visitors || 0}</div><div class="stat-label">Visitantes únicos</div></div>
+      <div class="stat-card"><div class="stat-number">${summary.live || 0}</div><div class="stat-label">En vivo ahora</div></div>
+      <div class="stat-card"><div class="stat-number">${summary.pageViews || 0}</div><div class="stat-label">Páginas vistas</div></div>
+      <div class="stat-card"><div class="stat-number">${analyticsDuration(summary.avgActiveSeconds)}</div><div class="stat-label">Tiempo activo promedio</div></div>
+      <div class="stat-card"><div class="stat-number">${carts.abandoned || 0}</div><div class="stat-label">Carros abandonados</div></div>
+      <div class="stat-card"><div class="stat-number">${carts.withContact || 0}</div><div class="stat-label">Abandonados con datos</div></div>
+      <div class="stat-card"><div class="stat-number">${sales.buyers || 0}</div><div class="stat-label">Compradores</div></div>
+      <div class="stat-card"><div class="stat-number">${fmtCLP(sales.revenue || 0)}</div><div class="stat-label">Ingresos del período</div></div>`;
+
+    const daily = data.daily || [];
+    const maxVisits = Math.max(1, ...daily.map(row => Number(row.sessions || 0)));
+    document.getElementById('analyticsDaily').innerHTML = daily.length
+      ? daily.map(row => {
+          const height = Math.max(3, Math.round((Number(row.sessions || 0) / maxVisits) * 175));
+          const label = new Date(`${row.day}T12:00:00`).toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit' });
+          return `<div class="analytics-day" title="${row.sessions} sesiones, ${row.page_views} páginas, ${analyticsDuration(row.avg_seconds)} promedio">
+            <strong style="font-size:.72rem;">${row.sessions}</strong><div class="analytics-day-bar" style="height:${height}px;"></div><span class="analytics-day-label">${label}</span></div>`;
+        }).join('')
+      : '<p class="text-sm text-muted" style="margin:auto;">Aún no hay visitas registradas.</p>';
+
+    const funnelLabels = [
+      ['raffle_view', 'Vieron un sorteo'], ['purchase_open', 'Abrieron compra'], ['pack_selected', 'Eligieron pack'],
+      ['details_completed', 'Completaron datos'], ['payment_started', 'Iniciaron pago'], ['purchase_completed', 'Compra confirmada']
+    ];
+    const funnelMax = Math.max(1, ...funnelLabels.map(([key]) => Number(data.funnel?.[key] || 0)));
+    document.getElementById('analyticsFunnel').innerHTML = funnelLabels.map(([key, label]) => {
+      const value = Number(data.funnel?.[key] || 0);
+      const pct = Math.round((value / funnelMax) * 100);
+      return `<div class="analytics-metric-row"><span class="text-sm">${label}</span><div class="analytics-metric-track"><div class="analytics-metric-fill" style="width:${pct}%"></div></div><strong>${value}</strong></div>`;
+    }).join('');
+
+    const raffleRows = data.raffles || [];
+    document.getElementById('analyticsRaffles').innerHTML = raffleRows.length ? raffleRows.map(row => `
+      <tr><td><strong>${escHtml(row.title)}</strong></td><td>${row.views}</td><td>${row.unique_visitors}</td><td>${row.purchases}</td><td>${row.conversion}%</td><td>${fmtCLP(row.revenue)}</td></tr>`).join('') : analyticsEmptyRow(6);
+
+    document.getElementById('analyticsCartSummary').innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;text-align:center;">
+        <div><strong style="display:block;font-size:1.3rem;">${carts.withContact || 0}</strong><span class="text-xs text-muted">Con datos</span></div>
+        <div><strong style="display:block;font-size:1.3rem;">${carts.withoutContact || 0}</strong><span class="text-xs text-muted">Sin datos</span></div>
+        <div><strong style="display:block;font-size:1.3rem;">${carts.active || 0}</strong><span class="text-xs text-muted">Activos</span></div>
+      </div>`;
+
+    const abandoned = data.abandoned || [];
+    document.getElementById('analyticsAbandoned').innerHTML = abandoned.length ? abandoned.map(cart => {
+      const contact = cart.has_contact
+        ? `<strong>${escHtml(cart.buyer_name || 'Sin nombre')}</strong><div class="text-xs">${escHtml(cart.buyer_email || cart.buyer_phone || '')}</div>`
+        : '<span class="text-muted">Sin datos</span>';
+      const items = (cart.items || []).map(item => item.title || item.raffleId).filter(Boolean).join(', ') || `${cart.item_count} selección(es)`;
+      return `<tr><td>${contact}</td><td><span title="${escHtml(items)}">${escHtml(items)}</span></td><td>${fmtCLP(cart.total_amount)}</td><td>Paso ${cart.current_step}</td><td>${fmtDate(cart.abandoned_at || cart.updated_at)}</td></tr>`;
+    }).join('') : analyticsEmptyRow(5);
+
+    const devices = data.devices || [];
+    const deviceTotal = Math.max(1, devices.reduce((sum, row) => sum + Number(row.sessions || 0), 0));
+    const deviceNames = { mobile: 'Teléfono', tablet: 'Tablet', desktop: 'Computador' };
+    document.getElementById('analyticsDevices').innerHTML = devices.length ? devices.map(row => {
+      const pct = Math.round((Number(row.sessions) / deviceTotal) * 100);
+      return `<div class="analytics-metric-row"><span class="text-sm">${deviceNames[row.device_type] || row.device_type}</span><div class="analytics-metric-track"><div class="analytics-metric-fill" style="width:${pct}%"></div></div><strong>${pct}%</strong></div>`;
+    }).join('') : '<p class="text-sm text-muted">Sin datos.</p>';
+
+    const pages = data.pages || [];
+    document.getElementById('analyticsPages').innerHTML = pages.length ? pages.map(page => `
+      <tr><td>${escHtml(page.path)}</td><td>${page.views}</td><td>${analyticsDuration(page.avg_seconds)}</td></tr>`).join('') : analyticsEmptyRow(3);
+
+    if (daysEl) daysEl.onchange = () => renderAnalytics();
+    if (refreshBtn) refreshBtn.onclick = () => renderAnalytics();
+    analyticsRefreshTimer = setInterval(() => {
+      if (document.getElementById('sec-estadisticas')?.classList.contains('active')) renderAnalytics();
+    }, 60000);
+  } finally {
+    if (refreshBtn) refreshBtn.disabled = false;
+  }
+}
+
 async function renderDashboard() {
   const [raffles, tickets, winners] = await Promise.all([
     api('/raffles.php'),

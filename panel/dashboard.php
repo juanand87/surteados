@@ -23,6 +23,15 @@ $apiBase   = '../api';
   <link rel="stylesheet" href="../assets/css/styles.css?v=<?= (int)@filemtime(__DIR__ . '/../assets/css/styles.css') ?>">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
+    .analytics-two-cols { display:grid; grid-template-columns:minmax(0,1.25fr) minmax(320px,.75fr); gap:1.5rem; }
+    .analytics-chart { min-height:260px; padding:1rem; display:flex; align-items:flex-end; gap:.45rem; overflow-x:auto; }
+    .analytics-day { min-width:34px; flex:1; height:220px; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; gap:.35rem; }
+    .analytics-day-bar { width:100%; max-width:46px; min-height:3px; background:var(--color-primary); border-radius:4px 4px 0 0; }
+    .analytics-day-label { font-size:.65rem; color:var(--text-muted); white-space:nowrap; }
+    .analytics-metric-row { display:grid; grid-template-columns:minmax(120px,1fr) 2fr auto; align-items:center; gap:.7rem; padding:.55rem 0; }
+    .analytics-metric-track { height:8px; background:rgba(124,58,237,.12); border-radius:999px; overflow:hidden; }
+    .analytics-metric-fill { height:100%; background:var(--color-primary); border-radius:inherit; }
+    @media (max-width:980px) { .analytics-two-cols { grid-template-columns:1fr; } }
     .btn-link-like {
       appearance: none;
       border: 0;
@@ -105,6 +114,7 @@ $apiBase   = '../api';
     <div class="admin-sidebar-section">
       <p>Principal</p>
       <div class="admin-nav-item active" data-section="dashboard"><span class="icon">📊</span> Dashboard</div>
+      <div class="admin-nav-item" data-section="estadisticas"><span class="icon">&#128200;</span> Estadísticas</div>
       <div class="admin-nav-item" data-section="sorteos"><span class="icon">🎟️</span> Sorteos</div>
       <div class="admin-nav-item" data-section="tickets"><span class="icon">🎫</span> Imágenes vendidas</div>
       <div class="admin-nav-item" data-section="ganadores"><span class="icon">🏆</span> Ganadores</div>
@@ -161,6 +171,35 @@ $apiBase   = '../api';
     </div>
 
     <!-- ═══ SORTEOS ═══ -->
+
+    <div class="admin-section" id="sec-estadisticas">
+      <div class="admin-header" style="gap:1rem;flex-wrap:wrap;">
+        <div><h2>Estadísticas</h2><span class="text-sm text-muted">Visitas, conversión, sorteos y carros abandonados</span></div>
+        <div style="display:flex;gap:.5rem;align-items:center;">
+          <select class="form-control" id="analyticsDays" style="width:150px;padding:.5rem .75rem;"><option value="7">Últimos 7 días</option><option value="30" selected>Últimos 30 días</option><option value="90">Últimos 90 días</option></select>
+          <button class="btn btn-primary btn-sm" id="analyticsRefresh">Actualizar</button>
+        </div>
+      </div>
+      <div class="admin-stat-cards" id="analyticsSummary"></div>
+      <div class="analytics-two-cols">
+        <div class="table-container"><div class="table-header"><h3>Visitas diarias</h3></div><div id="analyticsDaily" class="analytics-chart"></div></div>
+        <div class="table-container"><div class="table-header"><h3>Embudo de compra</h3></div><div id="analyticsFunnel" style="padding:1rem;"></div></div>
+      </div>
+      <div class="table-container" style="margin-top:1.5rem;">
+        <div class="table-header"><h3>Rendimiento por sorteo</h3></div>
+        <div style="overflow-x:auto;"><table class="admin-table"><thead><tr><th>Sorteo</th><th>Visitas</th><th>Visitantes</th><th>Compras</th><th>Conversión</th><th>Ingresos</th></tr></thead><tbody id="analyticsRaffles"></tbody></table></div>
+      </div>
+      <div class="analytics-two-cols" style="margin-top:1.5rem;">
+        <div class="table-container">
+          <div class="table-header"><h3>Carros abandonados</h3></div><div id="analyticsCartSummary" style="padding:1rem;"></div>
+          <div style="overflow-x:auto;max-height:420px;"><table class="admin-table"><thead><tr><th>Contacto</th><th>Contenido</th><th>Total</th><th>Etapa</th><th>Fecha</th></tr></thead><tbody id="analyticsAbandoned"></tbody></table></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:1.5rem;">
+          <div class="table-container"><div class="table-header"><h3>Dispositivos</h3></div><div id="analyticsDevices" style="padding:1rem;"></div></div>
+          <div class="table-container"><div class="table-header"><h3>Páginas más visitadas</h3></div><div style="overflow-x:auto;"><table class="admin-table"><thead><tr><th>Página</th><th>Visitas</th><th>Tiempo</th></tr></thead><tbody id="analyticsPages"></tbody></table></div></div>
+        </div>
+      </div>
+    </div>
     <div class="admin-section" id="sec-sorteos">
       <div class="admin-header">
         <h2>🎟️ Gestión de Sorteos</h2>

@@ -447,8 +447,14 @@ const _cart = {
   load() {
     try { return JSON.parse(localStorage.getItem(CART_KEY) || '[]'); } catch { return []; }
   },
-  save(items) { localStorage.setItem(CART_KEY, JSON.stringify(items)); },
-  clear()     { localStorage.removeItem(CART_KEY); },
+  save(items) {
+    localStorage.setItem(CART_KEY, JSON.stringify(items));
+    setTimeout(() => syncAnalyticsCart(items.length ? 'active' : 'cleared'), 0);
+  },
+  clear() {
+    localStorage.removeItem(CART_KEY);
+    setTimeout(() => syncAnalyticsCart('cleared'), 0);
+  },
   add(raffleId, packId, raffleTitle, packLabel, price, imageUrl = '') {
     const items = this.load();
     // Replace if same raffleId already in cart
@@ -463,6 +469,25 @@ const _cart = {
   total() { return this.load().reduce((s, i) => s + i.price, 0); },
   count() { return this.load().length; },
 };
+
+function analyticsBuyerData() {
+  return {
+    buyerName: document.getElementById('buyerName')?.value?.trim() || '',
+    buyerEmail: document.getElementById('buyerEmail')?.value?.trim() || '',
+    buyerPhone: document.getElementById('buyerPhone')?.value?.trim() || '',
+  };
+}
+
+function syncAnalyticsCart(status = 'active', explicitStep = null) {
+  const analytics = window.SurteadosAnalytics;
+  if (!analytics) return;
+  analytics.syncCart({
+    items: _cart.load(),
+    ...analyticsBuyerData(),
+    step: explicitStep || Number(_purchaseState?.currentStep || 1),
+    status,
+  });
+}
 
 let _checkoutFromCart = false;
 
@@ -621,6 +646,7 @@ async function prefillBuyerDataFromSession() {
   fillBuyerValue('buyerRut', formatChileanRut(session.rut || ''));
   fillBuyerValue('buyerEmail', session.email || '');
   fillBuyerValue('buyerEmailConfirm', session.email || '');
+  syncAnalyticsCart('active', 2);
 
   if (!session.communeId && !session.comuna) return;
   const regionEl = document.getElementById('buyerRegion');
@@ -657,6 +683,7 @@ function openPurchaseModal(raffleId, initialPackId = null) {
   }
 
   _purchaseState = { raffleId, pack: null, currentStep: 1 };
+  window.SurteadosAnalytics?.event('purchase_open', { raffleId, step: 1 });
 
   const modal = document.getElementById('purchaseModal');
   const title = document.getElementById('modalTitle');
@@ -705,6 +732,7 @@ function selectPack(packId, raffleId) {
 
   _purchaseState.pack = pack;
   _purchaseState.raffleId = raffleId;
+  window.SurteadosAnalytics?.event('pack_selected', { raffleId, step: 1, metadata: { packId, price: pack.price } });
 
   document.querySelectorAll('#modalPacksGrid .pack-card').forEach(c => {
     c.classList.toggle('selected', c.dataset.pack === packId);
@@ -740,7 +768,9 @@ function updatePurchaseStep(step) {
 
   if (step === 2) {
     prefillBuyerDataFromSession();
+    window.SurteadosAnalytics?.event('details_started', { raffleId: _purchaseState.raffleId, step: 2 });
   }
+  syncAnalyticsCart('active', Number(numericStep));
 }
 
 /** Render the "more raffles" grid in step1b */
@@ -930,6 +960,14 @@ function updateCartBar() {
     showPoliciesPanel(false);
   });
 
+  let analyticsContactTimer;
+  ['buyerName', 'buyerEmail', 'buyerPhone'].forEach((id) => {
+    document.getElementById(id)?.addEventListener('input', () => {
+      clearTimeout(analyticsContactTimer);
+      analyticsContactTimer = setTimeout(() => syncAnalyticsCart('active', 2), 500);
+    });
+  });
+
   // RUT formatting helper in form
   const buyerRutEl = document.getElementById('buyerRut');
   buyerRutEl?.addEventListener('blur', () => {
@@ -978,6 +1016,8 @@ function updateCartBar() {
     if (totalEl) totalEl.textContent = formatPrice(total);
     if (emailEl) emailEl.textContent = email;
 
+    window.SurteadosAnalytics?.event('details_completed', { raffleId: _purchaseState.raffleId, step: 2 });
+    syncAnalyticsCart('active', 3);
     updatePurchaseStep(3);
   });
 
@@ -1028,6 +1068,8 @@ function updateCartBar() {
     }
 
     payBtn.textContent = '🔄 Conectando con Flow.cl…';
+    window.SurteadosAnalytics?.event('payment_started', { raffleId: _purchaseState.raffleId, step: 3 });
+    syncAnalyticsCart('active', 3);
     try {
       const base = window.location.pathname.replace(/\/index\.php.*|\/$/, '').replace(/\/[^/]+\.php.*/, '');
       const resp = await fetch(base + '/api/flow.php', {
@@ -1049,6 +1091,7 @@ function updateCartBar() {
       const json = await resp.json();
       if (!json.ok) throw new Error(json.error || 'Error al crear el pago');
 
+      window.SurteadosAnalytics?.event('payment_redirect', { raffleId: _purchaseState.raffleId, step: 3 });
       window.location.href = json.data.redirectUrl;
     } catch (err) {
       showToast('❌ ' + err.message, 'error', 6000);

@@ -55,3 +55,5 @@ $footerTicketLabelP = $ticketLabelP ?? ($cfg['ticketLabelPlural'] ?? 'imagenes')
     </div>
   </div>
 </footer>
+
+<script src="assets/js/analytics.js?v=<?= (int)@filemtime(__DIR__ . '/../assets/js/analytics.js') ?>"></script>
