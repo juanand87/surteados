@@ -2866,17 +2866,38 @@ textarea.form-control { resize: vertical; min-height: 80px; }
   }
   .hero-slider-mobile {
     display: block;
-    width: calc(100% - 2rem);
-    max-width: 520px;
+    width: 100%;
+    max-width: none;
     height: auto;
-    aspect-ratio: 4 / 5;
-    margin: 1rem auto;
-    border-radius: 12px;
+    margin: 0 auto;
+    border-radius: 0;
+    transition: height .35s ease;
   }
   .hero-slider-mobile.hidden {
     display: none;
   }
+  .hero-slider-mobile .hs-track {
+    height: auto;
+    align-items: flex-start;
+  }
   .hero-slider-mobile .hs-slide {
+    display: block;
+    height: auto;
+    min-height: 0;
+    padding: 0;
+  }
+  .hero-slider-mobile .hs-mobile-image {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .hero-slider-mobile .hs-slide-inner {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     padding: 1.25rem;
   }
   .hero-slider-mobile .hs-slide-inner h1 {

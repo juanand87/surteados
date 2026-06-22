@@ -213,6 +213,21 @@ document.addEventListener('DOMContentLoaded', setupCustomerNav);
     wrap.classList.remove('hidden');
     let current = 0;
     let timer;
+    const isMobileSlider = wrap.classList.contains('hero-slider-mobile');
+
+    function syncMobileHeight() {
+      if (!isMobileSlider) return;
+      const activeSlide = slides[current];
+      const image = activeSlide?.querySelector('.hs-mobile-image');
+      if (!image) return;
+      const applyHeight = () => {
+        if (slides[current] !== activeSlide || !image.naturalWidth) return;
+        const height = wrap.clientWidth * (image.naturalHeight / image.naturalWidth);
+        wrap.style.height = `${Math.round(height)}px`;
+      };
+      if (image.complete) applyHeight();
+      else image.addEventListener('load', applyHeight, { once: true });
+    }
 
     function goTo(idx) {
       current = ((idx % slides.length) + slides.length) % slides.length;
@@ -220,6 +235,7 @@ document.addEventListener('DOMContentLoaded', setupCustomerNav);
       dotsEl?.querySelectorAll('.hs-dot').forEach((dot, i) => {
         dot.classList.toggle('active', i === current);
       });
+      syncMobileHeight();
     }
 
     function startAuto() {
@@ -254,6 +270,9 @@ document.addEventListener('DOMContentLoaded', setupCustomerNav);
       }
     });
 
+    if (isMobileSlider) {
+      window.addEventListener('resize', syncMobileHeight);
+    }
     goTo(0);
     startAuto();
   });
