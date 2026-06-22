@@ -199,7 +199,7 @@ usort($sortedPacks, fn($a, $b) => ((int)$a['qty'] <=> (int)$b['qty']) ?: ((int)$
 </head>
 <body>
 
-<!-- â”€â”€â”€ Navbar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+<!-- Navbar -->
 <nav class="navbar" id="navbar">
   <div class="navbar-inner">
     <a href="index.php" class="navbar-logo">
@@ -237,7 +237,7 @@ usort($sortedPacks, fn($a, $b) => ((int)$a['qty'] <=> (int)$b['qty']) ?: ((int)$
 
 <div style="padding-top:68px;">
 
-  <!-- â”€â”€â”€ Hero â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+  <!-- Hero -->
   <div style="position:relative;background:var(--bg-card);border-bottom:1px solid var(--border);overflow:hidden;min-height:300px;display:flex;align-items:center;">
     <?php if ($raffle['image']): ?>
     <div class="vs-hero-bg" style="background-image:url('<?= htmlspecialchars($raffle['image']) ?>');"></div>
@@ -296,7 +296,7 @@ usort($sortedPacks, fn($a, $b) => ((int)$a['qty'] <=> (int)$b['qty']) ?: ((int)$
     </div>
   </div>
 
-  <!-- â”€â”€â”€ Sticky Action Bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+  <!-- Sticky action bar -->
   <?php if ($status === 'active' || $meetLink): ?>
   <div class="vs-action-bar">
     <div class="container">
@@ -327,7 +327,7 @@ usort($sortedPacks, fn($a, $b) => ((int)$a['qty'] <=> (int)$b['qty']) ?: ((int)$
   </div>
   <?php endif; ?>
 
-  <!-- â”€â”€â”€ Main Content â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+  <!-- Main content -->
   <section class="section">
     <div class="container" style="max-width:820px;">
 
@@ -482,7 +482,7 @@ usort($sortedPacks, fn($a, $b) => ((int)$a['qty'] <=> (int)$b['qty']) ?: ((int)$
 
 </div><!-- /padding-top wrapper -->
 
-<!-- â”€â”€â”€ Purchase Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+<!-- Purchase modal -->
 <div class="modal-backdrop" id="purchaseModal">
   <div class="modal">
     <div class="modal-top-bar"></div>
@@ -615,7 +615,7 @@ usort($sortedPacks, fn($a, $b) => ((int)$a['qty'] <=> (int)$b['qty']) ?: ((int)$
   </div>
 </div>
 
-<!-- â”€â”€â”€ Cart Drawer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+<!-- Cart drawer -->
 <?php include __DIR__ . '/partials/site_footer.php'; ?>
 <div class="cart-overlay" id="cartOverlay" onclick="closeCartDrawer()" style="display:none;position:fixed;inset:0;background:rgba(10,10,15,.55);z-index:1000;"></div>
 <aside class="cart-drawer" id="cartDrawer" style="position:fixed;top:0;right:0;width:min(380px,94vw);height:100vh;z-index:1001;background:var(--bg-card);border-left:1px solid var(--border-strong);box-shadow:var(--shadow-lg);transform:translateX(110%);transition:transform .22s ease;display:flex;flex-direction:column;">
@@ -637,7 +637,7 @@ usort($sortedPacks, fn($a, $b) => ((int)$a['qty'] <=> (int)$b['qty']) ?: ((int)$
 
 <div id="toast-container" class="toast-container"></div>
 
-<!-- â”€â”€â”€ Scripts â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+<!-- Scripts -->
 <script>window.SURTEADOS_DATA = <?= $initData ?>;</script>
 <script src="assets/js/data.js"></script>
 <script src="assets/js/app.js"></script>

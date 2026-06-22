@@ -276,7 +276,7 @@ async function renderDashboard() {
 
   document.getElementById('dashStats').innerHTML = `
     <div class="stat-card"><div class="stat-number">${raffles.length}</div><div class="stat-label">Sorteos activos</div></div>
-    <div class="stat-card"><div class="stat-number">${paid.length}</div><div class="stat-label">Im�genes vendidas</div></div>
+    <div class="stat-card"><div class="stat-number">${paid.length}</div><div class="stat-label">Imágenes vendidas</div></div>
     <div class="stat-card"><div class="stat-number">${fmtCLP(revenue)}</div><div class="stat-label">Ingresos totales</div></div>
     <div class="stat-card"><div class="stat-number">${winners.length}</div><div class="stat-label">Ganadores</div></div>
   `;
@@ -575,7 +575,7 @@ function renderTicketRows(list) {
 
 /* ══════════════════════════════════════════════════════════════════════════ */
 function detailRow(label, value) {
-  const display = value === null || value === undefined || value === '' ? '�' : value;
+  const display = value === null || value === undefined || value === '' ? 'No informado' : value;
   return `<div style="display:grid;grid-template-columns:160px 1fr;gap:.75rem;padding:.55rem 0;border-bottom:1px solid rgba(255,255,255,.08);">
     <div style="font-size:.78rem;color:var(--text-muted);">${escHtml(label)}</div>
     <div style="font-size:.9rem;color:var(--text-inv);word-break:break-word;">${escHtml(display)}</div>
@@ -601,8 +601,8 @@ function openBuyerDetails(ticketId) {
       ${detailRow('Nombre completo', ticket.buyer_name)}
       ${detailRow('Correo', ticket.buyer_email)}
       ${detailRow('RUT', ticket.buyer_rut)}
-      ${detailRow('Tel�fono', ticket.buyer_phone)}
-      ${detailRow('Direcci�n', ticket.buyer_address)}
+      ${detailRow('Teléfono', ticket.buyer_phone)}
+      ${detailRow('Dirección', ticket.buyer_address)}
       ${detailRow('Comuna / ciudad', ticket.buyer_comuna)}
       ${detailRow('ID comuna', ticket.buyer_commune_id)}
     </div>
@@ -611,9 +611,9 @@ function openBuyerDetails(ticketId) {
       ${detailRow('ID venta', ticket.id)}
       ${detailRow('Sorteo', ticket.raffle_title || ticket.raffle_id)}
       ${detailRow('Pack', ticket.pack_label)}
-      ${detailRow('Im�genes compradas', nums)}
+      ${detailRow('Imágenes compradas', nums)}
       ${detailRow('Monto', fmtCLP(ticket.amount || 0))}
-      ${detailRow('M�todo de pago', ticket.payment_method)}
+      ${detailRow('Método de pago', ticket.payment_method)}
       ${detailRow('Estado de pago', ticket.payment_status)}
       ${detailRow('Orden Flow', ticket.flow_order_number || ticket.flow_order)}
       ${detailRow('Fecha', fmtDate(ticket.created_at || ticket.purchase_date))}
@@ -1126,7 +1126,7 @@ function updateCallbackPreview(siteUrl) {
   const preview = document.getElementById('flowCallbackPreview');
   if (!preview) return;
   const cleanUrl = normalizeSiteUrlForFlow(siteUrl);
-  const url = cleanUrl ? cleanUrl + '/api/flow_callback.php' : '�';
+  const url = cleanUrl ? cleanUrl + '/api/flow_callback.php' : 'No configurada';
   preview.textContent = `Callback URL: ${url}`;
 }
 
