@@ -365,18 +365,18 @@ document.addEventListener('DOMContentLoaded', setupCustomerNav);
       heroCard.innerHTML = `
         <div class="prize-img-wrap">
           ${featured.image ? `<img src="${featured.image}" alt="${featured.title}">` : 
-            `<div style="font-size:6rem;">${featured.imageEmoji || '🎁'}</div>`}
-          <span class="prize-badge">📦 PREMIO PRINCIPAL</span>
+            `<div style="font-size:6rem;">${featured.imageEmoji || '&#127873;'}</div>`}
+          <span class="prize-badge">&#128230; PREMIO PRINCIPAL</span>
         </div>
         <div class="hero-card-title">${featured.title}</div>
         <div class="countdown-row" id="heroCountdown">
-          <div class="countdown-item"><div class="count-num" id="cd-days">${pad(timeLeft.days)}</div><div class="count-label">Días</div></div>
+          <div class="countdown-item"><div class="count-num" id="cd-days">${pad(timeLeft.days)}</div><div class="count-label">D\u00edas</div></div>
           <div class="countdown-item"><div class="count-num" id="cd-hours">${pad(timeLeft.hours)}</div><div class="count-label">Horas</div></div>
           <div class="countdown-item"><div class="count-num" id="cd-mins">${pad(timeLeft.minutes)}</div><div class="count-label">Min</div></div>
           <div class="countdown-item"><div class="count-num" id="cd-secs">${pad(timeLeft.seconds)}</div><div class="count-label">Seg</div></div>
         </div>
           <button class="btn btn-accent btn-block btn-lg" style="font-weight:800;" onclick="openPurchaseModal('${featured.id}')">
-            🎟️ Comprar ${tLabelUp()} — Desde ${formatPrice(Math.min(...featured.packs.map(p => p.price)))}
+            &#127915; Comprar ${tLabelUp()} - Desde ${formatPrice(Math.min(...featured.packs.map(p => p.price)))}
         </button>
       `;
 

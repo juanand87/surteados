@@ -2452,12 +2452,32 @@ textarea.form-control { resize: vertical; min-height: 80px; }
     padding-top: 62px;
   }
   .hero-content {
-    gap: 1.75rem;
-    padding: 2rem 1rem 2.5rem;
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "intro"
+      "prize";
+    gap: 1.5rem;
+    padding: 1.75rem 1rem 2.25rem;
+    text-align: center;
+  }
+  .hero-left { grid-area: intro; }
+  .hero-right {
+    grid-area: prize;
+    width: 100%;
+    max-width: 440px;
+    margin-inline: auto;
+  }
+  .hero-left .eyebrow { margin-bottom: 1rem; }
+  .hero-left h1 {
+    font-size: 1.85rem;
+    line-height: 1.16;
+    margin-bottom: 1rem;
   }
   .hero-left p {
-    font-size: 1rem;
-    margin-bottom: 1.25rem;
+    max-width: 34rem;
+    margin: 0 auto 1.25rem;
+    font-size: .96rem;
   }
   .hero-actions {
     flex-direction: column;
@@ -2482,14 +2502,19 @@ textarea.form-control { resize: vertical; min-height: 80px; }
     padding: 1rem;
     border-radius: 14px;
   }
+  .hero-card-title {
+    font-size: 1.15rem;
+    text-align: left;
+  }
 
   .countdown-row {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 0.45rem;
-    flex-wrap: wrap;
   }
   .countdown-item {
-    min-width: 48px;
-    padding: 0.48rem 0.42rem;
+    min-width: 0;
+    padding: 0.48rem 0.25rem;
   }
   .countdown-item .count-num { font-size: 1.15rem; }
 
@@ -2880,9 +2905,19 @@ textarea.form-control { resize: vertical; min-height: 80px; }
   white-space: nowrap;
 }
 @media (max-width: 768px) {
-  .hero-slider-wrap { height: 484px; }
+  .hero-slider-wrap {
+    width: 60%;
+    height: auto;
+    aspect-ratio: 1850 / 638;
+    margin-inline: auto;
+    border-radius: 10px;
+  }
+  .hs-slide { padding: .75rem; }
   .hs-arrow { display: none; }
-  .hs-slide-inner h1 { font-size: 1.75rem; }
+  .hs-slide-inner h1 { font-size: 1.1rem; }
+  .hs-slide-inner p { font-size: .78rem; }
+  .hs-dots { bottom: .45rem; }
+  .home-raffle-strip { display: none; }
   .home-raffle-strip-head { align-items: start; flex-direction: column; }
   .home-raffle-nav-prev { left: .35rem; }
   .home-raffle-nav-next { right: .35rem; }
