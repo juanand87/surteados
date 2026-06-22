@@ -216,13 +216,14 @@ if (!empty($cfg['developmentMode']) && !$devAccessGranted):
 <?php
 exit;
 endif;
-$homeSlides = [];
-if (!empty($cfg['heroSliderEnabled']) && !empty($cfg['heroSlides']) && is_array($cfg['heroSlides'])) {
-    foreach ($cfg['heroSlides'] as $slide) {
+$normalizeHomeSlides = static function (bool $enabled, array $slides): array {
+    if (!$enabled) return [];
+    $normalized = [];
+    foreach ($slides as $slide) {
         if (($slide['active'] ?? true) === false) continue;
         $image = trim((string)($slide['bgImage'] ?? $slide['image'] ?? ''));
         if ($image === '') continue;
-        $homeSlides[] = [
+        $normalized[] = [
             'image' => $image,
             'badge' => trim((string)($slide['badge'] ?? '')),
             'title' => trim((string)($slide['title'] ?? '')),
@@ -231,7 +232,16 @@ if (!empty($cfg['heroSliderEnabled']) && !empty($cfg['heroSlides']) && is_array(
             'cta'   => trim((string)($slide['ctaText'] ?? $slide['cta'] ?? '')),
         ];
     }
-}
+    return $normalized;
+};
+$homeSlides = $normalizeHomeSlides(
+    !empty($cfg['heroSliderEnabled']),
+    is_array($cfg['heroSlides'] ?? null) ? $cfg['heroSlides'] : []
+);
+$homeMobileSlides = $normalizeHomeSlides(
+    !empty($cfg['heroMobileSliderEnabled']),
+    is_array($cfg['heroMobileSlides'] ?? null) ? $cfg['heroMobileSlides'] : []
+);
 $homeCarouselRaffles = array_values(array_filter($allData['raffles'] ?? [], function($raffle) {
     return ($raffle['status'] ?? '') === 'active';
 }));
@@ -248,15 +258,7 @@ $homeCarouselRaffles = array_values(array_filter($allData['raffles'] ?? [], func
   <style>
     /* Page-specific extras */
     @media (max-width: 768px) {
-      #heroSliderWrap.hero-slider-wrap {
-        width: 60% !important;
-        max-width: 60% !important;
-        margin-right: 20% !important;
-        margin-left: 20% !important;
-      }
-      .home-raffle-strip {
-        display: none !important;
-      }
+      .home-raffle-strip { display: none !important; }
     }
     .hero-floating-ticket {
       position: absolute;
@@ -349,7 +351,7 @@ $homeCarouselRaffles = array_values(array_filter($allData['raffles'] ?? [], func
 </head>
 <body>
 
-<!-- ═══════════════════════════════ NAVBAR ═══════════════════════════════ -->
+<!-- Navegacion principal -->
 <nav class="navbar" id="navbar">
   <div class="navbar-inner">
     <a href="index.php" class="navbar-logo">
@@ -365,7 +367,7 @@ $homeCarouselRaffles = array_values(array_filter($allData['raffles'] ?? [], func
       <a href="sorteos.php">Sorteos</a>
       <a href="como-participar.php">¿Cómo participar?</a>
       <a href="ganadores.php">Ganadores</a>
-        <a href="mis-imagenes.php">Mis im&aacute;genes</a>
+      <a href="mis-imagenes.php">Mis im&aacute;genes</a>
     </nav>
     <div class="navbar-actions">
       <a href="mis-imagenes.php#login" class="btn btn-outline btn-sm">Iniciar sesión</a>
@@ -381,38 +383,60 @@ $homeCarouselRaffles = array_values(array_filter($allData['raffles'] ?? [], func
     <a href="sorteos.php">🎟️ Sorteos</a>
     <a href="como-participar.php">🧭 ¿Cómo participar?</a>
     <a href="ganadores.php">🏆 Ganadores</a>
-      <a href="mis-imagenes.php">🎫 Mis im&aacute;genes</a>
+    <a href="mis-imagenes.php">🎫 Mis im&aacute;genes</a>
     <a href="panel/">⚙️ Admin</a>
   </div>
 </nav>
 
-<!-- ═══════════════════════════ HERO SLIDER ═══════════════════════════ -->
-<div class="hero-slider-wrap<?= empty($homeSlides) ? ' hidden' : '' ?>" id="heroSliderWrap">
-  <div class="hs-track" id="hsTrack">
+<!-- Slider para escritorio -->
+<div class="hero-slider-wrap hero-slider-desktop<?= empty($homeSlides) ? ' hidden' : '' ?>">
+  <div class="hs-track">
     <?php foreach ($homeSlides as $slide): ?>
-      <article class="hs-slide" style="background-image:url('<?= htmlspecialchars($slide['image']) ?>'); background-size:100% auto; background-position:center center; background-repeat:no-repeat;">
+      <article class="hs-slide" style="background-image:url('<?= htmlspecialchars($slide['image']) ?>'); background-size:100% auto; background-position:center; background-repeat:no-repeat;">
         <div class="hs-slide-inner">
           <?php if ($slide['badge'] !== ''): ?><div class="badge"><?= htmlspecialchars($slide['badge']) ?></div><?php endif; ?>
           <?php if ($slide['title'] !== ''): ?><h1><?= htmlspecialchars($slide['title']) ?></h1><?php endif; ?>
           <?php if ($slide['text'] !== ''): ?><p><?= htmlspecialchars($slide['text']) ?></p><?php endif; ?>
           <?php if ($slide['link'] !== '' && $slide['cta'] !== ''): ?>
-            <div class="mt-3">
-              <a href="<?= htmlspecialchars($slide['link']) ?>" class="btn btn-accent btn-lg"><?= htmlspecialchars($slide['cta']) ?></a>
-            </div>
+            <div class="mt-3"><a href="<?= htmlspecialchars($slide['link']) ?>" class="btn btn-accent btn-lg"><?= htmlspecialchars($slide['cta']) ?></a></div>
           <?php endif; ?>
         </div>
       </article>
     <?php endforeach; ?>
   </div>
-  <div class="hs-dots" id="hsDots">
+  <div class="hs-dots">
     <?php foreach ($homeSlides as $index => $slide): ?>
       <button class="hs-dot<?= $index === 0 ? ' active' : '' ?>" data-idx="<?= $index ?>" aria-label="Slide <?= $index + 1 ?>"></button>
     <?php endforeach; ?>
   </div>
-  <button class="hs-arrow hs-prev" id="hsPrev" aria-label="Anterior">&#10094;</button>
-  <button class="hs-arrow hs-next" id="hsNext" aria-label="Siguiente">&#10095;</button>
+  <button class="hs-arrow hs-prev" type="button" aria-label="Anterior">&#10094;</button>
+  <button class="hs-arrow hs-next" type="button" aria-label="Siguiente">&#10095;</button>
 </div>
 
+<!-- Slider exclusivo para telefonos -->
+<div class="hero-slider-wrap hero-slider-mobile<?= empty($homeMobileSlides) ? ' hidden' : '' ?>">
+  <div class="hs-track">
+    <?php foreach ($homeMobileSlides as $slide): ?>
+      <article class="hs-slide" style="background-image:url('<?= htmlspecialchars($slide['image']) ?>'); background-size:cover; background-position:center; background-repeat:no-repeat;">
+        <div class="hs-slide-inner">
+          <?php if ($slide['badge'] !== ''): ?><div class="badge"><?= htmlspecialchars($slide['badge']) ?></div><?php endif; ?>
+          <?php if ($slide['title'] !== ''): ?><h1><?= htmlspecialchars($slide['title']) ?></h1><?php endif; ?>
+          <?php if ($slide['text'] !== ''): ?><p><?= htmlspecialchars($slide['text']) ?></p><?php endif; ?>
+          <?php if ($slide['link'] !== '' && $slide['cta'] !== ''): ?>
+            <div class="mt-3"><a href="<?= htmlspecialchars($slide['link']) ?>" class="btn btn-accent btn-lg"><?= htmlspecialchars($slide['cta']) ?></a></div>
+          <?php endif; ?>
+        </div>
+      </article>
+    <?php endforeach; ?>
+  </div>
+  <div class="hs-dots">
+    <?php foreach ($homeMobileSlides as $index => $slide): ?>
+      <button class="hs-dot<?= $index === 0 ? ' active' : '' ?>" data-idx="<?= $index ?>" aria-label="Slide movil <?= $index + 1 ?>"></button>
+    <?php endforeach; ?>
+  </div>
+  <button class="hs-arrow hs-prev" type="button" aria-label="Anterior">&#10094;</button>
+  <button class="hs-arrow hs-next" type="button" aria-label="Siguiente">&#10095;</button>
+</div>
 <?php if (!empty($homeCarouselRaffles)): ?>
 <section class="home-raffle-strip" aria-label="Sorteos disponibles">
   <div class="home-raffle-strip-head">
@@ -810,9 +834,6 @@ $homeCarouselRaffles = array_values(array_filter($allData['raffles'] ?? [], func
             🔒 Pagar Ahora
           </button>
         </div>
-        <button id="step3SimulateBtn" style="width:100%;margin-top:.55rem;padding:.5rem;background:rgba(255,200,0,.1);border:1px dashed rgba(255,200,0,.4);border-radius:.6rem;color:#f5c842;font-size:.78rem;cursor:pointer;">
-          ⚡ Simular pago exitoso (sólo demo)
-        </button>
         <p class="text-xs text-muted text-center mt-1">Transacción segura y encriptada</p>
       </div>
 

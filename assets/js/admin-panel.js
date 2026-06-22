@@ -132,7 +132,7 @@ async function renderDashboard() {
 
   document.getElementById('dashStats').innerHTML = `
     <div class="stat-card"><div class="stat-number">${raffles.length}</div><div class="stat-label">Sorteos activos</div></div>
-    <div class="stat-card"><div class="stat-number">${paid.length}</div><div class="stat-label">Im�genes vendidas</div></div>
+    <div class="stat-card"><div class="stat-number">${paid.length}</div><div class="stat-label">Im�genes vendidas</div></div>
     <div class="stat-card"><div class="stat-number">${fmtCLP(revenue)}</div><div class="stat-label">Ingresos totales</div></div>
     <div class="stat-card"><div class="stat-number">${winners.length}</div><div class="stat-label">Ganadores</div></div>
   `;
@@ -435,7 +435,7 @@ function renderTicketRows(list) {
 
 /* ══════════════════════════════════════════════════════════════════════════ */
 function detailRow(label, value) {
-  const display = value === null || value === undefined || value === '' ? '�' : value;
+  const display = value === null || value === undefined || value === '' ? '�' : value;
   return `<div style="display:grid;grid-template-columns:160px 1fr;gap:.75rem;padding:.55rem 0;border-bottom:1px solid rgba(255,255,255,.08);">
     <div style="font-size:.78rem;color:var(--text-muted);">${escHtml(label)}</div>
     <div style="font-size:.9rem;color:var(--text-inv);word-break:break-word;">${escHtml(display)}</div>
@@ -461,8 +461,8 @@ function openBuyerDetails(ticketId) {
       ${detailRow('Nombre completo', ticket.buyer_name)}
       ${detailRow('Correo', ticket.buyer_email)}
       ${detailRow('RUT', ticket.buyer_rut)}
-      ${detailRow('Tel�fono', ticket.buyer_phone)}
-      ${detailRow('Direcci�n', ticket.buyer_address)}
+      ${detailRow('Tel�fono', ticket.buyer_phone)}
+      ${detailRow('Direcci�n', ticket.buyer_address)}
       ${detailRow('Comuna / ciudad', ticket.buyer_comuna)}
       ${detailRow('ID comuna', ticket.buyer_commune_id)}
     </div>
@@ -471,9 +471,9 @@ function openBuyerDetails(ticketId) {
       ${detailRow('ID venta', ticket.id)}
       ${detailRow('Sorteo', ticket.raffle_title || ticket.raffle_id)}
       ${detailRow('Pack', ticket.pack_label)}
-      ${detailRow('Im�genes compradas', nums)}
+      ${detailRow('Im�genes compradas', nums)}
       ${detailRow('Monto', fmtCLP(ticket.amount || 0))}
-      ${detailRow('M�todo de pago', ticket.payment_method)}
+      ${detailRow('M�todo de pago', ticket.payment_method)}
       ${detailRow('Estado de pago', ticket.payment_status)}
       ${detailRow('Orden Flow', ticket.flow_order_number || ticket.flow_order)}
       ${detailRow('Fecha', fmtDate(ticket.created_at || ticket.purchase_date))}
@@ -625,7 +625,9 @@ const DI_PRESETS = [
   { name: 'Rojo',        desc: 'Intenso',   primary: '#dc2626', accent: '#22d3ee' },
 ];
 
-let _slides = []; // in-memory slides array
+let _slides = [];
+let _mobileSlides = [];
+let _slideMode = 'desktop';
 
 async function renderDiseno() {
   const s = await api('/settings.php');
@@ -731,19 +733,27 @@ async function renderDiseno() {
   const chk = document.getElementById('sliderEnabled');
   if (chk) {
     chk.checked = s.hero_slider_enabled === '1';
-    chk.addEventListener('change', async () => {
+    chk.onchange = async () => {
       await api('/settings.php', { method: 'POST', body: { hero_slider_enabled: chk.checked ? '1' : '0' } });
-      showToast(chk.checked ? 'Slider activado' : 'Slider desactivado');
-    });
+      showToast(chk.checked ? 'Slider PC activado' : 'Slider PC desactivado');
+    };
   }
 
-  try {
-    _slides = JSON.parse(s.hero_slides || '[]');
-  } catch (_) {
-    _slides = [];
+  const mobileChk = document.getElementById('mobileSliderEnabled');
+  if (mobileChk) {
+    mobileChk.checked = s.hero_mobile_slider_enabled === '1';
+    mobileChk.onchange = async () => {
+      await api('/settings.php', { method: 'POST', body: { hero_mobile_slider_enabled: mobileChk.checked ? '1' : '0' } });
+      showToast(mobileChk.checked ? 'Slider para teléfono activado' : 'Slider para teléfono desactivado');
+    };
   }
+
+  try { _slides = JSON.parse(s.hero_slides || '[]'); } catch (_) { _slides = []; }
+  try { _mobileSlides = JSON.parse(s.hero_mobile_slides || '[]'); } catch (_) { _mobileSlides = []; }
   if (!Array.isArray(_slides)) _slides = [];
-  renderSlidesList();
+  if (!Array.isArray(_mobileSlides)) _mobileSlides = [];
+  renderSlidesList('desktop');
+  renderSlidesList('mobile');
 
   // Slide modal listeners
   document.querySelectorAll('input[name="sl_bgType"]').forEach(r => {
@@ -780,51 +790,76 @@ async function saveThemeToDb(primary, accent) {
   applyColors(primary, accent);
 }
 
-function renderSlidesList() {
-  const list = document.getElementById('slidesList');
+function getSlidesForMode(mode = 'desktop') {
+  return mode === 'mobile' ? _mobileSlides : _slides;
+}
+
+function setSlidesForMode(mode, slides) {
+  if (mode === 'mobile') _mobileSlides = slides;
+  else _slides = slides;
+}
+
+function renderSlidesList(mode = 'desktop') {
+  const slides = getSlidesForMode(mode);
+  const list = document.getElementById(mode === 'mobile' ? 'mobileSlidesList' : 'slidesList');
   if (!list) return;
-  if (!_slides.length) {
+  if (!slides.length) {
     list.innerHTML = '<p class="text-sm" style="color:var(--text-secondary);">No hay diapositivas. Agrega la primera.</p>';
     return;
   }
-  list.innerHTML = _slides.map((s, i) => {
-    const bg = s.bgImage ? `url('${s.bgImage}') center/cover` :
-               `linear-gradient(135deg,${s.bgColor1||'#1a0a2e'},${s.bgColor2||'#0d0520'})`;
+  list.innerHTML = slides.map((slide, index) => {
+    const bg = slide.bgImage
+      ? `url('${slide.bgImage}') center/cover`
+      : `linear-gradient(135deg,${slide.bgColor1 || '#1a0a2e'},${slide.bgColor2 || '#0d0520'})`;
     return `
       <div class="slide-preview-card">
         <div class="slide-preview-thumb" style="background:${bg};"></div>
-        <div class="slide-preview-title">${s.title || 'Imagen sin texto'}</div>
-        <span class="pill ${s.active !== false ? 'pill-green' : 'pill-gray'}" style="font-size:.7rem;">${s.active !== false ? 'Activa' : 'Inactiva'}</span>
+        <div class="slide-preview-title">${slide.title || 'Imagen sin texto'}</div>
+        <span class="pill ${slide.active !== false ? 'pill-green' : 'pill-gray'}" style="font-size:.7rem;">${slide.active !== false ? 'Activa' : 'Inactiva'}</span>
         <div class="slide-preview-actions">
-          <button class="btn btn-ghost btn-sm" onclick="openSlideModal(${i})">Editar</button>
-          <button class="btn btn-ghost btn-sm" style="color:#f87171;" onclick="deleteSlide(${i})">Eliminar</button>
+          <button class="btn btn-ghost btn-sm" onclick="openSlideModal(${index}, '${mode}')">Editar</button>
+          <button class="btn btn-ghost btn-sm" style="color:#f87171;" onclick="deleteSlide(${index}, '${mode}')">Eliminar</button>
         </div>
       </div>`;
   }).join('');
 }
 
-function openSlideModal(idx) {
-  const s = idx !== undefined ? _slides[idx] : null;
-  document.getElementById('sl_id').value      = idx !== undefined ? idx : '';
-  document.getElementById('sl_title').value   = s?.title    || '';
-  document.getElementById('sl_subtitle').value= s?.subtitle || '';
-  document.getElementById('sl_badge').value   = s?.badge    || '';
-  document.getElementById('sl_ctaText').value = s?.ctaText  || '';
-  document.getElementById('sl_ctaLink').value = s?.ctaLink  || 'sorteos.php';
-  document.getElementById('sl_active').checked= s?.active !== false;
-  const bgType = 'image';
-  document.querySelector(`input[name="sl_bgType"][value="${bgType}"]`).checked = true;
-  document.getElementById('sl_gradientFields').classList.toggle('hidden', bgType === 'image');
-  document.getElementById('sl_imageFields').classList.toggle('hidden', bgType !== 'image');
-  document.getElementById('sl_color1').value    = s?.bgColor1 || '#1a0a2e';
-  document.getElementById('sl_color1Hex').value = s?.bgColor1 || '#1a0a2e';
-  document.getElementById('sl_color2').value    = s?.bgColor2 || '#0d0520';
-  document.getElementById('sl_color2Hex').value = s?.bgColor2 || '#0d0520';
-  document.getElementById('sl_bgImage').value   = s?.bgImage  || '';
-  updateSlideImagePreview(s?.bgImage || '');
+function openSlideModal(idx, mode = 'desktop') {
+  _slideMode = mode === 'mobile' ? 'mobile' : 'desktop';
+  const slides = getSlidesForMode(_slideMode);
+  const slide = idx !== undefined ? slides[idx] : null;
+  document.getElementById('sl_id').value = idx !== undefined ? idx : '';
+  document.getElementById('sl_title').value = slide?.title || '';
+  document.getElementById('sl_subtitle').value = slide?.subtitle || '';
+  document.getElementById('sl_badge').value = slide?.badge || '';
+  document.getElementById('sl_ctaText').value = slide?.ctaText || '';
+  document.getElementById('sl_ctaLink').value = slide?.ctaLink || 'sorteos.php';
+  document.getElementById('sl_active').checked = slide?.active !== false;
+  document.querySelector('input[name="sl_bgType"][value="image"]').checked = true;
+  document.getElementById('sl_gradientFields').classList.add('hidden');
+  document.getElementById('sl_imageFields').classList.remove('hidden');
+  document.getElementById('sl_color1').value = slide?.bgColor1 || '#1a0a2e';
+  document.getElementById('sl_color1Hex').value = slide?.bgColor1 || '#1a0a2e';
+  document.getElementById('sl_color2').value = slide?.bgColor2 || '#0d0520';
+  document.getElementById('sl_color2Hex').value = slide?.bgColor2 || '#0d0520';
+  document.getElementById('sl_bgImage').value = slide?.bgImage || '';
+
+  const preview = document.getElementById('sl_imagePreview');
+  if (preview) {
+    preview.style.width = _slideMode === 'mobile' ? '112px' : '150px';
+    preview.style.height = _slideMode === 'mobile' ? '140px' : '78px';
+  }
+  const hint = document.getElementById('slideImageHint');
+  if (hint) {
+    hint.textContent = _slideMode === 'mobile'
+      ? 'Recomendado: imagen vertical de 1080 × 1350 px (4:5). El texto es opcional.'
+      : 'Recomendado: imagen horizontal de 1920 × 700 px. El texto es opcional.';
+  }
+  updateSlideImagePreview(slide?.bgImage || '');
   const fileInput = document.getElementById('sl_imageFile');
   if (fileInput) fileInput.value = '';
-  document.getElementById('slideModalTitle').textContent = s ? 'Editar diapositiva' : 'Nueva diapositiva';
+  const device = _slideMode === 'mobile' ? 'teléfono' : 'PC';
+  document.getElementById('slideModalTitle').textContent = `${slide ? 'Editar' : 'Nueva'} diapositiva ${device}`;
   document.getElementById('slideModal').classList.add('open');
 }
 
@@ -833,36 +868,48 @@ function closeSlideModal() {
 }
 
 async function saveSlide() {
+  const slides = getSlidesForMode(_slideMode);
   const idxStr = document.getElementById('sl_id').value;
-  const idx    = idxStr !== '' ? parseInt(idxStr) : -1;
-  const bgType = 'image';
-  const slide  = {
-    id:       idx >= 0 ? _slides[idx].id : 'sl_' + Date.now().toString(36),
-    title:    document.getElementById('sl_title').value.trim(),
+  const idx = idxStr !== '' ? parseInt(idxStr, 10) : -1;
+  const slide = {
+    id: idx >= 0 ? slides[idx].id : `${_slideMode === 'mobile' ? 'slm' : 'sl'}_${Date.now().toString(36)}`,
+    title: document.getElementById('sl_title').value.trim(),
     subtitle: document.getElementById('sl_subtitle').value.trim(),
-    badge:    document.getElementById('sl_badge').value.trim(),
-    ctaText:  document.getElementById('sl_ctaText').value.trim(),
-    ctaLink:  document.getElementById('sl_ctaLink').value.trim(),
-    bgType,
+    badge: document.getElementById('sl_badge').value.trim(),
+    ctaText: document.getElementById('sl_ctaText').value.trim(),
+    ctaLink: document.getElementById('sl_ctaLink').value.trim(),
+    bgType: 'image',
     bgColor1: document.getElementById('sl_color1').value,
     bgColor2: document.getElementById('sl_color2').value,
-    bgImage:  document.getElementById('sl_bgImage').value.trim(),
-    active:   document.getElementById('sl_active').checked,
+    bgImage: document.getElementById('sl_bgImage').value.trim(),
+    active: document.getElementById('sl_active').checked,
   };
-  if (!slide.bgImage) { showToast('Sube una imagen para el slide', 'error'); return; }
-  if (idx < 0 && _slides.length >= 6) { showToast('Puedes crear hasta 6 diapositivas', 'error'); return; }
-  if (idx >= 0) _slides[idx] = slide; else _slides.push(slide);
-  await api('/settings.php', { method: 'POST', body: { hero_slides: JSON.stringify(_slides) } });
+  if (!slide.bgImage) {
+    showToast('Sube una imagen para el slide', 'error');
+    return;
+  }
+  if (idx < 0 && slides.length >= 6) {
+    showToast('Puedes crear hasta 6 diapositivas', 'error');
+    return;
+  }
+  if (idx >= 0) slides[idx] = slide;
+  else slides.push(slide);
+  setSlidesForMode(_slideMode, slides);
+  const key = _slideMode === 'mobile' ? 'hero_mobile_slides' : 'hero_slides';
+  await api('/settings.php', { method: 'POST', body: { [key]: JSON.stringify(slides) } });
   closeSlideModal();
-  renderSlidesList();
-  showToast('Diapositiva guardada ✅');
+  renderSlidesList(_slideMode);
+  showToast('Diapositiva guardada');
 }
 
-async function deleteSlide(idx) {
+async function deleteSlide(idx, mode = 'desktop') {
   if (!confirm('¿Eliminar esta diapositiva?')) return;
-  _slides.splice(idx, 1);
-  await api('/settings.php', { method: 'POST', body: { hero_slides: JSON.stringify(_slides) } });
-  renderSlidesList();
+  const slides = getSlidesForMode(mode);
+  slides.splice(idx, 1);
+  setSlidesForMode(mode, slides);
+  const key = mode === 'mobile' ? 'hero_mobile_slides' : 'hero_slides';
+  await api('/settings.php', { method: 'POST', body: { [key]: JSON.stringify(slides) } });
+  renderSlidesList(mode);
   showToast('Diapositiva eliminada');
 }
 
@@ -881,7 +928,7 @@ async function handleSlideImageUpload(input) {
   if (!input.files[0]) return;
   const fd = new FormData();
   fd.append('file', input.files[0]);
-  fd.append('type', 'slide');
+  fd.append('type', _slideMode === 'mobile' ? 'slidemobile' : 'slide');
   try {
     const resp = await fetch(`${API_BASE}/upload.php`, { method: 'POST', credentials: 'include', body: fd });
     const json = await resp.json();
@@ -1042,7 +1089,7 @@ function updateCallbackPreview(siteUrl) {
   const preview = document.getElementById('flowCallbackPreview');
   if (!preview) return;
   const cleanUrl = normalizeSiteUrlForFlow(siteUrl);
-  const url = cleanUrl ? cleanUrl + '/api/flow_callback.php' : '�';
+  const url = cleanUrl ? cleanUrl + '/api/flow_callback.php' : '�';
   preview.textContent = `Callback URL: ${url}`;
 }
 

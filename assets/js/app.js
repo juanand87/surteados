@@ -199,72 +199,64 @@ document.addEventListener('DOMContentLoaded', setupCustomerNav);
 
 // ─── Hero Slider ──────────────────────────────────────────────────────────────
 (function() {
-  const settings = window.SURTEADOS_DATA?.settings;
-  const wrap  = document.getElementById('heroSliderWrap');
-  const track = document.getElementById('hsTrack');
-  const dotsEl= document.getElementById('hsDots');
-  if (!wrap || !track) return;
+  document.querySelectorAll('.hero-slider-wrap').forEach((wrap) => {
+    const track = wrap.querySelector('.hs-track');
+    const dotsEl = wrap.querySelector('.hs-dots');
+    if (!track) return;
 
-  const settingsSlides = settings?.heroSliderEnabled
-    ? (settings.heroSlides || []).filter(s => s.active !== false && (s.bgImage || s.image))
-    : [];
-  const hasServerSlides = settingsSlides.length > 0;
-
-  function slideStyle(s) {
-    const image = s.bgImage || s.image || '';
-    if (image) {
-      return `background:url('${escHtml(image)}') center center/100% auto no-repeat;`;
+    const slides = Array.from(track.querySelectorAll('.hs-slide'));
+    if (!slides.length) {
+      wrap.classList.add('hidden');
+      return;
     }
-    const c1 = s.bgColor1 || 'var(--color-primary-dark)';
-    const c2 = s.bgColor2 || '#0d0520';
-    return `background:linear-gradient(135deg,${c1},${c2});`;
-  }
 
-  if (hasServerSlides) {
-    track.innerHTML = settingsSlides.map((s) => `
-    <div class="hs-slide" style="${slideStyle(s)}">
-      <div class="hs-slide-inner">
-        ${s.badge ? `<div class="badge mb-3">${escHtml(s.badge)}</div>` : ''}
-        ${s.title ? `<h1>${escHtml(s.title)}</h1>` : ''}
-        ${s.subtitle ? `<p>${escHtml(s.subtitle)}</p>` : ''}
-        ${s.ctaLink && s.ctaText ? `<div class="mt-3"><a href="${escHtml(s.ctaLink)}" class="btn btn-primary btn-lg">${escHtml(s.ctaText)}</a></div>` : ''}
-      </div>
-    </div>`).join('');
+    wrap.classList.remove('hidden');
+    let current = 0;
+    let timer;
 
-    if (dotsEl) {
-      dotsEl.innerHTML = settingsSlides.map((_, i) =>
-      `<button class="hs-dot${i===0?' active':''}" data-idx="${i}" aria-label="Slide ${i+1}"></button>`
-      ).join('');
+    function goTo(idx) {
+      current = ((idx % slides.length) + slides.length) % slides.length;
+      track.style.transform = `translateX(-${current * 100}%)`;
+      dotsEl?.querySelectorAll('.hs-dot').forEach((dot, i) => {
+        dot.classList.toggle('active', i === current);
+      });
     }
-  }
 
-  const slides = Array.from(track.querySelectorAll('.hs-slide'));
-  if (!slides.length) return;
+    function startAuto() {
+      clearInterval(timer);
+      if (slides.length > 1) timer = setInterval(() => goTo(current + 1), 5500);
+    }
 
-  wrap.classList.remove('hidden');
+    wrap.querySelector('.hs-prev')?.addEventListener('click', () => {
+      goTo(current - 1);
+      startAuto();
+    });
+    wrap.querySelector('.hs-next')?.addEventListener('click', () => {
+      goTo(current + 1);
+      startAuto();
+    });
+    dotsEl?.querySelectorAll('.hs-dot').forEach((dot) => {
+      dot.addEventListener('click', () => {
+        goTo(Number(dot.dataset.idx));
+        startAuto();
+      });
+    });
 
-  let current = 0, timer;
-  function goTo(idx) {
-    current = ((idx % slides.length) + slides.length) % slides.length;
-    track.style.transform = `translateX(-${current * 100}%)`;
-    dotsEl?.querySelectorAll('.hs-dot').forEach((d, i) => d.classList.toggle('active', i === current));
-  }
-  function startAuto() {
-    clearInterval(timer);
-    timer = setInterval(() => goTo(current + 1), 5500);
-  }
-  document.getElementById('hsPrev')?.addEventListener('click', () => { goTo(current - 1); startAuto(); });
-  document.getElementById('hsNext')?.addEventListener('click', () => { goTo(current + 1); startAuto(); });
-  dotsEl?.querySelectorAll('.hs-dot').forEach(d =>
-    d.addEventListener('click', () => { goTo(+d.dataset.idx); startAuto(); })
-  );
-  let tx = 0;
-  wrap.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, { passive: true });
-  wrap.addEventListener('touchend', e => {
-    const dx = e.changedTouches[0].clientX - tx;
-    if (Math.abs(dx) > 50) { goTo(current + (dx < 0 ? 1 : -1)); startAuto(); }
+    let touchX = 0;
+    wrap.addEventListener('touchstart', (event) => {
+      touchX = event.touches[0].clientX;
+    }, { passive: true });
+    wrap.addEventListener('touchend', (event) => {
+      const delta = event.changedTouches[0].clientX - touchX;
+      if (Math.abs(delta) > 50) {
+        goTo(current + (delta < 0 ? 1 : -1));
+        startAuto();
+      }
+    });
+
+    goTo(0);
+    startAuto();
   });
-  startAuto();
 })();
 // Home raffle carousel
 (function() {
@@ -1133,82 +1125,7 @@ function updateCartBar() {
     if (!document.hidden) resetFlowPayButton();
   });
 
-  // Step 3 → Simulate payment (demo only)
-  document.getElementById('step3SimulateBtn')?.addEventListener('click', async () => {
-    const name  = document.getElementById('buyerName')?.value?.trim() || 'Demo';
-    const rut   = formatChileanRut(document.getElementById('buyerRut')?.value?.trim() || '');
-    const email = document.getElementById('buyerEmail')?.value?.trim() || 'demo@surteados.cl';
-    const phone = document.getElementById('buyerPhone')?.value?.trim() || '';
-    const address = document.getElementById('buyerAddress')?.value?.trim() || '';
-    const comuna = selectedCommunePayload();
-    const items = _cart.load();
-    if (!items.length) { showToast('Tu carrito está vacío', 'warning'); return; }
-    if (!rut || !isValidChileanRut(rut)) { showToast('Ingresa un RUT chileno válido', 'warning'); return; }
-    if (!address || !comuna.id) { showToast('Completa dirección y comuna', 'warning'); return; }
-
-    const btn = document.getElementById('step3SimulateBtn');
-    btn.disabled = true;
-      btn.textContent = `⏳ Generando ${tLabelP()}…`;
-
-    try {
-      const base = window.location.pathname.replace(/\/index\.php.*|\/$/, '').replace(/\/[^/]+\.php.*/, '');
-      const resp = await fetch(base + '/api/simulate_payment.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          items:      items.map(i => ({ raffleId: i.raffleId, packId: i.packId })),
-          buyerName:  name,
-          buyerRut:   rut,
-          buyerEmail: email,
-          buyerPhone: phone,
-          buyerAddress: address,
-          buyerComuna: comuna.name,
-          buyerCommuneId: comuna.id,
-        }),
-      });
-      const json = await resp.json();
-      if (!json.ok) throw new Error(json.error || 'Error en la simulación');
-
-      // Update success step
-      const subtitle = document.getElementById('step4Subtitle');
-        if (subtitle) subtitle.textContent = `Hola ${name}, tus ${tLabelP()} han sido asignados. Revisa tu correo.`;
-
-      // Update confirm summary
-      const confirmEmail  = document.getElementById('confirmEmail');
-      const confirmAmount = document.getElementById('confirmAmount');
-      if (confirmEmail)  confirmEmail.textContent  = email;
-      if (confirmAmount) confirmAmount.textContent = formatPrice(json.data.total);
-
-      // Point download link to PDF ticket page
-      const verLink = document.getElementById('verMisTicketsLink');
-      if (verLink) {
-        const base2 = window.location.pathname.replace(/\/index\.php.*|\/$/, '').replace(/\/[^/]+\.php.*/, '');
-        verLink.href = base2 + `/api/ticket_pdf.php?orderId=${encodeURIComponent(json.data.orderId)}&email=${encodeURIComponent(email)}`;
-        verLink.textContent = '📄 Ver mis imágenes compradas';
-        verLink.target = '_blank';
-        verLink.rel = 'noopener';
-      }
-
-      _cart.clear();
-      renderCartDrawerPanel();
-      updatePurchaseStep(4);
-
-      if (json.data.mailSent) {
-        showToast('Correo de confirmacion enviado', 'success', 3500);
-      } else {
-        const mailError = json.data.mailError ? ` Detalle: ${json.data.mailError}` : '';
-        showToast(`Compra generada, pero no se pudo enviar el correo.${mailError}`, 'error', 8000);
-      }
-
-    } catch (err) {
-      showToast('❌ ' + err.message, 'error', 6000);
-    } finally {
-      btn.disabled = false;
-      btn.textContent = '⚡ Simular pago exitoso (sólo demo)';
-    }
-  });
-
-  // Step 3 → Pay
+  // Step 3 - Pay
   document.getElementById('step3Pay')?.addEventListener('click', async () => {
     const name   = document.getElementById('buyerName')?.value?.trim();
     const rut    = formatChileanRut(document.getElementById('buyerRut')?.value?.trim() || '');

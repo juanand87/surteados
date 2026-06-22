@@ -20,7 +20,7 @@ $apiBase   = '../api';
   <title>Panel Admin — Surteados</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../assets/css/styles.css">
+  <link rel="stylesheet" href="../assets/css/styles.css?v=<?= (int)@filemtime(__DIR__ . '/../assets/css/styles.css') ?>">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
     .btn-link-like {
@@ -321,18 +321,32 @@ $apiBase   = '../api';
         </div>
       </div>
 
-      <!-- Hero Slider -->
-      <div class="card" style="padding:1.5rem;max-width:900px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem;">
-          <h4>🖼️ Slider principal (portada)</h4>
+      <!-- Slider para escritorio -->
+      <div class="card" style="padding:1.5rem;max-width:900px;margin-bottom:1.5rem;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem;gap:1rem;flex-wrap:wrap;">
+          <h4>Slider para PC (portada)</h4>
           <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
             <input type="checkbox" id="sliderEnabled" style="accent-color:var(--color-primary);width:16px;height:16px;">
-            <span class="text-sm">Activar slider</span>
+            <span class="text-sm">Activar slider PC</span>
           </label>
         </div>
-        <p style="font-size:.85rem;color:var(--text-secondary);margin-bottom:1rem;">Reemplaza el banner principal de la portada. Puedes crear hasta 6 diapositivas con imagen, colores y botón.</p>
+        <p style="font-size:.85rem;color:var(--text-secondary);margin-bottom:1rem;">Visible en computadores y tablets. Recomendado: imágenes horizontales de 1920 × 700 px.</p>
         <div id="slidesList" style="display:flex;flex-direction:column;gap:.75rem;margin-bottom:1rem;"></div>
-        <button class="btn btn-ghost btn-sm" onclick="openSlideModal()">+ Agregar diapositiva</button>
+        <button class="btn btn-ghost btn-sm" onclick="openSlideModal(undefined, 'desktop')">+ Agregar diapositiva PC</button>
+      </div>
+
+      <!-- Slider para telefono -->
+      <div class="card" style="padding:1.5rem;max-width:900px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem;gap:1rem;flex-wrap:wrap;">
+          <h4>Slider para teléfono (portada)</h4>
+          <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
+            <input type="checkbox" id="mobileSliderEnabled" style="accent-color:var(--color-primary);width:16px;height:16px;">
+            <span class="text-sm">Activar slider teléfono</span>
+          </label>
+        </div>
+        <p style="font-size:.85rem;color:var(--text-secondary);margin-bottom:1rem;">Visible solamente en teléfonos. Recomendado: imágenes verticales de 1080 × 1350 px (proporción 4:5).</p>
+        <div id="mobileSlidesList" style="display:flex;flex-direction:column;gap:.75rem;margin-bottom:1rem;"></div>
+        <button class="btn btn-ghost btn-sm" onclick="openSlideModal(undefined, 'mobile')">+ Agregar diapositiva teléfono</button>
       </div>
     </div>
 
@@ -624,7 +638,7 @@ $apiBase   = '../api';
             <button type="button" class="btn btn-ghost btn-sm" style="color:#ef4444;" onclick="clearSlideImage()">Quitar imagen</button>
           </div>
         </div>
-        <p class="form-hint">Recomendado: imagen horizontal, 1920x700 px o similar. El texto del slide es opcional.</p>
+        <p class="form-hint" id="slideImageHint">Recomendado: imagen horizontal, 1920 × 700 px. El texto del slide es opcional.</p>
       </div>
       <div class="form-group">
         <label class="form-label">Título opcional</label>
@@ -696,6 +710,6 @@ $apiBase   = '../api';
 </div>
 
 <script>window.API_BASE = '<?= $apiBase ?>';</script>
-<script src="../assets/js/admin-panel.js"></script>
+<script src="../assets/js/admin-panel.js?v=<?= (int)@filemtime(__DIR__ . '/../assets/js/admin-panel.js') ?>"></script>
 </body>
 </html>
