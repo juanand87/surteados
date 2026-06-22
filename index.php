@@ -244,9 +244,20 @@ $homeCarouselRaffles = array_values(array_filter($allData['raffles'] ?? [], func
   <meta name="description" content="La plataforma chilena de rifas digitales más transparente y segura. Compra tu <?= htmlspecialchars($ticketLabel) ?>, recíbelo al instante y participa del sorteo en vivo.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/styles.css">
+  <link rel="stylesheet" href="assets/css/styles.css?v=<?= (int)@filemtime(__DIR__ . '/assets/css/styles.css') ?>">
   <style>
     /* Page-specific extras */
+    @media (max-width: 768px) {
+      #heroSliderWrap.hero-slider-wrap {
+        width: 60% !important;
+        max-width: 60% !important;
+        margin-right: 20% !important;
+        margin-left: 20% !important;
+      }
+      .home-raffle-strip {
+        display: none !important;
+      }
+    }
     .hero-floating-ticket {
       position: absolute;
       background: rgba(124,58,237,0.08);
