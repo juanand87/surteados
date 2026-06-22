@@ -286,41 +286,6 @@ $apiBase   = '../api';
         </div>
       </div>
 
-      <!-- Tema de colores -->
-      <div style="max-width:900px;margin-bottom:1.5rem;">
-        <div class="card" style="padding:1.5rem;margin-bottom:1.5rem;">
-          <h4 style="margin-bottom:1rem;">🎨 Presets de color</h4>
-          <div id="diPresets"></div>
-        </div>
-        <div class="card" style="padding:1.5rem;">
-          <h4 style="margin-bottom:1rem;">✏️ Personalizar colores</h4>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:start;">
-            <div>
-              <div class="color-input-group">
-                <label>Color primario</label>
-                <div class="color-input-row"><input type="color" id="diColorPrimary" value="#7c3aed"><input type="text" class="form-control" id="diColorPrimaryHex" value="#7c3aed"></div>
-              </div>
-              <div class="color-input-group">
-                <label>Color acento</label>
-                <div class="color-input-row"><input type="color" id="diColorAccent" value="#f59e0b"><input type="text" class="form-control" id="diColorAccentHex" value="#f59e0b"></div>
-              </div>
-            </div>
-            <div style="padding:1rem;background:var(--bg-base);border-radius:var(--radius-md);text-align:center;">
-              <p style="font-size:.75rem;color:var(--text-secondary);margin-bottom:.75rem;">Vista previa</p>
-              <div style="display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap;">
-                <button class="btn btn-primary btn-sm">Primario</button>
-                <button class="btn btn-accent btn-sm">Acento</button>
-                <span class="pill pill-purple">Badge</span>
-              </div>
-            </div>
-          </div>
-          <div style="display:flex;gap:.5rem;margin-top:1.25rem;">
-            <button class="btn btn-primary" style="flex:1" id="diApplyTheme">✅ Guardar tema</button>
-            <button class="btn btn-ghost" id="diResetTheme">Restaurar</button>
-          </div>
-        </div>
-      </div>
-
       <!-- Slider para escritorio -->
       <div class="card" style="padding:1.5rem;max-width:900px;margin-bottom:1.5rem;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem;gap:1rem;flex-wrap:wrap;">

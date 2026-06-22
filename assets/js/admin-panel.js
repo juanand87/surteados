@@ -614,17 +614,6 @@ function clearWinnerImage() {
 /* ══════════════════════════════════════════════════════════════════════════ */
 /*  DISEÑO (logo, tema, slider)                                                */
 /* ══════════════════════════════════════════════════════════════════════════ */
-const DI_PRESETS = [
-  { name: 'Púrpura',     desc: 'Default',   primary: '#7c3aed', accent: '#f59e0b' },
-  { name: 'Azul',        desc: 'Marino',    primary: '#1d4ed8', accent: '#f97316' },
-  { name: 'Esmeralda',   desc: 'Verde',     primary: '#059669', accent: '#eab308' },
-  { name: 'Fucsia',      desc: 'Rosa',      primary: '#db2777', accent: '#06b6d4' },
-  { name: 'Naranja',     desc: 'Vibrante',  primary: '#ea580c', accent: '#8b5cf6' },
-  { name: 'Teal',        desc: '& Coral',   primary: '#0d9488', accent: '#f43f5e' },
-  { name: 'Índigo',      desc: 'Profundo',  primary: '#4338ca', accent: '#fb923c' },
-  { name: 'Rojo',        desc: 'Intenso',   primary: '#dc2626', accent: '#22d3ee' },
-];
-
 let _slides = [];
 let _mobileSlides = [];
 let _slideMode = 'desktop';
@@ -663,72 +652,6 @@ async function renderDiseno() {
   };
 
   // ── Tema ──────────────────────────────────────────────────────────────────
-  const curPrimary = s.theme_primary || '#7c3aed';
-  const curAccent  = s.theme_accent  || '#f59e0b';
-  document.getElementById('diColorPrimary').value    = curPrimary;
-  document.getElementById('diColorPrimaryHex').value = curPrimary;
-  document.getElementById('diColorAccent').value     = curAccent;
-  document.getElementById('diColorAccentHex').value  = curAccent;
-  applyColors(curPrimary, curAccent);
-
-  const activePrimary = curPrimary.toLowerCase();
-  document.getElementById('diPresets').innerHTML = `
-  <div class="di-presets-grid">
-    ${DI_PRESETS.map(p => `
-    <button class="di-preset-card${p.primary === activePrimary ? ' active' : ''}"
-      onclick="diApplyPreset('${p.primary}','${p.accent}')" title="${p.name} ${p.desc}">
-      <div class="di-preset-swatch">
-        <div style="flex:1;background:${p.primary};"></div>
-        <div style="flex:1;background:${p.accent};"></div>
-      </div>
-      <div class="di-preset-label">${p.name}<span>${p.desc}</span></div>
-    </button>`).join('')}
-  </div>`;
-
-  ['Primary','Accent'].forEach(cap => {
-    const col = document.getElementById(`diColor${cap}`);
-    const hex = document.getElementById(`diColor${cap}Hex`);
-    col?.addEventListener('input', () => { hex.value = col.value; applyColors(
-      document.getElementById('diColorPrimary').value,
-      document.getElementById('diColorAccent').value
-    ); });
-    hex?.addEventListener('input', () => { if (/^#[0-9a-f]{6}$/i.test(hex.value)) { col.value = hex.value; applyColors(
-      document.getElementById('diColorPrimary').value,
-      document.getElementById('diColorAccent').value
-    ); } });
-  });
-
-  const btnApply = document.getElementById('diApplyTheme');
-  const btnReset  = document.getElementById('diResetTheme');
-
-  if (btnApply) btnApply.onclick = async () => {
-    const p = document.getElementById('diColorPrimary').value;
-    const a = document.getElementById('diColorAccent').value;
-    btnApply.disabled = true;
-    btnApply.textContent = 'Guardando…';
-    try {
-      await saveThemeToDb(p, a);
-      showToast('Tema guardado y aplicado ✅');
-    } catch (e) {
-      showToast('Error al guardar: ' + e.message, 'error');
-    } finally {
-      btnApply.disabled = false;
-      btnApply.textContent = '✅ Guardar tema';
-    }
-  };
-
-  if (btnReset) btnReset.onclick = async () => {
-    btnReset.disabled = true;
-    try {
-      await saveThemeToDb('#7c3aed', '#f59e0b');
-      showToast('Tema restaurado');
-    } catch (e) {
-      showToast('Error al restaurar: ' + e.message, 'error');
-    } finally {
-      btnReset.disabled = false;
-    }
-  };
-
   // ── Slider ────────────────────────────────────────────────────────────────
   const chk = document.getElementById('sliderEnabled');
   if (chk) {
@@ -768,26 +691,6 @@ async function renderDiseno() {
     col?.addEventListener('input', () => { if(hex) hex.value = col.value; });
     hex?.addEventListener('input', () => { if(/^#[0-9a-f]{6}$/i.test(hex.value)) col.value = hex.value; });
   });
-}
-
-function diApplyPreset(primary, accent) {
-  applyColors(primary, accent);
-  // update active state on cards
-  document.querySelectorAll('.di-preset-card').forEach(c => {
-    c.classList.toggle('active', c.getAttribute('onclick').includes(primary));
-  });
-}
-
-async function saveThemeToDb(primary, accent) {
-  await api('/settings.php', { method: 'POST', body: {
-    theme_primary:       primary,
-    theme_primary_light: lightenHex(primary, 0.22),
-    theme_primary_dark:  darkenHex(primary, 0.22),
-    theme_accent:        accent,
-    theme_accent_light:  lightenHex(accent, 0.2),
-    theme_accent_dark:   darkenHex(accent, 0.2),
-  }});
-  applyColors(primary, accent);
 }
 
 function getSlidesForMode(mode = 'desktop') {
