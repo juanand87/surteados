@@ -99,6 +99,12 @@ function getPublicSettings(PDO $pdo): array {
         'developmentMode'    => !empty($s['development_mode_enabled']),
         'ticketLabel'       => $s['ticket_label']        ?? 'imagen',
         'ticketLabelPlural' => $s['ticket_label_plural']  ?? 'imagenes',
+        'socialLinks'       => [
+            'instagram' => $s['social_instagram'] ?? '',
+            'tiktok'    => $s['social_tiktok']    ?? '',
+            'youtube'   => $s['social_youtube']   ?? '',
+            'facebook'  => $s['social_facebook']  ?? '',
+        ],
     ];
 }
 
