@@ -1003,7 +1003,7 @@ p  { color: var(--text-secondary); }
 .cart-fab {
   position: fixed;
   bottom: 1.5rem;
-  right: 1.5rem;
+  left: 1.5rem;
   z-index: 999;
   width: 58px;
   height: 58px;
@@ -1038,6 +1038,34 @@ p  { color: var(--text-secondary); }
   border: 2px solid var(--color-accent);
   line-height: 1;
   display: none;
+}
+
+.whatsapp-fab {
+  position: fixed;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  z-index: 999;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: #25d366;
+  color: #fff;
+  border: 2px solid rgba(255,255,255,.75);
+  box-shadow: 0 4px 18px rgba(0,0,0,.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.whatsapp-fab:hover {
+  transform: scale(1.08);
+  box-shadow: 0 6px 24px rgba(0,0,0,.45);
+}
+.whatsapp-fab:active { transform: scale(.95); }
+.whatsapp-fab svg {
+  width: 31px;
+  height: 31px;
+  fill: currentColor;
 }
 
 .cart-drawer {
@@ -2564,9 +2592,19 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 
   .cart-fab {
     bottom: 1rem;
-    right: 1rem;
+    left: 1rem;
     width: 54px;
     height: 54px;
+  }
+  .whatsapp-fab {
+    right: 1rem;
+    bottom: 1rem;
+    width: 54px;
+    height: 54px;
+  }
+  .whatsapp-fab svg {
+    width: 29px;
+    height: 29px;
   }
 
   .admin-stat-cards { grid-template-columns: 1fr 1fr; }

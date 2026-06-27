@@ -2,14 +2,19 @@
 $footerSiteLogo = $siteLogo ?? ($cfg['logo'] ?? null);
 $footerTicketLabelP = $ticketLabelP ?? ($cfg['ticketLabelPlural'] ?? 'imagenes');
 $footerSocialLinks = $cfg['socialLinks'] ?? [];
+$footerWhatsapp = trim((string)($cfg['whatsapp'] ?? ''));
 
-if (!$footerSocialLinks && function_exists('get_settings')) {
+if ((!$footerSocialLinks || $footerWhatsapp === '') && function_exists('get_settings')) {
     $footerSettings = get_settings([
+        'site_whatsapp',
         'social_instagram',
         'social_tiktok',
         'social_youtube',
         'social_facebook',
     ]);
+    if ($footerWhatsapp === '') {
+        $footerWhatsapp = trim((string)($footerSettings['site_whatsapp'] ?? ''));
+    }
     $footerSocialLinks = [
         'instagram' => $footerSettings['social_instagram'] ?? '',
         'tiktok'    => $footerSettings['social_tiktok']    ?? '',
@@ -27,6 +32,12 @@ $footerSocialLinks = array_filter(
         return in_array(strtolower((string)parse_url($url, PHP_URL_SCHEME)), ['http', 'https'], true);
     }
 );
+
+$footerWhatsappDigits = preg_replace('/\D+/', '', $footerWhatsapp);
+if ($footerWhatsappDigits && strlen($footerWhatsappDigits) === 9 && substr($footerWhatsappDigits, 0, 1) === '9') {
+    $footerWhatsappDigits = '56' . $footerWhatsappDigits;
+}
+$footerWhatsappUrl = $footerWhatsappDigits ? 'https://wa.me/' . $footerWhatsappDigits : '';
 ?>
 <footer class="footer">
   <div class="container">
@@ -83,7 +94,9 @@ $footerSocialLinks = array_filter(
       <div class="footer-col">
         <h5>Contacto</h5>
         <a href="mailto:contacto@surteados.cl">&#128231; contacto@surteados.cl</a>
-        <a href="#">&#128172; WhatsApp</a>
+        <?php if ($footerWhatsappUrl): ?>
+        <a href="<?= htmlspecialchars($footerWhatsappUrl) ?>" target="_blank" rel="noopener">&#128172; WhatsApp</a>
+        <?php endif; ?>
         <a href="panel/">&#9881;&#65039; Admin</a>
       </div>
     </div>
@@ -99,5 +112,13 @@ $footerSocialLinks = array_filter(
     </div>
   </div>
 </footer>
+
+<?php if ($footerWhatsappUrl): ?>
+<a class="whatsapp-fab" href="<?= htmlspecialchars($footerWhatsappUrl) ?>" target="_blank" rel="noopener" aria-label="Soporte por WhatsApp" title="Soporte por WhatsApp">
+  <svg viewBox="0 0 32 32" aria-hidden="true">
+    <path d="M16.01 4.25c-6.38 0-11.57 5.1-11.57 11.38 0 2.01.54 3.97 1.56 5.68L4.34 27.5l6.4-1.62a11.75 11.75 0 0 0 5.27 1.25c6.38 0 11.57-5.1 11.57-11.38S22.39 4.25 16.01 4.25Zm0 20.94c-1.66 0-3.29-.42-4.72-1.22l-.45-.25-3.77.95.98-3.57-.29-.47a9.25 9.25 0 0 1-1.39-4.99c0-5.19 4.33-9.41 9.65-9.41s9.65 4.22 9.65 9.41-4.33 9.55-9.65 9.55Zm5.28-7.12c-.29-.14-1.72-.83-1.98-.93-.27-.1-.46-.14-.66.14-.19.28-.76.93-.93 1.12-.17.19-.34.21-.63.07-.29-.14-1.22-.44-2.32-1.41-.86-.75-1.44-1.68-1.61-1.96-.17-.28-.02-.44.13-.58.13-.13.29-.34.44-.51.15-.17.19-.28.29-.47.1-.19.05-.35-.02-.49-.07-.14-.66-1.55-.9-2.13-.24-.56-.48-.49-.66-.5h-.56c-.19 0-.49.07-.75.35-.26.28-.98.94-.98 2.29 0 1.35 1 2.66 1.14 2.85.15.19 1.97 2.95 4.78 4.14.67.28 1.19.45 1.59.58.67.21 1.28.18 1.77.11.54-.08 1.72-.69 1.96-1.36.24-.67.24-1.24.17-1.36-.07-.12-.27-.19-.56-.33Z"></path>
+  </svg>
+</a>
+<?php endif; ?>
 
 <script src="assets/js/analytics.js?v=<?= (int)@filemtime(__DIR__ . '/../assets/js/analytics.js') ?>"></script>
