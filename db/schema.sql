@@ -192,6 +192,9 @@ CREATE TABLE tickets (
   pack_label      VARCHAR(100),
   ticket_numbers  TEXT,          -- JSON array of strings
   amount          INT            DEFAULT 0,
+  original_amount INT            DEFAULT NULL,
+  discount_code   VARCHAR(40)    NULL,
+  discount_amount INT            NOT NULL DEFAULT 0,
   payment_method  VARCHAR(50)    DEFAULT 'flow',
   payment_status  ENUM('pending','paid','failed','refunded') DEFAULT 'pending',
   flow_token      VARCHAR(255),
@@ -208,6 +211,56 @@ CREATE TABLE tickets (
   INDEX idx_status    (payment_status)
 ) ENGINE=InnoDB;
 
+-- ── Welcome wheel and discount codes ──────────────────────────
+CREATE TABLE wheel_prizes (
+  id             VARCHAR(25) PRIMARY KEY,
+  title          VARCHAR(180) NOT NULL,
+  description    TEXT NULL,
+  prize_type     VARCHAR(30) NOT NULL DEFAULT 'percent',
+  discount_type  VARCHAR(20) NOT NULL DEFAULT 'percent',
+  discount_value INT NOT NULL DEFAULT 0,
+  probability    DECIMAL(6,2) NOT NULL DEFAULT 0,
+  code_prefix    VARCHAR(20) DEFAULT 'RULETA',
+  active         TINYINT(1) NOT NULL DEFAULT 1,
+  display_order  INT NOT NULL DEFAULT 0,
+  color1         VARCHAR(20) DEFAULT '#7c3aed',
+  color2         VARCHAR(20) DEFAULT '#f59e0b',
+  created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_active_order (active, display_order)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE discount_codes (
+  id             VARCHAR(25) PRIMARY KEY,
+  code           VARCHAR(40) NOT NULL UNIQUE,
+  source         VARCHAR(30) NOT NULL DEFAULT 'wheel',
+  prize_id       VARCHAR(25) NULL,
+  email          VARCHAR(180) NULL,
+  discount_type  VARCHAR(20) NOT NULL DEFAULT 'none',
+  discount_value INT NOT NULL DEFAULT 0,
+  status         VARCHAR(20) NOT NULL DEFAULT 'active',
+  used_order_id  VARCHAR(100) NULL,
+  used_at        DATETIME NULL,
+  expires_at     DATETIME NULL,
+  created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_discount_status (status),
+  INDEX idx_discount_email (email),
+  INDEX idx_discount_prize (prize_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE wheel_spins (
+  id               VARCHAR(25) PRIMARY KEY,
+  email            VARCHAR(180) NOT NULL,
+  prize_id         VARCHAR(25) NULL,
+  discount_code_id VARCHAR(25) NULL,
+  ip_hash          CHAR(64) NULL,
+  user_agent       VARCHAR(255) NULL,
+  created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_wheel_email (email),
+  INDEX idx_wheel_prize (prize_id),
+  INDEX idx_wheel_created (created_at),
+  INDEX idx_wheel_ip (ip_hash)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 -- ── Winners ───────────────────────────────────────────────────
 CREATE TABLE winners (
   id              VARCHAR(25)  PRIMARY KEY,
@@ -254,6 +307,7 @@ INSERT INTO settings (`key`, `value`) VALUES
   ('site_email',         'contacto@surteados.cl'),
   ('site_whatsapp',      '+56912345678'),
   ('site_url',           'http://localhost/surteados'),
+  ('wheel_enabled',      '0'),
   -- Theme
   ('theme_primary',      '#7c3aed'),
   ('theme_primary_light','#9d5cf6'),

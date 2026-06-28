@@ -4,6 +4,7 @@ require __DIR__ . '/config.php';
 require __DIR__ . '/FlowAPI.php';
 require __DIR__ . '/order_email_helper.php';
 require_once __DIR__ . '/ticket_number_helper.php';
+require_once __DIR__ . '/wheel_helper.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && str_contains($_SERVER['REQUEST_URI'] ?? '', 'flow_callback.php/pago-exitoso.php')) {
     $query = $_SERVER['QUERY_STRING'] ?? '';
@@ -22,6 +23,7 @@ if (!$token) {
 $pdo = db();
 surteados_ensure_ticket_number_tables($pdo);
 surteados_ensure_flow_order_number_column($pdo);
+surteados_ensure_wheel_tables($pdo);
 
 // Load Flow credentials
 $stmt = $pdo->query(
@@ -129,6 +131,15 @@ if ($flowStatus === 2) {
             $pdo->prepare('UPDATE raffles SET sold_tickets = sold_tickets + ? WHERE id = ?')
                 ->execute([$qty, $ticket['raffle_id']]);
             $emailJobs[$ticket['flow_order'] ?: $commerceOrder] = $ticket['buyer_email'] ?? '';
+        }
+
+        $discountCodes = [];
+        foreach ($pendingTickets as $ticket) {
+            $dc = strtoupper(trim((string)($ticket['discount_code'] ?? '')));
+            if ($dc !== '') $discountCodes[$dc] = true;
+        }
+        foreach (array_keys($discountCodes) as $dc) {
+            surteados_mark_discount_used($pdo, $dc, $commerceOrder);
         }
 
         $pdo->commit();

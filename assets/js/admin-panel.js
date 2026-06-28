@@ -144,6 +144,7 @@ async function renderSection(name) {
     sorteos:   renderSorteos,
     tickets:   renderTickets,
     ganadores: renderGanadores,
+    ruleta:    renderWheel,
     settings:  renderSettings,
     diseno:    renderDiseno,
     smtp:      renderSmtp,
@@ -952,6 +953,117 @@ async function deleteSlide(idx, mode = 'desktop') {
   showToast('Diapositiva eliminada');
 }
 
+/* ══════════════════════════════════════════════════════════════════════════ */
+/*  RULETA PORTADA                                                           */
+/* ══════════════════════════════════════════════════════════════════════════ */
+let _wheelPrizes = [];
+
+function wheelPrizeTypeLabel(type) {
+  return ({ percent: 'Descuento %', fixed: 'Descuento fijo', physical: 'Premio físico', none: 'Sin premio', custom: 'Texto libre' })[type] || type || '—';
+}
+function wheelDiscountLabel(p) {
+  if (!p || p.discountType === 'none' || !Number(p.discountValue)) return 'No aplica';
+  return p.discountType === 'percent' ? `${p.discountValue}%` : fmtCLP(p.discountValue);
+}
+
+async function renderWheel() {
+  const data = await api('/wheel.php', { params: { action: 'admin' } });
+  _wheelPrizes = data.prizes || [];
+
+  const enabled = document.getElementById('wheelEnabled');
+  if (enabled) {
+    enabled.checked = !!data.enabled;
+    enabled.onchange = async () => {
+      try {
+        await api('/wheel.php', { method: 'POST', body: { action: 'settings', enabled: enabled.checked } });
+        showToast(enabled.checked ? 'Ruleta activada' : 'Ruleta desactivada');
+      } catch (e) {
+        enabled.checked = !enabled.checked;
+        showToast(e.message, 'error');
+      }
+    };
+  }
+
+  const total = Number(data.probabilityTotal || 0);
+  const totalEl = document.getElementById('wheelProbabilityTotal');
+  if (totalEl) {
+    totalEl.textContent = `Total: ${total.toLocaleString('es-CL')}%`;
+    totalEl.className = `pill ${Math.abs(total - 100) < 0.01 ? 'pill-green' : 'pill-yellow'}`;
+  }
+
+  const tbody = document.getElementById('wheelPrizesTable');
+  if (tbody) {
+    tbody.innerHTML = _wheelPrizes.length ? _wheelPrizes.map(p => `
+      <tr>
+        <td><strong>${escHtml(p.title)}</strong><div class="text-xs text-muted">${escHtml(p.description || '')}</div></td>
+        <td>${wheelPrizeTypeLabel(p.prizeType)}</td>
+        <td>${wheelDiscountLabel(p)}</td>
+        <td><strong>${Number(p.probability).toLocaleString('es-CL')}%</strong></td>
+        <td>${p.active ? '<span class="pill pill-green">Activo</span>' : '<span class="pill pill-gray">Inactivo</span>'}</td>
+        <td><button class="btn btn-ghost btn-sm" onclick="editWheelPrize('${p.id}')">Editar</button> <button class="btn btn-ghost btn-sm" style="color:#ef4444;" onclick="deleteWheelPrize('${p.id}')">Eliminar</button></td>
+      </tr>`).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:1.5rem;">Aún no hay premios configurados.</td></tr>';
+  }
+
+  const hist = document.getElementById('wheelHistoryTable');
+  const history = data.history || [];
+  if (hist) {
+    hist.innerHTML = history.length ? history.map(h => `
+      <tr><td>${escHtml(h.email)}</td><td>${escHtml(h.prize_title || '—')}</td><td>${escHtml(h.code || '—')}</td><td>${escHtml(h.code_status || '—')}</td><td>${fmtDate(h.created_at)}</td></tr>
+    `).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:1.5rem;">Aún no hay giros registrados.</td></tr>';
+  }
+}
+
+function resetWheelPrizeForm() {
+  const form = document.getElementById('wheelPrizeForm');
+  if (!form) return;
+  form.reset();
+  form.querySelector('[name="id"]').value = '';
+  form.querySelector('[name="active"]').checked = true;
+  form.querySelector('[name="codePrefix"]').value = 'RULETA';
+  form.querySelector('[name="color1"]').value = '#7c3aed';
+  form.querySelector('[name="color2"]').value = '#f59e0b';
+}
+
+function editWheelPrize(id) {
+  const p = _wheelPrizes.find(x => x.id === id);
+  const form = document.getElementById('wheelPrizeForm');
+  if (!p || !form) return;
+  form.querySelector('[name="id"]').value = p.id;
+  form.querySelector('[name="title"]').value = p.title || '';
+  form.querySelector('[name="description"]').value = p.description || '';
+  form.querySelector('[name="prizeType"]').value = p.prizeType || 'custom';
+  form.querySelector('[name="discountType"]').value = p.discountType || 'none';
+  form.querySelector('[name="discountValue"]').value = p.discountValue || 0;
+  form.querySelector('[name="probability"]').value = p.probability || 0;
+  form.querySelector('[name="displayOrder"]').value = p.displayOrder || 0;
+  form.querySelector('[name="color1"]').value = p.color1 || '#7c3aed';
+  form.querySelector('[name="color2"]').value = p.color2 || '#f59e0b';
+  form.querySelector('[name="active"]').checked = !!p.active;
+  form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+async function saveWheelPrize(e) {
+  e.preventDefault();
+  const form = e.target;
+  const data = { action: 'save_prize' };
+  new FormData(form).forEach((v, k) => { data[k] = v; });
+  data.active = form.querySelector('[name="active"]').checked;
+  try {
+    await api('/wheel.php', { method: 'POST', body: data });
+    showToast('Premio guardado');
+    resetWheelPrizeForm();
+    await renderWheel();
+  } catch (err) { showToast(err.message, 'error'); }
+}
+
+async function deleteWheelPrize(id) {
+  if (!confirm('¿Eliminar este premio de la ruleta?')) return;
+  try {
+    await api('/wheel.php', { method: 'POST', body: { action: 'delete_prize', id } });
+    showToast('Premio eliminado');
+    await renderWheel();
+  } catch (err) { showToast(err.message, 'error'); }
+}
 /* ══════════════════════════════════════════════════════════════════════════ */
 /*  SETTINGS                                                                 */
 /* ══════════════════════════════════════════════════════════════════════════ */

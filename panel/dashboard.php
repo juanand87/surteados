@@ -118,6 +118,7 @@ $apiBase   = '../api';
       <div class="admin-nav-item" data-section="sorteos"><span class="icon">🎟️</span> Sorteos</div>
       <div class="admin-nav-item" data-section="tickets"><span class="icon">🎫</span> Imágenes vendidas</div>
       <div class="admin-nav-item" data-section="ganadores"><span class="icon">🏆</span> Ganadores</div>
+      <div class="admin-nav-item" data-section="ruleta"><span class="icon">🎡</span> Ruleta Portada</div>
     </div>
     <div class="admin-sidebar-section">
       <p>Configuración</p>
@@ -250,6 +251,55 @@ $apiBase   = '../api';
       </div>
     </div>
 
+    <!-- ═══ RULETA PORTADA ═══ -->
+    <div class="admin-section" id="sec-ruleta">
+      <div class="admin-header" style="gap:1rem;flex-wrap:wrap;">
+        <div>
+          <h2>🎡 Ruleta Portada</h2>
+          <span class="text-sm text-muted">Premios, probabilidades y códigos de descuento de bienvenida</span>
+        </div>
+        <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;background:var(--bg-card);border:1px solid var(--border);border-radius:999px;padding:.55rem .9rem;">
+          <input type="checkbox" id="wheelEnabled" style="accent-color:var(--color-primary);width:16px;height:16px;">
+          <span class="text-sm font-bold">Activar ruleta</span>
+        </label>
+      </div>
+
+      <div class="card" style="padding:1.25rem;margin-bottom:1.5rem;max-width:980px;">
+        <div style="display:flex;justify-content:space-between;gap:1rem;align-items:flex-start;flex-wrap:wrap;margin-bottom:1rem;">
+          <div>
+            <h4 style="margin:0 0 .25rem;">Nuevo / editar premio</h4>
+            <p class="form-hint">Los premios activos deben sumar 100% de probabilidad. Los premios con 0% se ven en la ruleta, pero nunca salen.</p>
+          </div>
+          <span class="pill pill-purple" id="wheelProbabilityTotal">Total: 0%</span>
+        </div>
+        <form id="wheelPrizeForm" onsubmit="saveWheelPrize(event)">
+          <input type="hidden" name="id">
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Premio</label><input class="form-control" name="title" placeholder="10% descuento en compra de imágenes" required></div>
+            <div class="form-group"><label class="form-label">Probabilidad (%)</label><input class="form-control" type="number" name="probability" min="0" max="100" step="0.01" value="0"></div>
+          </div>
+          <div class="form-group"><label class="form-label">Descripción</label><textarea class="form-control" name="description" rows="2" placeholder="Texto que verá el participante"></textarea></div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Tipo de premio</label><select class="form-control" name="prizeType"><option value="percent">Descuento porcentual</option><option value="fixed">Descuento fijo</option><option value="physical">Premio físico</option><option value="none">Sin premio</option><option value="custom">Texto libre</option></select></div>
+            <div class="form-group"><label class="form-label">Tipo de descuento</label><select class="form-control" name="discountType"><option value="percent">Porcentaje</option><option value="fixed">Monto fijo</option><option value="none">No genera descuento</option></select></div>
+            <div class="form-group"><label class="form-label">Valor descuento</label><input class="form-control" type="number" name="discountValue" min="0" step="1" value="0"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Prefijo del código</label><input class="form-control" name="codePrefix" value="RULETA" maxlength="20"></div>
+            <div class="form-group"><label class="form-label">Orden visual</label><input class="form-control" type="number" name="displayOrder" value="0"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Color inicial</label><input class="form-control" type="color" name="color1" value="#7c3aed"></div>
+            <div class="form-group"><label class="form-label">Color final</label><input class="form-control" type="color" name="color2" value="#f59e0b"></div>
+          </div>
+          <label class="form-label" style="display:flex;gap:.5rem;align-items:center;margin-bottom:1rem;"><input type="checkbox" name="active" checked style="accent-color:var(--color-primary);"> Premio activo</label>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap;"><button class="btn btn-primary" type="submit">Guardar premio</button><button class="btn btn-ghost" type="button" onclick="resetWheelPrizeForm()">Limpiar</button></div>
+        </form>
+      </div>
+
+      <div class="table-container" style="margin-bottom:1.5rem;"><div class="table-header"><h3>Premios configurados</h3></div><table class="admin-table"><thead><tr><th>Premio</th><th>Tipo</th><th>Descuento</th><th>Probabilidad</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="wheelPrizesTable"></tbody></table></div>
+      <div class="table-container"><div class="table-header"><h3>Últimos giros</h3></div><table class="admin-table"><thead><tr><th>Correo</th><th>Premio</th><th>Código</th><th>Estado código</th><th>Fecha</th></tr></thead><tbody id="wheelHistoryTable"></tbody></table></div>
+    </div>
     <!-- ═══ SETTINGS ═══ -->
     <div class="admin-section" id="sec-settings">
       <div class="admin-header"><h2>⚙️ Ajustes del Sitio</h2></div>

@@ -14,6 +14,7 @@ function escHtml(s) {
 function tLabel()  { return window.SURTEADOS_DATA?.settings?.ticketLabel       ?? 'imagen';  }
 function tLabelP() { return window.SURTEADOS_DATA?.settings?.ticketLabelPlural ?? 'imagenes'; }
 function tLabelUp() { const l = tLabel(); return l.charAt(0).toUpperCase() + l.slice(1); }
+function appBasePath() { return window.location.pathname.replace(/\/index\.php.*|\/$/, '').replace(/\/[^/]+\.php.*/, ''); }
 
 function getRaffleClosureInfo(drawDate) {
   if (!drawDate) return { salesClosed: false, remainingText: '' };
@@ -165,6 +166,110 @@ function setupCustomerNav() {
 }
 
 document.addEventListener('DOMContentLoaded', setupCustomerNav);
+
+// ─── Welcome Wheel ───────────────────────────────────────────────────────────
+function isHomePageForWheel() {
+  const page = window.location.pathname.split('/').pop() || 'index.php';
+  return page === '' || page === 'index.php' || page === 'index.html';
+}
+
+function wheelSliceBackground(prizes) {
+  if (!prizes.length) return '';
+  const step = 360 / prizes.length;
+  return prizes.map((p, i) => `${p.color1 || '#7c3aed'} ${i * step}deg ${(i + 1) * step}deg`).join(', ');
+}
+
+function wheelLabelsHtml(prizes) {
+  if (!prizes.length) return '';
+  const step = 360 / prizes.length;
+  return prizes.map((p, i) => {
+    const angle = i * step + step / 2;
+    return `<div class="wheel-label" style="transform:rotate(${angle}deg) translate(18%, -50%) rotate(90deg);">${escHtml(p.title)}</div>`;
+  }).join('');
+}
+
+async function initWelcomeWheel() {
+  if (!isHomePageForWheel()) return;
+  if (localStorage.getItem('surteados_wheel_dismissed') === '1') return;
+  try {
+    const resp = await fetch(appBasePath() + '/api/wheel.php', { credentials: 'same-origin' });
+    const json = await resp.json();
+    if (!json.ok || !json.data?.enabled || !Array.isArray(json.data.prizes) || !json.data.prizes.length) return;
+    const prizes = json.data.prizes;
+    const gate = document.createElement('div');
+    gate.className = 'wheel-gate';
+    gate.innerHTML = `
+      <div class="wheel-gate-card">
+        <div class="wheel-gate-intro">
+          <div class="wheel-gate-kicker">Bienvenida Surteados</div>
+          <h2 class="wheel-gate-title">¿Quieres participar por descuentos y premios?</h2>
+          <p class="wheel-gate-text">Ingresa tu correo, gira la ruleta y descubre tu premio de bienvenida. Si ganas un descuento, el código llegará a tu correo y podrás usarlo una sola vez en tu compra.</p>
+          <div class="wheel-gate-actions">
+            <button class="btn btn-primary" id="wheelYesBtn">Sí, girar ruleta</button>
+            <button class="btn btn-ghost" id="wheelNoBtn">No, entrar al sitio</button>
+          </div>
+        </div>
+        <div class="wheel-gate-play" id="wheelPlay" style="display:none;">
+          <div class="wheel-stage">
+            <div class="wheel-pointer"></div>
+            <div class="wheel-disc" id="wheelDisc" style="background:conic-gradient(${wheelSliceBackground(prizes)});">${wheelLabelsHtml(prizes)}</div>
+          </div>
+          <div class="wheel-email-box" id="wheelEmailBox">
+            <input type="email" class="form-control" id="wheelEmailInput" placeholder="tu@correo.com">
+            <button class="btn btn-accent" id="wheelSpinBtn" style="font-weight:900;">Lanzar ruleta</button>
+            <p class="form-hint" style="text-align:center;color:rgba(255,255,255,.62);">Solo puedes participar una vez por correo.</p>
+          </div>
+          <div class="wheel-result" id="wheelResult"></div>
+        </div>
+      </div>`;
+    document.body.appendChild(gate);
+
+    const closeGate = () => { localStorage.setItem('surteados_wheel_dismissed', '1'); gate.remove(); };
+    gate.querySelector('#wheelNoBtn')?.addEventListener('click', closeGate);
+    gate.querySelector('#wheelYesBtn')?.addEventListener('click', () => {
+      gate.querySelector('.wheel-gate-intro').style.display = 'none';
+      gate.querySelector('#wheelPlay').style.display = 'flex';
+    });
+
+    gate.querySelector('#wheelSpinBtn')?.addEventListener('click', async () => {
+      const emailEl = gate.querySelector('#wheelEmailInput');
+      const btn = gate.querySelector('#wheelSpinBtn');
+      const email = emailEl?.value?.trim() || '';
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { showToast('Ingresa un correo válido', 'warning'); return; }
+      btn.disabled = true;
+      btn.textContent = 'Girando...';
+      try {
+        const resp = await fetch(appBasePath() + '/api/wheel.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'spin', email }),
+        });
+        const json = await resp.json();
+        if (!json.ok) throw new Error(json.error || 'No se pudo girar la ruleta.');
+        const prize = json.data.prize;
+        const idx = Math.max(0, prizes.findIndex(p => p.id === prize.id));
+        const step = 360 / prizes.length;
+        const target = 360 * 6 + (360 - (idx * step + step / 2));
+        const disc = gate.querySelector('#wheelDisc');
+        disc.style.transform = `rotate(${target}deg)`;
+        setTimeout(() => {
+          gate.querySelector('#wheelEmailBox').style.display = 'none';
+          const result = gate.querySelector('#wheelResult');
+          result.style.display = 'block';
+          result.innerHTML = `<h3 style="margin:0 0 .4rem;">Ganaste</h3><strong>${escHtml(prize.title)}</strong><p style="color:rgba(255,255,255,.72);line-height:1.6;margin:.7rem 0 1rem;">${json.data.hasCode ? 'El código fue enviado a tu correo. Guárdalo, es único y solo podrás usarlo una vez.' : 'Te enviamos el detalle a tu correo.'}</p><button class="btn btn-primary" id="wheelCloseAfter">Entrar al sitio</button>`;
+          result.querySelector('#wheelCloseAfter')?.addEventListener('click', closeGate);
+          if (!json.data.mailSent) showToast('Premio generado, pero no se pudo enviar el correo: ' + (json.data.mailError || 'revisa SMTP'), 'warning', 7000);
+        }, 5400);
+      } catch (err) {
+        showToast(err.message, 'error', 6500);
+        btn.disabled = false;
+        btn.textContent = 'Lanzar ruleta';
+      }
+    });
+  } catch (_) {}
+}
+
+document.addEventListener('DOMContentLoaded', initWelcomeWheel);
 
 // ─── Apply server theme & logo (before any render) ───────────────────────────
 (function() {
@@ -622,6 +727,7 @@ function goToCheckoutFromCart() {
 
 // ─── Purchase Modal ───────────────────────────────────────────────────────────
 let _purchaseState = { raffleId: null, pack: null, currentStep: 1 };
+let _discountState = null;
 let _customerSessionCache = null;
 
 async function getCustomerSessionCached() {
@@ -683,6 +789,7 @@ function openPurchaseModal(raffleId, initialPackId = null) {
   }
 
   _purchaseState = { raffleId, pack: null, currentStep: 1 };
+  resetDiscountState();
   window.SurteadosAnalytics?.event('purchase_open', { raffleId, step: 1 });
 
   const modal = document.getElementById('purchaseModal');
@@ -869,6 +976,61 @@ function updateCartBar() {
   if (totalEl) totalEl.textContent = formatPrice(total);
 }
 
+function resetDiscountState() {
+  _discountState = null;
+  const input = document.getElementById('discountCodeInput');
+  const feedback = document.getElementById('discountFeedback');
+  if (input) input.value = '';
+  if (feedback) { feedback.style.display = 'none'; feedback.textContent = ''; feedback.style.color = ''; }
+}
+
+function checkoutItemsPayload() {
+  return _cart.load().map(i => ({ raffleId: i.raffleId, packId: i.packId }));
+}
+
+function updateSummaryTotals() {
+  const total = _cart.total();
+  const totalEl = document.getElementById('summaryTotal');
+  const feedback = document.getElementById('discountFeedback');
+  if (totalEl) totalEl.textContent = formatPrice(_discountState?.totalAfter ?? total);
+  if (feedback && _discountState) {
+    feedback.style.display = 'block';
+    feedback.style.color = '#059669';
+    feedback.textContent = `Descuento aplicado: ${formatPrice(_discountState.discountAmount)}. Total anterior: ${formatPrice(_discountState.totalBefore)}.`;
+  }
+}
+
+async function applyDiscountCode() {
+  const input = document.getElementById('discountCodeInput');
+  const btn = document.getElementById('discountApplyBtn');
+  const feedback = document.getElementById('discountFeedback');
+  const code = input?.value?.trim().toUpperCase() || '';
+  const email = document.getElementById('buyerEmail')?.value?.trim() || '';
+  if (!code) { showToast('Ingresa tu código de descuento', 'warning'); return; }
+  if (!email) { showToast('Primero ingresa tu correo', 'warning'); return; }
+  if (btn) { btn.disabled = true; btn.textContent = 'Validando...'; }
+  try {
+    const resp = await fetch(appBasePath() + '/api/discount.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, buyerEmail: email, items: checkoutItemsPayload() }),
+    });
+    const json = await resp.json();
+    if (!json.ok) throw new Error(json.error || 'Código inválido');
+    _discountState = json.data;
+    if (input) input.value = json.data.code || code;
+    updateSummaryTotals();
+    showToast('Código aplicado');
+  } catch (err) {
+    _discountState = null;
+    updateSummaryTotals();
+    if (feedback) { feedback.style.display = 'block'; feedback.style.color = '#dc2626'; feedback.textContent = err.message; }
+    showToast(err.message, 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Aplicar'; }
+  }
+}
+
 (function() {
   const modal = document.getElementById('purchaseModal');
   const modalClose = document.getElementById('modalClose');
@@ -998,6 +1160,7 @@ function updateCartBar() {
     // Build cart summary
     const items = _cart.load();
     const total = _cart.total();
+    _discountState = null;
 
     const summaryEl = document.getElementById('cartSummaryList');
     if (summaryEl) {
@@ -1015,6 +1178,8 @@ function updateCartBar() {
     const emailEl = document.getElementById('summaryEmail');
     if (totalEl) totalEl.textContent = formatPrice(total);
     if (emailEl) emailEl.textContent = email;
+    resetDiscountState();
+    updateSummaryTotals();
 
     window.SurteadosAnalytics?.event('details_completed', { raffleId: _purchaseState.raffleId, step: 2 });
     syncAnalyticsCart('active', 3);
@@ -1085,6 +1250,7 @@ function updateCartBar() {
           buyerComuna: comuna.name,
           buyerCommuneId: comuna.id,
           paymentMethod: method,
+          discountCode: _discountState?.code || '',
         }),
       });
 

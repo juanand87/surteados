@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/api/config.php';
 require_once __DIR__ . '/api/data_helper.php';
 try {
@@ -194,6 +194,14 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'tickets';
       <div class="step-panel" id="step3">
         <h4 class="text-white mb-2">Resumen de compra</h4>
         <div id="cartSummaryList" class="mb-3"></div>
+        <div class="card mb-3 discount-card" style="padding:.75rem 1rem;">
+          <label class="form-label" for="discountCodeInput">Código de descuento</label>
+          <div style="display:flex;gap:.5rem;align-items:center;">
+            <input type="text" class="form-control" id="discountCodeInput" placeholder="Ej: RULETA-A1B2C3" style="text-transform:uppercase;">
+            <button type="button" class="btn btn-ghost btn-sm" id="discountApplyBtn" style="white-space:nowrap;">Aplicar</button>
+          </div>
+          <p class="form-hint" id="discountFeedback" style="margin-top:.45rem;display:none;"></p>
+        </div>
         <div class="card mb-3" style="padding:.75rem 1rem;">
           <div class="flex-between">
             <span class="font-bold text-white">Total a pagar:</span>
