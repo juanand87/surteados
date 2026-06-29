@@ -173,10 +173,30 @@ function isHomePageForWheel() {
   return page === '' || page === 'index.php' || page === 'index.html';
 }
 
+const WHEEL_PALETTE = [
+  ['#ec4899', '#be185d'],
+  ['#06b6d4', '#0e7490'],
+  ['#f59e0b', '#b45309'],
+  ['#22c55e', '#15803d'],
+  ['#8b5cf6', '#6d28d9'],
+  ['#ef4444', '#b91c1c'],
+];
+
+function wheelPrizeColors(prize, index) {
+  const fallback = WHEEL_PALETTE[index % WHEEL_PALETTE.length];
+  const usesDefault = !prize.color1 || prize.color1 === '#7c3aed';
+  return usesDefault ? fallback : [prize.color1, prize.color2 || fallback[1]];
+}
+
 function wheelSliceBackground(prizes) {
   if (!prizes.length) return '';
   const step = 360 / prizes.length;
-  return prizes.map((p, i) => `${p.color1 || '#7c3aed'} ${i * step}deg ${(i + 1) * step}deg`).join(', ');
+  return prizes.map((p, i) => {
+    const [startColor, endColor] = wheelPrizeColors(p, i);
+    const from = i * step;
+    const to = (i + 1) * step;
+    return `${startColor} ${from}deg ${from + step * 0.52}deg, ${endColor} ${from + step * 0.52}deg ${to}deg`;
+  }).join(', ');
 }
 
 function wheelLabelsHtml(prizes) {
@@ -184,7 +204,8 @@ function wheelLabelsHtml(prizes) {
   const step = 360 / prizes.length;
   return prizes.map((p, i) => {
     const angle = i * step + step / 2;
-    return `<div class="wheel-label" style="transform:rotate(${angle}deg) translate(18%, -50%) rotate(90deg);">${escHtml(p.title)}</div>`;
+    const title = escHtml(String(p.title || '').replace(/\s+/g, ' ').trim());
+    return `<div class="wheel-label" style="transform:rotate(${angle}deg) translate(78%, -50%) rotate(${-angle}deg);"><span>${title}</span></div>`;
   }).join('');
 }
 
@@ -228,6 +249,7 @@ async function initWelcomeWheel() {
     const closeGate = () => { localStorage.setItem('surteados_wheel_dismissed', '1'); gate.remove(); };
     gate.querySelector('#wheelNoBtn')?.addEventListener('click', closeGate);
     gate.querySelector('#wheelYesBtn')?.addEventListener('click', () => {
+      gate.querySelector('.wheel-gate-card')?.classList.add('is-playing');
       gate.querySelector('.wheel-gate-intro').style.display = 'none';
       gate.querySelector('#wheelPlay').style.display = 'flex';
     });
