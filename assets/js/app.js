@@ -191,21 +191,23 @@ function wheelPrizeColors(prize, index) {
 function wheelSliceBackground(prizes) {
   if (!prizes.length) return '';
   const step = 360 / prizes.length;
-  return prizes.map((p, i) => {
+  const offset = step / -2;
+  const slices = prizes.map((p, i) => {
     const [startColor, endColor] = wheelPrizeColors(p, i);
     const from = i * step;
     const to = (i + 1) * step;
     return `${startColor} ${from}deg ${from + step * 0.52}deg, ${endColor} ${from + step * 0.52}deg ${to}deg`;
   }).join(', ');
+  return `from ${offset}deg, ${slices}`;
 }
 
 function wheelLabelsHtml(prizes) {
   if (!prizes.length) return '';
   const step = 360 / prizes.length;
   return prizes.map((p, i) => {
-    const angle = i * step + step / 2;
+    const angle = i * step;
     const title = escHtml(String(p.title || '').replace(/\s+/g, ' ').trim());
-    return `<div class="wheel-label" style="transform:rotate(${angle}deg) translate(78%, -50%) rotate(${-angle}deg);"><span>${title}</span></div>`;
+    return `<div class="wheel-label" style="--label-angle:${angle}deg;"><span>${title}</span></div>`;
   }).join('');
 }
 
@@ -234,7 +236,8 @@ async function initWelcomeWheel() {
         <div class="wheel-gate-play" id="wheelPlay" style="display:none;">
           <div class="wheel-stage">
             <div class="wheel-pointer"></div>
-            <div class="wheel-disc" id="wheelDisc" style="background:conic-gradient(${wheelSliceBackground(prizes)});">${wheelLabelsHtml(prizes)}</div>
+            <div class="wheel-disc" id="wheelDisc" style="background:conic-gradient(${wheelSliceBackground(prizes)});"></div>
+            <div class="wheel-labels" id="wheelLabels">${wheelLabelsHtml(prizes)}</div>
           </div>
           <div class="wheel-email-box" id="wheelEmailBox">
             <input type="email" class="form-control" id="wheelEmailInput" placeholder="tu@correo.com">
@@ -262,11 +265,17 @@ async function initWelcomeWheel() {
       btn.disabled = true;
       btn.textContent = 'Girando...';
       const disc = gate.querySelector('#wheelDisc');
+      const labels = gate.querySelector('#wheelLabels');
       const waitingTarget = 360 * 24 + Math.floor(Math.random() * 360);
       if (disc) {
         disc.classList.add('is-spinning');
         disc.style.transition = 'transform 18s cubic-bezier(.08,.72,.18,1)';
         disc.style.transform = `rotate(${waitingTarget}deg)`;
+        if (labels) {
+          labels.style.transition = 'transform 18s cubic-bezier(.08,.72,.18,1)';
+          labels.style.transform = `rotate(${waitingTarget}deg)`;
+          labels.style.setProperty('--wheel-rotation', `${waitingTarget}deg`);
+        }
       }
       try {
         const resp = await fetch(appBasePath() + '/api/wheel.php', {
@@ -279,17 +288,22 @@ async function initWelcomeWheel() {
         const prize = json.data.prize;
         const idx = Math.max(0, prizes.findIndex(p => p.id === prize.id));
         const step = 360 / prizes.length;
-        const prizeCenter = idx * step + step / 2;
-        const desiredRotation = (360 - prizeCenter) % 360;
+        const prizeCenter = idx * step;
+        const desiredRotation = prizeCenter % 360;
         const currentRotation = ((waitingTarget % 360) + 360) % 360;
         const finalDelta = (desiredRotation - currentRotation + 360) % 360;
         const target = waitingTarget + 360 * 3 + finalDelta;
         if (disc) {
           disc.style.transition = 'transform 5.2s cubic-bezier(.12,.72,.14,1)';
           disc.style.transform = `rotate(${target}deg)`;
+          if (labels) {
+            labels.style.transition = 'transform 5.2s cubic-bezier(.12,.72,.14,1)';
+            labels.style.transform = `rotate(${target}deg)`;
+            labels.style.setProperty('--wheel-rotation', `${target}deg`);
+          }
         }
         setTimeout(() => {
-          disc?.classList.add('is-finished');
+          disc?.classList.remove('is-spinning');
           gate.querySelector('#wheelEmailBox').style.display = 'none';
           const result = gate.querySelector('#wheelResult');
           result.style.display = 'block';
@@ -300,9 +314,14 @@ async function initWelcomeWheel() {
       } catch (err) {
         showToast(err.message, 'error', 6500);
         if (disc) {
-          disc.classList.remove('is-spinning', 'is-finished');
+          disc.classList.remove('is-spinning');
           disc.style.transition = 'transform .35s ease';
           disc.style.transform = 'rotate(0deg)';
+          if (labels) {
+            labels.style.transition = 'transform .35s ease';
+            labels.style.transform = 'rotate(0deg)';
+            labels.style.setProperty('--wheel-rotation', '0deg');
+          }
         }
         btn.disabled = false;
         btn.textContent = 'Lanzar ruleta';

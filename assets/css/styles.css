@@ -3077,10 +3077,9 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 }
 .wheel-disc::before { content:""; position:absolute; inset:50%; width:2px; height:2px; border-radius:50%; box-shadow:0 -175px 0 2px rgba(255,255,255,.58), 151px -87px 0 2px rgba(255,255,255,.46), 151px 87px 0 2px rgba(255,255,255,.46), 0 175px 0 2px rgba(255,255,255,.48), -151px 87px 0 2px rgba(255,255,255,.46), -151px -87px 0 2px rgba(255,255,255,.46); }
 .wheel-disc::after { content:""; position:absolute; inset:34%; border-radius:50%; background:radial-gradient(circle,#fff 0 11%,#170a3c 12% 62%,rgba(255,255,255,.2) 63% 66%,transparent 67%); box-shadow:0 0 26px rgba(255,255,255,.32); }
-.wheel-label { position:absolute; left:50%; top:50%; width:29%; transform-origin:0 0; color:#fff; font-weight:950; font-size:.74rem; line-height:1.08; text-shadow:0 2px 8px rgba(0,0,0,.58); text-align:center; pointer-events:none; z-index:2; transition:opacity .18s ease; }
-.wheel-label span { display:block; padding:.35rem .45rem; border-radius:999px; background:rgba(12,6,30,.32); backdrop-filter:blur(4px); }
-.wheel-disc.is-spinning .wheel-label { opacity:.95; }
-.wheel-disc.is-finished .wheel-label { opacity:0; }
+.wheel-labels { position:absolute; inset:0; border-radius:50%; pointer-events:none; z-index:3; --wheel-rotation:0deg; }
+.wheel-label { position:absolute; left:50%; top:50%; width:9rem; margin-left:-4.5rem; margin-top:-.9rem; transform-origin:50% 50%; transform:rotate(var(--label-angle)) translateY(-8.8rem) rotate(calc(-1 * var(--label-angle))); color:#fff; font-weight:950; font-size:.72rem; line-height:1.08; text-shadow:0 2px 8px rgba(0,0,0,.58); text-align:center; pointer-events:none; z-index:2; }
+.wheel-label span { display:block; transform:rotate(calc(-1 * var(--wheel-rotation))); padding:.35rem .45rem; border-radius:999px; background:rgba(12,6,30,.42); backdrop-filter:blur(4px); box-shadow:0 8px 20px rgba(0,0,0,.18); }
 .wheel-email-box { width:min(380px, 100%); display:grid; gap:.7rem; }
 .wheel-email-box input { text-align:center; font-weight:850; min-height:46px; border-radius:12px; }
 .wheel-email-box .btn { min-height:46px; border-radius:999px; background:linear-gradient(135deg,#06b6d4,#0891b2); border:0; box-shadow:0 14px 34px rgba(6,182,212,.28); }
@@ -3092,5 +3091,5 @@ textarea.form-control { resize: vertical; min-height: 80px; }
   .wheel-gate-title { max-width:10ch; font-size:clamp(2rem, 12vw, 3.4rem); }
   .wheel-gate-play { min-height:auto; padding-top:1.25rem; }
   .wheel-stage { width:min(330px, 78vw); }
-  .wheel-label { font-size:.64rem; width:34%; }
+  .wheel-label { width:7.6rem; margin-left:-3.8rem; margin-top:-.8rem; font-size:.62rem; transform:rotate(var(--label-angle)) translateY(-7rem) rotate(calc(-1 * var(--label-angle))); }
 }
