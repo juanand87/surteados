@@ -196,7 +196,7 @@ function wheelSliceBackground(prizes) {
     const [startColor, endColor] = wheelPrizeColors(p, i);
     const from = i * step;
     const to = (i + 1) * step;
-    return `${startColor} ${from}deg ${from + step * 0.52}deg, ${endColor} ${from + step * 0.52}deg ${to}deg`;
+    return `${startColor} ${from}deg ${to}deg`;
   }).join(', ');
   return `from ${offset}deg, ${slices}`;
 }
