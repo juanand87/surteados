@@ -261,6 +261,12 @@ async function initWelcomeWheel() {
       if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { showToast('Ingresa un correo válido', 'warning'); return; }
       btn.disabled = true;
       btn.textContent = 'Girando...';
+      const disc = gate.querySelector('#wheelDisc');
+      const waitingTarget = 360 * 24 + Math.floor(Math.random() * 360);
+      if (disc) {
+        disc.style.transition = 'transform 18s cubic-bezier(.08,.72,.18,1)';
+        disc.style.transform = `rotate(${waitingTarget}deg)`;
+      }
       try {
         const resp = await fetch(appBasePath() + '/api/wheel.php', {
           method: 'POST',
@@ -272,9 +278,11 @@ async function initWelcomeWheel() {
         const prize = json.data.prize;
         const idx = Math.max(0, prizes.findIndex(p => p.id === prize.id));
         const step = 360 / prizes.length;
-        const target = 360 * 6 + (360 - (idx * step + step / 2));
-        const disc = gate.querySelector('#wheelDisc');
-        disc.style.transform = `rotate(${target}deg)`;
+        const target = waitingTarget + 360 * 3 + (360 - (idx * step + step / 2));
+        if (disc) {
+          disc.style.transition = 'transform 5.2s cubic-bezier(.12,.72,.14,1)';
+          disc.style.transform = `rotate(${target}deg)`;
+        }
         setTimeout(() => {
           gate.querySelector('#wheelEmailBox').style.display = 'none';
           const result = gate.querySelector('#wheelResult');
@@ -285,6 +293,10 @@ async function initWelcomeWheel() {
         }, 5400);
       } catch (err) {
         showToast(err.message, 'error', 6500);
+        if (disc) {
+          disc.style.transition = 'transform .35s ease';
+          disc.style.transform = 'rotate(0deg)';
+        }
         btn.disabled = false;
         btn.textContent = 'Lanzar ruleta';
       }
