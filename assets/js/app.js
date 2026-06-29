@@ -225,12 +225,40 @@ async function initWelcomeWheel() {
     gate.innerHTML = `
       <div class="wheel-gate-card">
         <div class="wheel-gate-intro">
-          <div class="wheel-gate-kicker">Bienvenida Surteados</div>
-          <h2 class="wheel-gate-title">¿Quieres participar por descuentos y premios?</h2>
-          <p class="wheel-gate-text">Ingresa tu correo, gira la ruleta y descubre tu premio de bienvenida. Si ganas un descuento, el código llegará a tu correo y podrás usarlo una sola vez en tu compra.</p>
-          <div class="wheel-gate-actions">
-            <button class="btn btn-primary" id="wheelYesBtn">Sí, girar ruleta</button>
-            <button class="btn btn-ghost" id="wheelNoBtn">No, entrar al sitio</button>
+          <div class="wheel-gate-copy">
+            <div class="wheel-gate-kicker"><span class="wheel-kicker-icon">&#127873;</span> Bienvenida Surteados</div>
+            <h2 class="wheel-gate-title">&iquest;Quieres participar por <span>descuentos</span> y premios?</h2>
+            <p class="wheel-gate-text"><strong>Ingresa tu correo, gira la ruleta y descubre tu premio de bienvenida.</strong> Si ganas un descuento, recibir&aacute;s inmediatamente un c&oacute;digo para utilizar en tu primera compra.</p>
+            <div class="wheel-capture-field">
+              <span>&#9993;</span>
+              <input type="email" id="wheelIntroEmail" placeholder="Ingresa tu correo electr&oacute;nico" autocomplete="email">
+            </div>
+            <div class="wheel-gate-actions">
+              <button class="btn btn-primary" id="wheelYesBtn"><span>&#8635;</span> S&iacute;, girar ruleta</button>
+              <button class="btn btn-ghost" id="wheelNoBtn">No, entrar al sitio</button>
+            </div>
+          </div>
+          <div class="wheel-benefits">
+            <div class="wheel-benefit"><span>&#9733;</span><strong>Premios exclusivos</strong><small>S&oacute;lo para nuevos suscriptores</small></div>
+            <div class="wheel-benefit"><span>&#127991;</span><strong>Descuentos reales</strong><small>Canj&eacute;alos en tu primera compra</small></div>
+            <div class="wheel-benefit"><span>&#9993;</span><strong>Entrega inmediata</strong><small>Recibe tu c&oacute;digo al instante</small></div>
+          </div>
+          <div class="wheel-trust"><span>&#10003; 100% seguro</span><span>&bull;</span><span>&#10003; Sin spam</span><span>&bull;</span><span>&#10003; Puedes cancelar cuando quieras</span></div>
+        </div>
+        <div class="wheel-hero-visual" aria-hidden="true">
+          <div class="wheel-dot-pattern"></div>
+          <div class="wheel-preview-shadow"></div>
+          <div class="wheel-preview">
+            <div class="wheel-preview-pin"></div>
+            <div class="wheel-preview-disc">
+              <div class="wheel-preview-seg seg-a"><strong>20%</strong><span>DESCUENTO</span><em>&#127991;</em></div>
+              <div class="wheel-preview-seg seg-b"><strong>ENV&Iacute;O</strong><span>GRATIS</span><em>&#128666;</em></div>
+              <div class="wheel-preview-seg seg-c"><strong>15%</strong><span>DESCUENTO</span><em>&#127991;</em></div>
+              <div class="wheel-preview-seg seg-d"><strong>5%</strong><span>DESCUENTO</span><em>&#127991;</em></div>
+              <div class="wheel-preview-seg seg-e"><strong>PREMIO</strong><span>SORPRESA</span><em>&#127873;</em></div>
+              <div class="wheel-preview-seg seg-f"><strong>10%</strong><span>DESCUENTO</span><em>&#127991;</em></div>
+              <div class="wheel-preview-center">&iexcl;GIRA!</div>
+            </div>
           </div>
         </div>
         <div class="wheel-gate-play" id="wheelPlay" style="display:none;">
@@ -252,9 +280,15 @@ async function initWelcomeWheel() {
     const closeGate = () => { localStorage.setItem('surteados_wheel_dismissed', '1'); gate.remove(); };
     gate.querySelector('#wheelNoBtn')?.addEventListener('click', closeGate);
     gate.querySelector('#wheelYesBtn')?.addEventListener('click', () => {
+      const introEmail = gate.querySelector('#wheelIntroEmail')?.value?.trim() || '';
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(introEmail)) { showToast('Ingresa un correo valido', 'warning'); return; }
+      const playEmail = gate.querySelector('#wheelEmailInput');
+      if (playEmail) playEmail.value = introEmail;
       gate.querySelector('.wheel-gate-card')?.classList.add('is-playing');
       gate.querySelector('.wheel-gate-intro').style.display = 'none';
+      gate.querySelector('.wheel-hero-visual').style.display = 'none';
       gate.querySelector('#wheelPlay').style.display = 'flex';
+      setTimeout(() => gate.querySelector('#wheelSpinBtn')?.click(), 80);
     });
 
     gate.querySelector('#wheelSpinBtn')?.addEventListener('click', async () => {
