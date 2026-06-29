@@ -239,9 +239,9 @@ async function initWelcomeWheel() {
             </div>
           </div>
           <div class="wheel-benefits">
-            <div class="wheel-benefit"><span>&#9733;</span><strong>Premios exclusivos</strong><small>S&oacute;lo para nuevos suscriptores</small></div>
-            <div class="wheel-benefit"><span>&#127991;</span><strong>Descuentos reales</strong><small>Canj&eacute;alos en tu primera compra</small></div>
-            <div class="wheel-benefit"><span>&#9993;</span><strong>Entrega inmediata</strong><small>Recibe tu c&oacute;digo al instante</small></div>
+            <div class="wheel-benefit"><span>&#9733;</span><strong>Premios exclusivos</strong></div>
+            <div class="wheel-benefit"><span>&#127991;</span><strong>Descuentos reales</strong></div>
+            <div class="wheel-benefit"><span>&#9993;</span><strong>Entrega inmediata</strong></div>
           </div>
           <div class="wheel-trust"><span>&#10003; 100% seguro</span><span>&bull;</span><span>&#10003; Sin spam</span><span>&bull;</span><span>&#10003; Puedes cancelar cuando quieras</span></div>
         </div>
