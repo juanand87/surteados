@@ -289,6 +289,7 @@ async function initWelcomeWheel() {
           disc.style.transform = `rotate(${target}deg)`;
         }
         setTimeout(() => {
+          disc?.classList.add('is-finished');
           gate.querySelector('#wheelEmailBox').style.display = 'none';
           const result = gate.querySelector('#wheelResult');
           result.style.display = 'block';
@@ -299,7 +300,7 @@ async function initWelcomeWheel() {
       } catch (err) {
         showToast(err.message, 'error', 6500);
         if (disc) {
-          disc.classList.remove('is-spinning');
+          disc.classList.remove('is-spinning', 'is-finished');
           disc.style.transition = 'transform .35s ease';
           disc.style.transform = 'rotate(0deg)';
         }
