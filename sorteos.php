@@ -197,7 +197,7 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'tickets';
         <div class="card mb-3 discount-card" style="padding:.75rem 1rem;">
           <label class="form-label" for="discountCodeInput">Código de descuento</label>
           <div style="display:flex;gap:.5rem;align-items:center;">
-            <input type="text" class="form-control" id="discountCodeInput" placeholder="Ej: RULETA-A1B2C3" style="text-transform:uppercase;">
+            <input type="text" class="form-control" id="discountCodeInput" placeholder="Ej: A7K9P2QX" autocomplete="one-time-code" style="text-transform:uppercase;">
             <button type="button" class="btn btn-ghost btn-sm" id="discountApplyBtn" style="white-space:nowrap;">Aplicar</button>
           </div>
           <p class="form-hint" id="discountFeedback" style="margin-top:.45rem;display:none;"></p>
@@ -221,9 +221,6 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'tickets';
           <button class="btn btn-ghost" id="step3Back">← Volver</button>
           <button class="btn btn-accent" style="flex:1; font-weight:800; font-size:1rem;" id="step3Pay">🔒 Pagar Ahora</button>
         </div>
-        <button id="step3SimulateBtn" style="width:100%;margin-top:.55rem;padding:.5rem;background:rgba(255,200,0,.1);border:1px dashed rgba(255,200,0,.4);border-radius:.6rem;color:#f5c842;font-size:.78rem;cursor:pointer;">
-          ⚡ Simular pago exitoso (sólo demo)
-        </button>
         <p class="text-xs text-muted text-center mt-1">Transacción segura y encriptada</p>
       </div>
       <div class="step-panel" id="step4">

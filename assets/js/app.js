@@ -1283,6 +1283,13 @@ async function applyDiscountCode() {
 
   // Step 3 → back
   document.getElementById('step3Back')?.addEventListener('click', () => updatePurchaseStep(2));
+  document.getElementById('discountApplyBtn')?.addEventListener('click', applyDiscountCode);
+  document.getElementById('discountCodeInput')?.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      applyDiscountCode();
+    }
+  });
 
   function resetFlowPayButton() {
     const payBtn = document.getElementById('step3Pay');

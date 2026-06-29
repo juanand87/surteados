@@ -146,15 +146,20 @@ function surteados_wheel_pick_prize(array $prizes): array
 
 function surteados_generate_discount_code(PDO $pdo, string $prefix = 'RULETA'): string
 {
-    $prefix = strtoupper(preg_replace('/[^A-Z0-9]/i', '', $prefix));
-    if ($prefix === '') $prefix = 'RULETA';
-    $prefix = substr($prefix, 0, 12);
-    for ($i = 0; $i < 20; $i++) {
-        $code = $prefix . '-' . strtoupper(bin2hex(random_bytes(3)));
+    $alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    $length = 8;
+
+    for ($i = 0; $i < 50; $i++) {
+        $code = '';
+        for ($j = 0; $j < $length; $j++) {
+            $code .= $alphabet[random_int(0, strlen($alphabet) - 1)];
+        }
+
         $stmt = $pdo->prepare('SELECT 1 FROM discount_codes WHERE code = ? LIMIT 1');
         $stmt->execute([$code]);
         if (!$stmt->fetchColumn()) return $code;
     }
+
     throw new RuntimeException('No se pudo generar un código único.');
 }
 

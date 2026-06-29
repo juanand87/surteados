@@ -778,7 +778,7 @@ $homeCarouselRaffles = array_values(array_filter($allData['raffles'] ?? [], func
         <div class="card mb-3 discount-card" style="padding:.75rem 1rem;">
           <label class="form-label" for="discountCodeInput">Código de descuento</label>
           <div style="display:flex;gap:.5rem;align-items:center;">
-            <input type="text" class="form-control" id="discountCodeInput" placeholder="Ej: RULETA-A1B2C3" style="text-transform:uppercase;">
+            <input type="text" class="form-control" id="discountCodeInput" placeholder="Ej: A7K9P2QX" autocomplete="one-time-code" style="text-transform:uppercase;">
             <button type="button" class="btn btn-ghost btn-sm" id="discountApplyBtn" style="white-space:nowrap;">Aplicar</button>
           </div>
           <p class="form-hint" id="discountFeedback" style="margin-top:.45rem;display:none;"></p>
