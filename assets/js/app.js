@@ -289,7 +289,7 @@ async function initWelcomeWheel() {
         const idx = Math.max(0, prizes.findIndex(p => p.id === prize.id));
         const step = 360 / prizes.length;
         const prizeCenter = idx * step;
-        const desiredRotation = prizeCenter % 360;
+        const desiredRotation = (360 - prizeCenter) % 360;
         const currentRotation = ((waitingTarget % 360) + 360) % 360;
         const finalDelta = (desiredRotation - currentRotation + 360) % 360;
         const target = waitingTarget + 360 * 3 + finalDelta;
