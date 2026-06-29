@@ -264,6 +264,7 @@ async function initWelcomeWheel() {
       const disc = gate.querySelector('#wheelDisc');
       const waitingTarget = 360 * 24 + Math.floor(Math.random() * 360);
       if (disc) {
+        disc.classList.add('is-spinning');
         disc.style.transition = 'transform 18s cubic-bezier(.08,.72,.18,1)';
         disc.style.transform = `rotate(${waitingTarget}deg)`;
       }
@@ -278,7 +279,11 @@ async function initWelcomeWheel() {
         const prize = json.data.prize;
         const idx = Math.max(0, prizes.findIndex(p => p.id === prize.id));
         const step = 360 / prizes.length;
-        const target = waitingTarget + 360 * 3 + (360 - (idx * step + step / 2));
+        const prizeCenter = idx * step + step / 2;
+        const desiredRotation = (360 - prizeCenter) % 360;
+        const currentRotation = ((waitingTarget % 360) + 360) % 360;
+        const finalDelta = (desiredRotation - currentRotation + 360) % 360;
+        const target = waitingTarget + 360 * 3 + finalDelta;
         if (disc) {
           disc.style.transition = 'transform 5.2s cubic-bezier(.12,.72,.14,1)';
           disc.style.transform = `rotate(${target}deg)`;
@@ -294,6 +299,7 @@ async function initWelcomeWheel() {
       } catch (err) {
         showToast(err.message, 'error', 6500);
         if (disc) {
+          disc.classList.remove('is-spinning');
           disc.style.transition = 'transform .35s ease';
           disc.style.transform = 'rotate(0deg)';
         }
