@@ -3008,6 +3008,9 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 }
 .slide-preview-actions {
   display: flex;
+  gap: .45rem;
+  align-items: center;
+}
 
 /* Welcome wheel */
 .wheel-gate {

@@ -189,8 +189,8 @@ function wheelLabelsHtml(prizes) {
 }
 
 async function initWelcomeWheel() {
-  if (!isHomePageForWheel()) return;
   const forceWheel = new URLSearchParams(window.location.search).has('ruleta');
+  if (!forceWheel && !isHomePageForWheel()) return;
   if (!forceWheel && localStorage.getItem('surteados_wheel_dismissed') === '1') return;
   try {
     const resp = await fetch(appBasePath() + '/api/wheel.php', { credentials: 'same-origin' });
