@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/api/config.php';
 require_once __DIR__ . '/api/data_helper.php';
 header('Content-Type: text/html; charset=UTF-8');
@@ -12,8 +12,8 @@ $initData = json_encode($allData, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_H
 $cfg      = $allData['settings'] ?? [];
 $theme    = $cfg['theme'] ?? [];
 $siteLogo = $cfg['logo'] ?? null;
-$ticketLabel  = $cfg['ticketLabel']       ?? 'ticket';
-$ticketLabelP = $cfg['ticketLabelPlural'] ?? 'tickets';
+$ticketLabel  = $cfg['ticketLabel']       ?? 'imagen';
+$ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
 ?><!DOCTYPE html>
 <html lang="es">
 <head>
@@ -192,7 +192,7 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'tickets';
 
         <details class="faq-item">
           <summary>¿Es legal participar en los sorteos de Surteados?</summary>
-          <p>Sí. Todos nuestros sorteos están declarados ante notario y cumplen con la normativa chilena vigente para concursos y rifas. Publicamos las bases legales de cada sorteo antes del inicio de la venta.</p>
+          <p>Sí. Todos nuestros sorteos están declarados ante notario y cumplen con la normativa chilena vigente para concursos y sorteos. Publicamos las bases legales de cada sorteo antes del inicio de la venta.</p>
         </details>
 
         <details class="faq-item">
@@ -217,7 +217,7 @@ $ticketLabelP = $cfg['ticketLabelPlural'] ?? 'tickets';
 
         <details class="faq-item">
           <summary>¿Puedo pedir un reembolso si me arrepiento?</summary>
-          <p>Una vez emitido el <?= htmlspecialchars($ticketLabel) ?> y asignado el número, no es posible hacer devoluciones, ya que el cupo queda reservado a tu nombre. Te recomendamos leer las bases legales antes de comprar.</p>
+          <p>Una vez emitida la imagen numerada y asignado el número, no es posible hacer devoluciones, ya que el cupo queda reservado a tu nombre. Te recomendamos leer las bases legales antes de comprar.</p>
         </details>
 
         <details class="faq-item">

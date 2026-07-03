@@ -11,8 +11,8 @@ $initData = json_encode($allData, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_H
 $cfg      = $allData['settings'] ?? [];
 $theme    = $cfg['theme'] ?? [];
 $siteLogo = $cfg['logo'] ?? null;
-$ticketLabel  = $cfg['ticketLabel']       ?? 'ticket';
-$ticketLabelP = $cfg['ticketLabelPlural'] ?? 'tickets';
+$ticketLabel  = $cfg['ticketLabel']       ?? 'imagen';
+$ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
 $comingSoonLogo = $siteLogo ?: 'https://surteados.cl/assets/uploads/logo_e277c8485f11615e.png';
 $developmentAccessPassword = 'surteados';
 if (!empty($cfg['developmentMode']) && isset($pdo)) {
@@ -53,7 +53,7 @@ if (!empty($cfg['developmentMode']) && !$devAccessGranted):
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Surteados - Próximamente</title>
+  <title>Surteados — Sorteos online con imágenes numeradas</title>
   <meta name="robots" content="noindex, nofollow">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&display=swap" rel="stylesheet">
@@ -190,7 +190,7 @@ if (!empty($cfg['developmentMode']) && !$devAccessGranted):
   <main class="soon" aria-label="Sitio en desarrollo">
     <img class="soon-logo" src="<?= htmlspecialchars($comingSoonLogo) ?>" alt="Surteados">
     <h1>Próximamente</h1>
-    <p>Estamos preparando una nueva experiencia de sorteos digitales. Muy pronto podrás participar, elegir tus imágenes y quizás ser el próximo ganador.</p>
+    <p>Estamos preparando una nueva experiencia de sorteos online. Muy pronto podrás comprar imágenes numeradas y participar por premios reales.</p>
     <div class="soon-line" aria-hidden="true"></div>
   </main>
   <div class="dev-access<?= $devAccessError ? ' open' : '' ?>" id="devAccess">
@@ -250,8 +250,8 @@ $homeCarouselRaffles = array_values(array_filter($allData['raffles'] ?? [], func
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Surteados — Rifas digitales confiables</title>
-  <meta name="description" content="La plataforma chilena de rifas digitales más transparente y segura. Compra tu <?= htmlspecialchars($ticketLabel) ?>, recíbelo al instante y participa del sorteo en vivo.">
+  <title>Surteados — Sorteos online con imágenes numeradas</title>
+  <meta name="description" content="Surteados es una plataforma chilena de sorteos online donde compras imágenes numeradas para participar por premios reales. Recibe tu comprobante al instante y sigue cada sorteo de forma transparente.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/styles.css?v=<?= (int)@filemtime(__DIR__ . '/assets/css/styles.css') ?>">
@@ -497,8 +497,8 @@ $homeCarouselRaffles = array_values(array_filter($allData['raffles'] ?? [], func
         <span class="dot"></span>
         3 sorteos activos ahora mismo
       </div>
-      <h1>Gana premios <span class="text-gradient">increíbles</span> con tu <?= htmlspecialchars($ticketLabel) ?> digital</h1>
-      <p>Compra tu <?= htmlspecialchars($ticketLabel) ?> en segundos, recíbelo al instante en tu correo y participa del sorteo en vivo. 100% transparente y notariado.</p>
+      <h1>Participa por premios <span class="text-gradient">reales</span> con imágenes numeradas</h1>
+      <p>Compra imágenes numeradas en segundos, recibe tu comprobante al instante en tu correo y participa en sorteos online transparentes.</p>
       <div class="hero-actions">
         <a href="sorteos.php" class="btn btn-primary btn-lg">🎟️ Ver Sorteos Activos</a>
         <a href="ganadores.php" class="btn btn-outline btn-lg">Ver Ganadores</a>
@@ -520,7 +520,7 @@ $homeCarouselRaffles = array_values(array_filter($allData['raffles'] ?? [], func
   <div class="trust-band-inner" id="trustBand">
     <div class="trust-item"><span class="icon">✅</span> Sorteos Notariados</div>
     <div class="trust-item"><span class="icon">🔒</span> Pago 100% Seguro</div>
-      <div class="trust-item"><span class="icon">⚡</span> <?= htmlspecialchars(ucfirst($ticketLabel)) ?> al Instante</div>
+      <div class="trust-item"><span class="icon">⚡</span> Imagen numerada al instante</div>
     <div class="trust-item"><span class="icon">📺</span> Sorteo en Vivo</div>
     <div class="trust-item"><span class="icon">🏆</span> Premio Garantizado</div>
     <div class="trust-item"><span class="icon">🇨🇱</span> Empresa Chilena</div>
@@ -529,7 +529,7 @@ $homeCarouselRaffles = array_values(array_filter($allData['raffles'] ?? [], func
     <!-- Duplicate for infinite scroll -->
     <div class="trust-item"><span class="icon">✅</span> Sorteos Notariados</div>
     <div class="trust-item"><span class="icon">🔒</span> Pago 100% Seguro</div>
-      <div class="trust-item"><span class="icon">⚡</span> <?= htmlspecialchars(ucfirst($ticketLabel)) ?> al Instante</div>
+      <div class="trust-item"><span class="icon">⚡</span> Imagen numerada al instante</div>
     <div class="trust-item"><span class="icon">📺</span> Sorteo en Vivo</div>
     <div class="trust-item"><span class="icon">🏆</span> Premio Garantizado</div>
     <div class="trust-item"><span class="icon">🇨🇱</span> Empresa Chilena</div>
@@ -543,7 +543,7 @@ $homeCarouselRaffles = array_values(array_filter($allData['raffles'] ?? [], func
   <div class="section-header">
     <div class="badge">🎟️ Sorteos</div>
     <h2>Sorteos <span class="text-gradient">Activos</span></h2>
-    <p>Elige el sorteo que más te guste y consigue tu <?= htmlspecialchars($ticketLabel) ?> antes que se agoten.</p>
+    <p>Elige el sorteo que más te guste y consigue tus imágenes numeradas antes que se agoten.</p>
   </div>
 
   <div class="tab-filters">
@@ -585,8 +585,8 @@ $homeCarouselRaffles = array_values(array_filter($allData['raffles'] ?? [], func
     <div class="benefit-item">
       <div class="benefit-icon">⚡</div>
       <div>
-        <h4><?= htmlspecialchars(ucfirst($ticketLabel)) ?> Digital Inmediato</h4>
-        <p>Recibe tu <?= htmlspecialchars($ticketLabel) ?> al instante por correo electrónico con número asignado al azar.</p>
+        <h4>Imagen numerada inmediata</h4>
+        <p>Recibe tu imagen numerada al instante por correo electrónico, con número asignado al azar.</p>
       </div>
     </div>
     <div class="benefit-item">
@@ -600,7 +600,7 @@ $homeCarouselRaffles = array_values(array_filter($allData['raffles'] ?? [], func
       <div class="benefit-icon">🎁</div>
       <div>
         <h4>Premio Garantizado</h4>
-        <p>El premio se entrega sin importar la cantidad de <?= htmlspecialchars($ticketLabelP) ?> vendidos. Siempre hay un ganador.</p>
+        <p>El premio se entrega sin importar la cantidad de imágenes numeradas vendidas. Siempre hay un ganador.</p>
       </div>
     </div>
     <div class="benefit-item">
@@ -635,7 +635,7 @@ $homeCarouselRaffles = array_values(array_filter($allData['raffles'] ?? [], func
   <div class="cta-banner">
     <div class="badge" style="margin: 0 auto 1rem;">🎟️ Participa Ahora</div>
     <h2>¿Listo para ganar?</h2>
-    <p>Únete a miles de participantes. Tu próximo premio puede estar a un <?= htmlspecialchars($ticketLabel) ?> de distancia.</p>
+    <p>Únete a miles de participantes. Tu próximo premio puede estar a una imagen numerada de distancia.</p>
     <a href="sorteos.php" class="btn btn-accent btn-lg">🎟️ Ver Sorteos Disponibles</a>
   </div>
 </section>

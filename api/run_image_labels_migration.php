@@ -11,7 +11,8 @@ try {
     );
     $stmt->execute(['ticket_label', 'imagen']);
     $stmt->execute(['ticket_label_plural', 'imagenes']);
-    echo "OK: etiquetas actualizadas a imagen/imagenes" . PHP_EOL;
+    $stmt->execute(['site_tagline', 'Sorteos online con imágenes numeradas para participar por premios reales']);
+    echo "OK: etiquetas y mensaje del sitio actualizados" . PHP_EOL;
 } catch (Throwable $e) {
     echo "ERROR: " . $e->getMessage() . PHP_EOL;
     exit(1);

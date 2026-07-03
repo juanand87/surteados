@@ -164,7 +164,7 @@ const SEED = {
 
   settings: {
     siteName: 'Surteados',
-    tagline: 'Tu plataforma de rifas digitales más confiable',
+    tagline: 'Sorteos online con imágenes numeradas para participar por premios reales',
     email: 'contacto@surteados.cl',
     whatsapp: '+56912345678',
     theme: {

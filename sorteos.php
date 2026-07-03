@@ -11,8 +11,8 @@ $initData = json_encode($allData, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_H
 $cfg      = $allData['settings'] ?? [];
 $theme    = $cfg['theme'] ?? [];
 $siteLogo = $cfg['logo'] ?? null;
-$ticketLabel  = $cfg['ticketLabel']       ?? 'ticket';
-$ticketLabelP = $cfg['ticketLabelPlural'] ?? 'tickets';
+$ticketLabel  = $cfg['ticketLabel']       ?? 'imagen';
+$ticketLabelP = $cfg['ticketLabelPlural'] ?? 'imagenes';
 ?><!DOCTYPE html>
 <html lang="es">
 <head>

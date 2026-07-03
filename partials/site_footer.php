@@ -51,7 +51,7 @@ $footerWhatsappUrl = $footerWhatsappDigits ? 'https://wa.me/' . $footerWhatsappD
             <span class="brand">Sur<em>tea</em>dos</span>
           <?php endif; ?>
         </a>
-        <p>Plataforma chilena, sorteo de imagenes digitales, seguros y transparentes. Premios reales con procesos claros y auditables. Bases ante notario.</p>
+        <p>Surteados es una plataforma chilena de sorteos online donde compras imágenes numeradas para participar por premios reales. Recibe tu comprobante al instante y sigue cada sorteo de forma transparente.</p>
         <?php if ($footerSocialLinks): ?>
         <div class="social-links" style="margin-top:1rem;" aria-label="Redes sociales">
           <?php if (!empty($footerSocialLinks['instagram'])): ?>

@@ -303,7 +303,7 @@ CREATE TABLE tombola_audits (
 INSERT INTO settings (`key`, `value`) VALUES
   -- Site
   ('site_name',          'Surteados'),
-  ('site_tagline',       'Tu plataforma de rifas digitales más confiable'),
+  ('site_tagline',       'Sorteos online con imágenes numeradas para participar por premios reales'),
   ('site_email',         'contacto@surteados.cl'),
   ('site_whatsapp',      '+56912345678'),
   ('site_url',           'http://localhost/surteados'),

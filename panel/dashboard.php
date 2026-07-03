@@ -326,10 +326,10 @@ $apiBase   = '../api';
             <input type="url" class="form-control" name="site_url" placeholder="https://tusitio.cl">
           </div>
           <h4 style="margin:1.25rem 0 .5rem; font-size:.95rem;">🏷️ Nomenclatura</h4>
-          <p class="form-hint mb-2">Define cómo se llama el elemento que el participante recibe. Usa minúsculas. Ej: <em>ticket</em>, <em>código</em>, <em>número</em>.</p>
+          <p class="form-hint mb-2">Define cómo se llama el elemento que el participante recibe. Usa minúsculas. Ej: <em>imagen</em>, <em>imágenes</em>, <em>número</em>.</p>
           <div class="form-row">
-            <div class="form-group"><label class="form-label">Nombre singular</label><input type="text" class="form-control" name="ticket_label" placeholder="ticket"></div>
-            <div class="form-group"><label class="form-label">Nombre plural</label><input type="text" class="form-control" name="ticket_label_plural" placeholder="tickets"></div>
+            <div class="form-group"><label class="form-label">Nombre singular</label><input type="text" class="form-control" name="ticket_label" placeholder="imagen"></div>
+            <div class="form-group"><label class="form-label">Nombre plural</label><input type="text" class="form-control" name="ticket_label_plural" placeholder="imagenes"></div>
           </div>
           <h4 style="margin:1.25rem 0 .5rem; font-size:.95rem;">Redes Sociales</h4>
           <div class="form-row">
